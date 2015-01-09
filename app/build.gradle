@@ -1,11 +1,12 @@
 apply plugin: 'com.android.application'
+apply plugin: "android-scala"
 
 android {
     compileSdkVersion 21
     buildToolsVersion "21.1.2"
 
     defaultConfig {
-        applicationId "ledger.co.ledgerwallet"
+        applicationId "com.ledger.ledgerwallet"
         minSdkVersion 9
         targetSdkVersion 21
         versionCode 1
@@ -22,4 +23,6 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:21.0.3'
+    compile "org.scala-lang:scala-library:2.11.2"
+    compile 'com.android.support:support-v4:21.0.+'
 }
