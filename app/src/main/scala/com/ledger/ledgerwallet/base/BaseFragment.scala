@@ -28,19 +28,22 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.app
 
-import android.os.Bundle
-import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.base.BaseActivity
-import com.ledger.ledgerwallet.utils.logs.Logger
+package com.ledger.ledgerwallet.base
 
-class PairedDonglesActivity extends BaseActivity {
+import android.support.v4.app.{FragmentActivity, Fragment}
+import com.ledger.ledgerwallet.utils.logs.Loggable
 
-  override def onCreate(savedInstanceState: Bundle): Unit = {
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.paired_dongles_activity)
-    Logger.d("Hello from scala !")
-  }
+class BaseFragment extends Fragment with Loggable {
+
+  implicit val fragment = this
+  implicit lazy val context: BaseActivity = getBaseActivity
+
+  def findView[T](id: Int) = getView.findViewById(id).asInstanceOf[T]
+
+  def getBaseActivity[T <: BaseActivity] = getActivity.asInstanceOf[T]
+
+  implicit def FragmentToContext(f: Fragment) = f.getActivity
+  implicit def FragmentActivityToBaseActivity(activity: FragmentActivity) = activity.asInstanceOf[BaseActivity]
 
 }
