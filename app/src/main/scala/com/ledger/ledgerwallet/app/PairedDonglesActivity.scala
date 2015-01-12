@@ -33,14 +33,13 @@ package com.ledger.ledgerwallet.app
 import android.os.Bundle
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.BaseActivity
-import com.ledger.ledgerwallet.utils.logs.Logger
 
 class PairedDonglesActivity extends BaseActivity {
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.paired_dongles_activity)
-    Logger.d("Hello from scala !")
+    this.toolbar.setMinimumHeight(300)
   }
 
 }

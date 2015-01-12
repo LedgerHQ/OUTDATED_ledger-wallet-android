@@ -1,9 +1,16 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="actionBarSize">148dip</item>
-        <item name="android:actionBarSize">148dip</item>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+
+    </style>
+
+    <style name="DefaultActionBarStyle" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+
+    </style>
+
+    <style name="DefaultActionPopupStyle" parent="ThemeOverlay.AppCompat.Light">
+
     </style>
 
 </resources>

@@ -33,13 +33,39 @@ package com.ledger.ledgerwallet.base
 
 import android.os.Bundle
 import android.support.v7.app.ActionBarActivity
+import android.support.v7.widget.Toolbar
+import android.view.ViewGroup.LayoutParams
+import android.view.{LayoutInflater, View}
+import android.widget.FrameLayout
+import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.utils.logs.Loggable
 
 class BaseActivity extends ActionBarActivity with Loggable {
+  implicit val context = this
+
+  lazy val toolbar = TR(R.id.toolbar).as[Toolbar]
+  lazy val content = TR(R.id.content_view).as[FrameLayout]
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
+    super.setContentView(R.layout.base_activity)
+    setSupportActionBar(toolbar)
+  }
 
+  override def setContentView(layoutResID: Int): Unit = {
+    val inflater = LayoutInflater.from(this)
+    val view = inflater.inflate(layoutResID, content, false)
+    setContentView(view, view.getLayoutParams())
+  }
+
+  override def setContentView(view: View): Unit = {
+    setContentView(view, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+  }
+
+  override def setContentView(view: View, params: LayoutParams): Unit = {
+    content.removeAllViews()
+    content.addView(view, params)
   }
 
 }
