@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="background_color">#f9f9f9</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="night_blue">#1d2028</color>
+    <color name="light_grey_blue">#cccdd0</color>
+    <color name="dark_grey_blue">#333745</color>
+    <color name="grey_blue">#71737d</color>
+    <color name="invalid_red">#ea2e49</color>
+    <color name="valid_green">#3fb34f</color>
+    <color name="action_green">#41ccb4</color>
+    <color name="action_purple">#596799</color>
+    <color name="extra_dark_grey">#333333</color>
+    <color name="dark_grey">#666666</color>
+    <color name="soft_grey">#999999</color>
+    <color name="light_grey">#cccccc</color>
+    <color name="very_light_grey">#eeeeee</color>
+    <color name="extra_light_grey">#f4f4f4</color>
+
+    <color name="primary_color">@color/night_blue</color>
+    <color name="primary_dark_color">#161921</color>
+
+</resources>

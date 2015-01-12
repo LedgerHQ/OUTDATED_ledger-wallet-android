@@ -3,4 +3,12 @@
 
     <dimen name="action_bar_height">280dp</dimen>
 
+    <dimen name="very_large_font_size">20dp</dimen>
+    <dimen name="large_font_size">15dp</dimen>
+    <dimen name="medium_font_size">14dp</dimen>
+    <dimen name="small_font_size">12dp</dimen>
+
+    <dimen name="medium_font_spacing">-1dp</dimen>
+    <dimen name="small_font_spacing">-0.5dp</dimen>
+
 </resources>

@@ -1,12 +1,20 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme.Base" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:background">@color/background_color</item>
+        <item name="android:colorBackground">@color/background_color</item>
+    </style>
 
+    <style name="AppTheme" parent="AppTheme.Base">
+        <item name="colorPrimary">@color/primary_color</item>
+        <item name="colorPrimaryDark">@color/primary_dark_color</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
     </style>
 
     <style name="DefaultActionBarStyle" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
-
+        <item name="android:background">@color/primary_color</item>
     </style>
 
     <style name="DefaultActionPopupStyle" parent="ThemeOverlay.AppCompat.Light">

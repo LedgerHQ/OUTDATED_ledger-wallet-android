@@ -73,6 +73,7 @@ class TR(id: Int, context: AnyRef) {
   private def fromContext[A](c: Context, classTag: ClassTag[A]): A = {
     classTag match {
       case string if classOf[String] == classTag.runtimeClass => c.getResources.getString(id).asInstanceOf[A]
+      case int if classOf[Int] == classTag.runtimeClass => c.getResources.getDimension(id).asInstanceOf[A]
     }
   }
 
@@ -81,6 +82,7 @@ class TR(id: Int, context: AnyRef) {
 object TR {
 
   def apply(id: Int)(implicit context: Context, fragment: Fragment = null, view: View = null): TR = new TR(id, getHighestPriorityArgument(context, fragment, view))
+  def apply(context: Context, id: Int): TR = new TR(id, context)
 
   def getHighestPriorityArgument(args: AnyRef*): AnyRef = {
     var out: AnyRef = null

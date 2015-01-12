@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="TextView">
+        <attr name="fontStyle">
+            <flag name="normal" value="0" />
+            <flag name="bold" value="1" />
+            <flag name="italic" value="2" />
+        </attr>
+        <attr name="fontFamily">
+            <enum name="normal" value="0" />
+            <enum name="condensed" value="1" />
+            <enum name="light" value="2" />
+        </attr>
+    </declare-styleable>
+
+</resources>
