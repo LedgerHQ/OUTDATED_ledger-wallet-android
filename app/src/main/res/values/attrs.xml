@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <attr name="fontStyle">
+        <flag name="regular" value="regular" />
+        <flag name="bold" value="bold" />
+        <flag name="italic" value="italic" />
+        <flag name="extra-bold" value="extra-bold" />
+        <flag name="semi-bold" value="semi-bold" />
+        <flag name="light" value="light" />
+    </attr>
+
+    <attr name="fontFamily">
+        <enum name="Open Sans" value="opensans" />
+    </attr>
+
     <declare-styleable name="TextView">
-        <attr name="fontStyle">
-            <flag name="normal" value="0" />
-            <flag name="bold" value="1" />
-            <flag name="italic" value="2" />
-        </attr>
-        <attr name="fontFamily">
-            <enum name="normal" value="0" />
-            <enum name="condensed" value="1" />
-            <enum name="light" value="2" />
-        </attr>
+        <attr name="fontStyle"/>
+        <attr name="fontFamily"/>
     </declare-styleable>
 
 </resources>

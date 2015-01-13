@@ -31,8 +31,36 @@
 
 package com.ledger.ledgerwallet.widget.traits
 
+import android.content.Context
+import android.graphics.Typeface
+import android.util.AttributeSet
+import com.ledger.ledgerwallet.R
+
 trait FontView {
 
+  private var _typeface: Typeface = null
+  def typeface = _typeface
 
+
+  protected def initializeFontView(context: Context, attrs: AttributeSet): Unit = {
+    val a = context.obtainStyledAttributes(attrs, Array(R.attr.fontFamily, R.attr.fontStyle))
+
+  }
+
+}
+
+object FontView {
+
+  object Font {
+
+    object Family {
+      val OPEN_SANS
+    }
+
+    object Style {
+
+    }
+
+  }
 
 }
