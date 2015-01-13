@@ -1,9 +1,9 @@
 /**
  *
- * TextView.scala
+ * LetterSpacingSpan.scala
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 12/01/15.
+ * Created by Pierre Pollastri on 13/01/15.
  *
  * The MIT License (MIT)
  *
@@ -29,33 +29,28 @@
  *
  */
 
-package com.ledger.ledgerwallet.widget
+package com.ledger.ledgerwallet.text.style
 
-import android.content.Context
-import android.graphics.Typeface
-import android.text.Spannable
-import android.util.AttributeSet
-import android.widget.TextView.BufferType
-import com.ledger.ledgerwallet.widget.traits.FontView
+import android.graphics.Paint.FontMetricsInt
+import android.graphics.{Canvas, Paint}
+import android.text.style.ReplacementSpan
 
-class TextView(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int)
-  extends android.widget.TextView(context, attrs)
-  with FontView {
-  initializeFontView(context, attrs)
+class LetterSpacingSpan(val letterSpacing: Float) extends ReplacementSpan {
 
-  def this(context: Context, attrs: AttributeSet, defStyleAttr: Int) = this(context, attrs, 0, 0)
-  def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
-  def this(context: Context) = this(context, null)
-
-  override def setTypeface(tf: Typeface): Unit = {
-    super.setTypeface(tf)
+  override def getSize(paint: Paint, text: CharSequence, start: Int,
+                       end: Int, fm: FontMetricsInt)
+  : Int = {
+    (paint.measureText(text, start, end) + letterSpacing * (end - start - 1)).asInstanceOf[Int]
   }
 
-  override def setText(text: CharSequence, `type`: BufferType): Unit = {
-    requestCharacterStyleComputation(text)
-  }
-
-  override protected def onCharacterStyleChanged(span: Spannable): Unit = {
-    super.setText(span, BufferType.SPANNABLE)
+  override def draw(canvas: Canvas, text: CharSequence, start: Int,
+                    end: Int, x: Float, top: Int, y: Int, bottom: Int,
+                    paint: Paint)
+  : Unit = {
+    var dx = x
+    for (i <- start until end) {
+      canvas.drawText(text, i, i + 1, dx, y, paint)
+      dx += paint.measureText(text, i, i + 1) + letterSpacing
+    }
   }
 }

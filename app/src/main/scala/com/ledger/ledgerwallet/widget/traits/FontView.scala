@@ -1,6 +1,6 @@
 /**
  *
- * ${FILE_NAME}
+ * FontView.scala
  * Ledger wallet
  *
  * Created by Pierre Pollastri on 12/01/15.
@@ -33,19 +33,96 @@ package com.ledger.ledgerwallet.widget.traits
 
 import android.content.Context
 import android.graphics.Typeface
+import android.os.Looper
+import android.text.{Spannable, SpannableStringBuilder, Spanned}
 import android.util.AttributeSet
 import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.text.style.LetterSpacingSpan
+import com.ledger.ledgerwallet.utils.logs.Logger
+
+import scala.collection.mutable
 
 trait FontView {
 
-  private var _typeface: Typeface = null
+  private var _typeface: Option[Typeface] = None
   def typeface = _typeface
+  private var _fontFamily =  FontView.Font.Family.OpenSans
+  private var _fontStyle = FontView.Font.Style.Regular
+  def fontFamily = _fontFamily
+  def fontStyle = _fontStyle
 
+  private var _kerning: Float = 0
+  private var _originalCharSequence: Option[CharSequence] = None
+  def kerning = _kerning
+  private var _initialized = false
 
   protected def initializeFontView(context: Context, attrs: AttributeSet): Unit = {
-    val a = context.obtainStyledAttributes(attrs, Array(R.attr.fontFamily, R.attr.fontStyle))
-
+    _initialized = true
+    val a = context.obtainStyledAttributes(attrs, Array(R.attr.fontFamily, R.attr.fontStyle, R.attr.kerning))
+    _fontFamily = FontView.Font.Family(a.getInt(0, _fontFamily.id))
+    _fontStyle = FontView.Font.Style(a.getInt(1, _fontStyle.id))
+    _originalCharSequence = Option(getText())
+    kerning = a.getDimension(2, 0)
+    typeface = FontView.loadTypefaceFromAssets(getContext(), _fontFamily, _fontStyle)
   }
+
+  def invalidate(): Unit
+  def postInvalidate(): Unit
+  def getContext(): Context
+  def setTypeface(typeface: Typeface): Unit
+  def getText():CharSequence
+
+  protected def requestInvalidate(): Unit = {
+    if (Looper.getMainLooper() == Looper.myLooper()) {
+      invalidate()
+    } else {
+      postInvalidate()
+    }
+  }
+
+  def fontFamily_=(fontFamily: FontView.Font.Family.Family): Unit = {
+   if (fontFamily == _fontFamily)
+     return
+    _fontFamily = fontFamily
+    typeface = FontView.loadTypefaceFromAssets(getContext(), _fontFamily, _fontStyle)
+  }
+
+  def fontStyle_=(fontStyle: FontView.Font.Style.Style):Unit = {
+    if (fontStyle != _fontStyle)
+      return
+    _fontStyle = fontStyle
+    typeface = FontView.loadTypefaceFromAssets(getContext(), _fontFamily, _fontStyle)
+  }
+
+  def kerning_=(newKerning: Float):Unit = {
+    _kerning = newKerning
+    _originalCharSequence.foreach { requestCharacterStyleComputation }
+  }
+
+  def typeface_=(typeface: Option[Typeface]):Unit = {
+    _typeface = typeface
+    _typeface.foreach { setTypeface }
+    requestInvalidate()
+  }
+
+  protected def requestCharacterStyleComputation(charSequence: CharSequence): Unit = {
+    if (!_initialized) {
+      onCharacterStyleChanged(new SpannableStringBuilder(charSequence))
+      return
+    }
+    _originalCharSequence = Option(charSequence)
+    if (_originalCharSequence.isEmpty) {
+      onCharacterStyleChanged(null)
+      return
+    }
+    val builder = new SpannableStringBuilder(charSequence)
+    builder.setSpan(new LetterSpacingSpan(_kerning), 0, charSequence.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    onCharacterStyleChanged(builder)
+    requestInvalidate()
+  }
+
+  protected def onCharacterStyleChanged(span: Spannable):Unit
+
 
 }
 
@@ -53,14 +130,48 @@ object FontView {
 
   object Font {
 
-    object Family {
-      val OPEN_SANS
+    object Family extends Enumeration {
+      type Family = Value
+      val OpenSans = Value("opensans")
     }
 
-    object Style {
-
+    object Style extends Enumeration {
+      type Style = Value
+      val Light = Value("light")
+      val Regular = Value("regular")
+      val SemiBold = Value("semibold")
+      val Bold = Value("bold")
+      val ExtraBold = Value("extrabold")
+      val Italic = Value("italic")
     }
 
+    val DefaultFamily = Family.OpenSans
+    val DefaultStyle = Style.Regular
+
+  }
+
+  private val TypeFaces = new mutable.HashMap[String, Typeface]()
+
+  def loadTypefaceFromAssets(
+                              context: Context,
+                              fontFamily: Font.Family.Family,
+                              fontStyle: Font.Style.Style)
+  :Option[Typeface] = {
+    val path = "fonts/" + fontFamily.toString + "-" + fontStyle.toString + ".ttf"
+    if (TypeFaces.contains(path)) {
+      Some(TypeFaces(path))
+    } else {
+      try {
+        val typeface = Typeface.createFromAsset(context.getAssets, path)
+        TypeFaces(path) = typeface
+        Some(typeface)
+      } catch {
+        case e: Exception => {
+          Logger.e("Unable to create font from \"" + path + "\"")
+          None
+        }
+      }
+    }
   }
 
 }
