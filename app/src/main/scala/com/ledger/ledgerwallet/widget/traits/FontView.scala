@@ -34,11 +34,11 @@ package com.ledger.ledgerwallet.widget.traits
 import android.content.Context
 import android.graphics.Typeface
 import android.os.Looper
-import android.text.{Spannable, SpannableStringBuilder, Spanned}
+import android.text.style.ScaleXSpan
+import android.text.{SpannableString, Spannable, SpannableStringBuilder, Spanned}
 import android.util.AttributeSet
 import android.view.View
 import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.text.style.LetterSpacingSpan
 import com.ledger.ledgerwallet.utils.logs.Logger
 
 import scala.collection.mutable
@@ -113,16 +113,26 @@ trait FontView {
       return
     }
     _originalCharSequence = Option(charSequence)
-    if (_originalCharSequence.isEmpty) {
+    if (_originalCharSequence forall { _.length() == 0 }) {
       onCharacterStyleChanged(null)
       return
     }
-    val builder = new SpannableStringBuilder(charSequence)
-    if (!isInEditMode()) {
-      val span = new LetterSpacingSpan(_typeface.getOrElse(Typeface.DEFAULT), _kerning)
-      builder.setSpan(span, 0, charSequence.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    val builder = new SpannableStringBuilder()
+    var length = _originalCharSequence.get.length()
+    for (i <- 0 until length) {
+      builder.append(_originalCharSequence.get.charAt(i))
+      if (i + 1 < length)
+        builder.append("\u00A0")
     }
-    onCharacterStyleChanged(builder)
+
+    val finalSequence = new SpannableString(builder)
+    length = builder.toString.length
+    for (i <- 1 until length by 2) {
+      val span = new ScaleXSpan((_kerning + 1) / 10)
+      finalSequence.setSpan(span, i, i + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    }
+
+    onCharacterStyleChanged(finalSequence)
     requestInvalidate()
   }
 
@@ -171,7 +181,7 @@ object FontView {
       try {
         val typeface = Typeface.createFromAsset(view.getContext.getAssets, path)
         TypeFaces(path) = typeface
-        Some(typeface)
+        Option(typeface)
       } catch {
         case e: Exception => {
           Logger.e("Unable to create font from \"" + path + "\"")

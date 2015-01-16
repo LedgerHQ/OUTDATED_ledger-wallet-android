@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="@dimen/large_margin"
+    android:paddingBottom="@dimen/large_margin"
+    >
 
-    <TextView
+    <com.ledger.ledgerwallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="New Text"
@@ -12,10 +17,13 @@
         android:layout_marginLeft="0dp"
         android:layout_alignParentTop="true"
         android:layout_marginTop="0dp"
+        android:textColor="@color/black"
+        android:textSize="@dimen/large_font_size"
+        app:kerning="@dimen/medium_font_spacing"
         android:layout_toLeftOf="@+id/delete_btn"
         android:layout_toStartOf="@+id/delete_btn" />
 
-    <TextView
+    <com.ledger.ledgerwallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="New Text"
@@ -23,6 +31,11 @@
         android:layout_below="@+id/dongle_name"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
+        android:textColor="@color/dark_grey"
+        android:textSize="@dimen/small_font_size"
+        app:kerning="@dimen/medium_font_spacing"
+        app:fontStyle="light"
+        android:layout_marginTop="@dimen/extra_small_margin"
         android:layout_toLeftOf="@+id/delete_btn"
         android:layout_toStartOf="@+id/delete_btn" />
 

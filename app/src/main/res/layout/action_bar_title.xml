@@ -11,16 +11,18 @@
         android:id="@+id/action_bar_title"
         android:layout_marginTop="8dp"
         app:kerning="@dimen/large_font_spacing"
+        android:text="Salut"
         style="@style/ActionBarTitleStyle" />
 
     <com.ledger.ledgerwallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/action_bar_subtitle"
-        android:layout_marginTop="-2dp"
+        android:layout_marginTop="@dimen/medium_margin"
         android:textColor="@color/light_grey_blue"
         android:background="@android:color/transparent"
         android:textSize="@dimen/small_font_size"
+        android:text="SALUT"
         app:kerning="@dimen/small_font_spacing"
         android:layout_gravity="left" />
 </LinearLayout>

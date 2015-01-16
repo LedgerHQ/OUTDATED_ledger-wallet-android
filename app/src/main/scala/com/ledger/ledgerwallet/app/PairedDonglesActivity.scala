@@ -32,7 +32,7 @@ package com.ledger.ledgerwallet.app
 
 import android.content.Context
 import android.os.Bundle
-import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
+import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageButton
 import com.ledger.ledgerwallet.R
@@ -40,8 +40,9 @@ import com.ledger.ledgerwallet.app.PairedDonglesActivity.PairedDonglesAdapter.Vi
 import com.ledger.ledgerwallet.base.BaseActivity
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.utils.TR
-import com.ledger.ledgerwallet.widget.{TextView, Toolbar}
+import com.ledger.ledgerwallet.widget.{DividerItemDecoration, TextView, Toolbar}
 import com.ledger.ledgerwallet.widget.Toolbar.Style
+
 
 class PairedDonglesActivity extends BaseActivity {
 
@@ -55,6 +56,12 @@ class PairedDonglesActivity extends BaseActivity {
     toolbar.setSubtitle(R.string.paired_dongle_waiting_for_an_operation)
     pairedDevicesList.setLayoutManager(new LinearLayoutManager(this))
     pairedDevicesList.setAdapter(pairedDevicesAdapter)
+    pairedDevicesList.setHasFixedSize(true)
+    pairedDevicesList.setItemAnimator(new DefaultItemAnimator)
+    pairedDevicesList.addItemDecoration(new DividerItemDecoration(this, null))
+
+    val l = Array(new PairedDongle("My Ledger Wallet"), new PairedDongle("Sophie's Wallet"), new PairedDongle("Office Wallet"))
+    pairedDevicesAdapter.pairedDongles = l
   }
 
   override def actionBarStyle: Style = Toolbar.Style.Expanded
@@ -82,7 +89,9 @@ private object PairedDonglesActivity {
     override def getItemCount: Int = _pairedDongles.length
 
     override def onBindViewHolder(ui: ViewHolder, position: Int): Unit = {
-
+      val dongle = pairedDongles(position)
+      ui.dongleName.setText(dongle.name)
+      ui.pairingDate.setText("Paired on 12/05/2014")
     }
   }
 

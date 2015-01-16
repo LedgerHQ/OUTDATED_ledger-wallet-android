@@ -2,11 +2,11 @@
 <resources>
 
     <attr name="fontStyle">
-        <flag name="regular" value="0" />
-        <flag name="bold" value="1" />
-        <flag name="extraBold" value="2" />
-        <flag name="semiBold" value="3" />
-        <flag name="light" value="4" />
+        <flag name="light" value="0" />
+        <flag name="regular" value="1" />
+        <flag name="bold" value="2" />
+        <flag name="extraBold" value="3" />
+        <flag name="semiBold" value="4" />
         <flag name="italic" value="5" />
     </attr>
 

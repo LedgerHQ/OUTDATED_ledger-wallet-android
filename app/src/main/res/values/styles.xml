@@ -3,6 +3,7 @@
     <!-- Base application theme. -->
     <style name="AppTheme.Base" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:colorBackground">@color/background_color</item>
+        <item name="android:textViewStyle">@style/Base.TextViewStyle</item>
     </style>
 
     <style name="AppTheme" parent="AppTheme.Base">
@@ -59,4 +60,8 @@
         <item name="android:background">@drawable/bg_green_fab</item>
     </style>
 
+    <style name="Base.TextViewStyle">
+
+    </style>
+    
 </resources>

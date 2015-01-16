@@ -30,6 +30,8 @@
  */
 package com.ledger.ledgerwallet.models
 
-class PairedDongle {
+import java.util.Date
+
+class PairedDongle(var name: String = null, var date: Date = null) {
 
 }
