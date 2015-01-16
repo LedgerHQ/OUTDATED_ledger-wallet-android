@@ -2,13 +2,13 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme.Base" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:background">@color/background_color</item>
         <item name="android:colorBackground">@color/background_color</item>
     </style>
 
     <style name="AppTheme" parent="AppTheme.Base">
         <item name="colorPrimary">@color/primary_color</item>
         <item name="colorPrimaryDark">@color/primary_dark_color</item>
+        <item name="colorAccent">@color/accent_color</item>
         <item name="android:windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
     </style>
@@ -19,6 +19,44 @@
 
     <style name="DefaultActionPopupStyle" parent="ThemeOverlay.AppCompat.Light">
 
+    </style>
+
+    <style name="ActionBarTitleViewStyle">
+
+    </style>
+
+    <style name="BigActionBarTitleViewStyle" parent="ActionBarTitleViewStyle">
+        <item name="android:paddingTop">20dp</item>
+        <item name="android:paddingBottom">20dp</item>
+    </style>
+
+    <style name="ActionBarTitleStyle">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textSize">@dimen/very_large_font_size</item>
+        <item name="android:layout_gravity">left</item>
+    </style>
+
+    <style name="Base">
+
+    </style>
+
+    <style name="Base.ButtonStyle">
+
+    </style>
+
+    <style name="Base.FloatingActionButton" parent="Base.ButtonStyle">
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">56dp</item>
+    </style>
+
+    <style name="Base.MiniFloatingActionButton" parent="Base.FloatingActionButton">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+    </style>
+
+    <style name="GreenFloatingActionButton" parent="Base.FloatingActionButton">
+        <item name="android:background">@drawable/bg_green_fab</item>
     </style>
 
 </resources>

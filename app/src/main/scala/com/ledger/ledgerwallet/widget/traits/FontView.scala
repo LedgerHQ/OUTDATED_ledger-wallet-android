@@ -36,6 +36,7 @@ import android.graphics.Typeface
 import android.os.Looper
 import android.text.{Spannable, SpannableStringBuilder, Spanned}
 import android.util.AttributeSet
+import android.view.View
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.text.style.LetterSpacingSpan
 import com.ledger.ledgerwallet.utils.logs.Logger
@@ -63,7 +64,7 @@ trait FontView {
     _fontStyle = FontView.Font.Style(a.getInt(1, _fontStyle.id))
     _originalCharSequence = Option(getText())
     kerning = a.getDimension(2, 0)
-    typeface = FontView.loadTypefaceFromAssets(getContext(), _fontFamily, _fontStyle)
+    typeface = FontView.loadTypefaceFromAssets(this.asInstanceOf[View], _fontFamily, _fontStyle)
   }
 
   def invalidate(): Unit
@@ -71,6 +72,7 @@ trait FontView {
   def getContext(): Context
   def setTypeface(typeface: Typeface): Unit
   def getText():CharSequence
+  def isInEditMode():Boolean
 
   protected def requestInvalidate(): Unit = {
     if (Looper.getMainLooper() == Looper.myLooper()) {
@@ -84,14 +86,14 @@ trait FontView {
    if (fontFamily == _fontFamily)
      return
     _fontFamily = fontFamily
-    typeface = FontView.loadTypefaceFromAssets(getContext(), _fontFamily, _fontStyle)
+    typeface = FontView.loadTypefaceFromAssets(this.asInstanceOf[View], _fontFamily, _fontStyle)
   }
 
   def fontStyle_=(fontStyle: FontView.Font.Style.Style):Unit = {
     if (fontStyle != _fontStyle)
       return
     _fontStyle = fontStyle
-    typeface = FontView.loadTypefaceFromAssets(getContext(), _fontFamily, _fontStyle)
+    typeface = FontView.loadTypefaceFromAssets(this.asInstanceOf[View], _fontFamily, _fontStyle)
   }
 
   def kerning_=(newKerning: Float):Unit = {
@@ -116,7 +118,10 @@ trait FontView {
       return
     }
     val builder = new SpannableStringBuilder(charSequence)
-    builder.setSpan(new LetterSpacingSpan(_kerning), 0, charSequence.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    if (!isInEditMode()) {
+      val span = new LetterSpacingSpan(_typeface.getOrElse(Typeface.DEFAULT), _kerning)
+      builder.setSpan(span, 0, charSequence.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    }
     onCharacterStyleChanged(builder)
     requestInvalidate()
   }
@@ -153,16 +158,18 @@ object FontView {
   private val TypeFaces = new mutable.HashMap[String, Typeface]()
 
   def loadTypefaceFromAssets(
-                              context: Context,
+                              view: View,
                               fontFamily: Font.Family.Family,
                               fontStyle: Font.Style.Style)
   :Option[Typeface] = {
+    if (view.isInEditMode)
+      return Option(Typeface.DEFAULT)
     val path = "fonts/" + fontFamily.toString + "-" + fontStyle.toString + ".ttf"
     if (TypeFaces.contains(path)) {
       Some(TypeFaces(path))
     } else {
       try {
-        val typeface = Typeface.createFromAsset(context.getAssets, path)
+        val typeface = Typeface.createFromAsset(view.getContext.getAssets, path)
         TypeFaces(path) = typeface
         Some(typeface)
       } catch {

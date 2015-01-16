@@ -30,16 +30,70 @@
  */
 package com.ledger.ledgerwallet.app
 
+import android.content.Context
 import android.os.Bundle
+import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
+import android.view.{LayoutInflater, View, ViewGroup}
+import android.widget.ImageButton
 import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.app.PairedDonglesActivity.PairedDonglesAdapter.ViewHolder
 import com.ledger.ledgerwallet.base.BaseActivity
+import com.ledger.ledgerwallet.models.PairedDongle
+import com.ledger.ledgerwallet.utils.TR
+import com.ledger.ledgerwallet.widget.{TextView, Toolbar}
+import com.ledger.ledgerwallet.widget.Toolbar.Style
 
 class PairedDonglesActivity extends BaseActivity {
+
+  lazy val addPairingButton = TR(R.id.add_pairing_btn).as[ImageButton]
+  lazy val pairedDevicesList = TR(R.id.paired_devices_recycler_view).as[RecyclerView]
+  private lazy val pairedDevicesAdapter = new PairedDonglesActivity.PairedDonglesAdapter(this)
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.paired_dongles_activity)
-    this.toolbar.setMinimumHeight(300)
+    toolbar.setSubtitle(R.string.paired_dongle_waiting_for_an_operation)
+    pairedDevicesList.setLayoutManager(new LinearLayoutManager(this))
+    pairedDevicesList.setAdapter(pairedDevicesAdapter)
+  }
+
+  override def actionBarStyle: Style = Toolbar.Style.Expanded
+
+}
+
+private object PairedDonglesActivity {
+
+  class PairedDonglesAdapter(c: Context) extends RecyclerView.Adapter[PairedDonglesAdapter.ViewHolder] {
+
+    private var _pairedDongles = Array[PairedDongle]()
+    def pairedDongles = _pairedDongles
+    def pairedDongles_=(newPairedDongles: Array[PairedDongle]): Unit = {
+      _pairedDongles = newPairedDongles
+      notifyDataSetChanged()
+    }
+
+    lazy val inflater = LayoutInflater.from(c)
+
+    override def onCreateViewHolder(viewgroup: ViewGroup, viewType: Int): ViewHolder = {
+      val v = inflater.inflate(R.layout.paired_device_list_item, viewgroup, false)
+      new ViewHolder(v)
+    }
+
+    override def getItemCount: Int = _pairedDongles.length
+
+    override def onBindViewHolder(ui: ViewHolder, position: Int): Unit = {
+
+    }
+  }
+
+  object PairedDonglesAdapter {
+
+    class ViewHolder(v: View) extends RecyclerView.ViewHolder(v) {
+      lazy val dongleName = TR(v, R.id.dongle_name).as[TextView]
+      lazy val pairingDate = TR(v, R.id.pairing_date).as[TextView]
+      lazy val deleteButton = TR(v, R.id.delete_btn).as[View]
+    }
+
   }
 
 }

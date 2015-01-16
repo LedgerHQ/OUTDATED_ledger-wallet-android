@@ -1,9 +1,9 @@
 /**
  *
- * LetterSpacingSpan.scala
+ * Device
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 13/01/15.
+ * Created by Pierre Pollastri on 16/01/15.
  *
  * The MIT License (MIT)
  *
@@ -28,29 +28,8 @@
  * SOFTWARE.
  *
  */
+package com.ledger.ledgerwallet.models
 
-package com.ledger.ledgerwallet.text.style
+class PairedDongle {
 
-import android.graphics.Paint.FontMetricsInt
-import android.graphics.{Typeface, Canvas, Paint}
-import android.text.style.ReplacementSpan
-
-class LetterSpacingSpan(typeface: Typeface, val letterSpacing: Float) extends TypefaceSpan(typeface) {
-
-  override def getSize(paint: Paint, text: CharSequence, start: Int,
-                       end: Int, fm: FontMetricsInt)
-  : Int = {
-    (paint.measureText(text, start, end) + letterSpacing * (end - start - 1)).asInstanceOf[Int]
-  }
-
-  override def draw(canvas: Canvas, text: CharSequence, start: Int,
-                    end: Int, x: Float, top: Int, y: Int, bottom: Int,
-                    paint: Paint)
-  : Unit = {
-    var dx = x
-    for (i <- start until end) {
-      canvas.drawText(text, i, i + 1, dx, y, paint)
-      dx += paint.measureText(text, i, i + 1) + letterSpacing
-    }
-  }
 }

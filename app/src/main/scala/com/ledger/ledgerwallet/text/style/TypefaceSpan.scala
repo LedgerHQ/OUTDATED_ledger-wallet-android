@@ -1,9 +1,9 @@
 /**
  *
- * LetterSpacingSpan.scala
+ * TypefaceSpan
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 13/01/15.
+ * Created by Pierre Pollastri on 14/01/15.
  *
  * The MIT License (MIT)
  *
@@ -32,25 +32,45 @@
 package com.ledger.ledgerwallet.text.style
 
 import android.graphics.Paint.FontMetricsInt
-import android.graphics.{Typeface, Canvas, Paint}
+import android.graphics.{Typeface, Paint, Canvas}
+import android.text.TextPaint
 import android.text.style.ReplacementSpan
 
-class LetterSpacingSpan(typeface: Typeface, val letterSpacing: Float) extends TypefaceSpan(typeface) {
+class TypefaceSpan(val typeface: Typeface) extends ReplacementSpan {
 
-  override def getSize(paint: Paint, text: CharSequence, start: Int,
-                       end: Int, fm: FontMetricsInt)
-  : Int = {
-    (paint.measureText(text, start, end) + letterSpacing * (end - start - 1)).asInstanceOf[Int]
+
+  override def updateDrawState(ds: TextPaint): Unit = {
+    super.updateDrawState(ds)
+    applyTypeface(ds)
   }
 
-  override def draw(canvas: Canvas, text: CharSequence, start: Int,
-                    end: Int, x: Float, top: Int, y: Int, bottom: Int,
-                    paint: Paint)
-  : Unit = {
-    var dx = x
-    for (i <- start until end) {
-      canvas.drawText(text, i, i + 1, dx, y, paint)
-      dx += paint.measureText(text, i, i + 1) + letterSpacing
+
+  override def updateMeasureState(p: TextPaint): Unit = {
+    super.updateMeasureState(p)
+    applyTypeface(p)
+  }
+
+  override def getSize(paint: Paint, text: CharSequence, start: Int, end: Int, fm: FontMetricsInt): Int = {
+    applyTypeface(paint)
+    paint.measureText(text, start, end).asInstanceOf[Int]
+  }
+
+  override def draw(canvas: Canvas, text: CharSequence, start: Int, end: Int, x: Float, top: Int, y: Int, bottom: Int, paint: Paint): Unit = ???
+
+  private def applyTypeface(paint: Paint): Unit = {
+    val oldTypeface = paint.getTypeface()
+    val oldStyle = if (oldTypeface != null) oldTypeface.getStyle() else 0
+    val fakeStyle = oldStyle & ~(typeface.getStyle())
+
+    if ((fakeStyle & Typeface.BOLD) != 0) {
+      paint.setFakeBoldText(true);
     }
+
+    if ((fakeStyle & Typeface.ITALIC) != 0) {
+      paint.setTextSkewX(-0.25f);
+    }
+
+    paint.setTypeface(typeface);
   }
+
 }

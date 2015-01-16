@@ -1,4 +1,4 @@
-package ledger.co.ledgerwallet;
+package com.ledger.ledgerwallet;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

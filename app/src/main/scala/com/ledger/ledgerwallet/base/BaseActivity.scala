@@ -33,7 +33,7 @@ package com.ledger.ledgerwallet.base
 
 import android.os.Bundle
 import android.support.v7.app.ActionBarActivity
-import android.support.v7.widget.Toolbar
+import com.ledger.ledgerwallet.widget.Toolbar
 import android.view.ViewGroup.LayoutParams
 import android.view.{LayoutInflater, View}
 import android.widget.FrameLayout
@@ -41,7 +41,7 @@ import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.utils.logs.Loggable
 
-class BaseActivity extends ActionBarActivity with Loggable {
+abstract class BaseActivity extends ActionBarActivity with Loggable {
   implicit val context = this
 
   lazy val toolbar = TR(R.id.toolbar).as[Toolbar]
@@ -51,6 +51,11 @@ class BaseActivity extends ActionBarActivity with Loggable {
     super.onCreate(savedInstanceState)
     super.setContentView(R.layout.base_activity)
     setSupportActionBar(toolbar)
+    toolbar.style = actionBarStyle
+    getSupportActionBar.setDisplayShowTitleEnabled(false)
+    getSupportActionBar.setDisplayShowCustomEnabled(true)
+    getSupportActionBar.setCustomView(toolbar.titleView)
+    toolbar.setTitle(getTitle)
   }
 
   override def setContentView(layoutResID: Int): Unit = {
@@ -63,9 +68,17 @@ class BaseActivity extends ActionBarActivity with Loggable {
     setContentView(view, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
   }
 
+  def setContentFragment(baseFragment: BaseFragment): Unit = {
+    val ft = getSupportFragmentManager.beginTransaction()
+    ft.replace(R.id.content_view, baseFragment)
+    ft.commit()
+  }
+
   override def setContentView(view: View, params: LayoutParams): Unit = {
     content.removeAllViews()
     content.addView(view, params)
   }
+
+  def actionBarStyle: Toolbar.Style
 
 }

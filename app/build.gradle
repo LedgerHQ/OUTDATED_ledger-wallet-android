@@ -25,4 +25,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:21.0.3'
     compile "org.scala-lang:scala-library:2.11.2"
     compile "com.android.support:support-v4:21.0.+"
+    compile "com.android.support:recyclerview-v7:21.0.+"
 }

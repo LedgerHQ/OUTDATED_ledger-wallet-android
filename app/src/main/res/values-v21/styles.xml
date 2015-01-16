@@ -10,6 +10,17 @@
         <item name="android:windowSharedElementExitTransition">@android:transition/move</item>
         <item name="android:colorPrimary">@color/primary_color</item>
         <item name="android:colorPrimaryDark">@color/primary_dark_color</item>
+        <item name="android:colorAccent">@color/accent_color</item>
+    </style>
+
+    <style name="Base.ButtonStyle">
+        <item name="android:stateListAnimator">@anim/button_elevation</item>
+    </style>
+
+    <style name="Base.FloatingActionButton" parent="Base.ButtonStyle">
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:elevation">1dp</item>
     </style>
 
 </resources>

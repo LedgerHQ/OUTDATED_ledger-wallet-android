@@ -49,6 +49,16 @@ class TR(id: Int, context: AnyRef) {
     }
   }
 
+  def asColor: Int = {
+    val myContext = context match {
+      case v: View => v.getContext
+      case a: Activity => a
+      case f: Fragment => f.getActivity
+      case c: Context => c
+    }
+    myContext.getResources.getColor(id)
+  }
+
   private def fromView[A](v: View, classTag: ClassTag[A]): A = {
     classTag match {
       case view if classOf[View].isAssignableFrom(classTag.runtimeClass) => v.findViewById(id).asInstanceOf[A]
@@ -73,7 +83,8 @@ class TR(id: Int, context: AnyRef) {
   private def fromContext[A](c: Context, classTag: ClassTag[A]): A = {
     classTag match {
       case string if classOf[String] == classTag.runtimeClass => c.getResources.getString(id).asInstanceOf[A]
-      case int if classOf[Int] == classTag.runtimeClass => c.getResources.getDimension(id).asInstanceOf[A]
+      case float if classOf[Float] == classTag.runtimeClass => c.getResources.getDimension(id).asInstanceOf[A]
+      case int if classOf[Int] == classTag.runtimeClass => c.getResources.getColor(id).asInstanceOf[A]
     }
   }
 
@@ -83,6 +94,8 @@ object TR {
 
   def apply(id: Int)(implicit context: Context, fragment: Fragment = null, view: View = null): TR = new TR(id, getHighestPriorityArgument(context, fragment, view))
   def apply(context: Context, id: Int): TR = new TR(id, context)
+  def apply(view: View, id: Int): TR = new TR(id, view)
+  def apply(fragment: Fragment, id: Int): TR = new TR(id, fragment)
 
   def getHighestPriorityArgument(args: AnyRef*): AnyRef = {
     var out: AnyRef = null

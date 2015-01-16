@@ -6,19 +6,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <android.support.v7.widget.Toolbar
+    <com.ledger.ledgerwallet.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/abc_action_bar_default_height_material"
+        android:minHeight="@dimen/abc_action_bar_default_height_material"
+        android:layout_height="wrap_content"
         android:theme="@style/DefaultActionBarStyle"
         android:popupTheme="@style/DefaultActionPopupStyle"
         android:background="@color/primary_color"
+        android:elevation="@dimen/action_bar_default_elevation"
+
         />
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+
         android:layout_weight="1"
         android:id="@+id/content_view"></FrameLayout>
 

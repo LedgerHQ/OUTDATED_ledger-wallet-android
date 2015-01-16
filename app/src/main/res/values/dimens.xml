@@ -3,12 +3,24 @@
 
     <dimen name="action_bar_height">280dp</dimen>
 
-    <dimen name="very_large_font_size">20dp</dimen>
+    <dimen name="extra_large_font_size">20dp</dimen>
+    <dimen name="very_large_font_size">19dp</dimen>
     <dimen name="large_font_size">15dp</dimen>
     <dimen name="medium_font_size">14dp</dimen>
     <dimen name="small_font_size">12dp</dimen>
 
+    <dimen name="large_font_spacing">-1.20dp</dimen>
     <dimen name="medium_font_spacing">-1dp</dimen>
-    <dimen name="small_font_spacing">-0.5dp</dimen>
+    <dimen name="small_font_spacing">-0.2dp</dimen>
+
+    <dimen name="action_bar_default_elevation">2dp</dimen>
+
+    <dimen name="activity_border_margin">16dp</dimen>
+
+    <!-- Floating Action Button dimensions -->
+
+    <dimen name="fab_icon_size">24dp</dimen>
+    <dimen name="fab_plus_icon_size">14dp</dimen>
+    <dimen name="fab_plus_icon_stroke">2dp</dimen>
 
 </resources>

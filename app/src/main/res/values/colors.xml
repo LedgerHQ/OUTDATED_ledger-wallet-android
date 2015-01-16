@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Primary colors -->
+
     <color name="background_color">#f9f9f9</color>
     <color name="white">#ffffff</color>
     <color name="black">#000000</color>
@@ -19,7 +21,24 @@
     <color name="very_light_grey">#eeeeee</color>
     <color name="extra_light_grey">#f4f4f4</color>
 
+
+    <!-- Darken primary colors -->
+
+    <color name="action_green_darken_3">#39C4AC</color>
+    <color name="action_green_darken_5">#34BFA7</color>
+    <color name="action_green_darken_8">#2DB8A0</color>
+    <color name="action_green_darken_15">#1BA68E</color>
+    <color name="action_green_darken_20">#0E9981</color>
+
+    <!-- Shadow colors -->
+
+    <color name="normal_grey_shadow">#50CCCCCC</color>
+    <color name="darker_grey_shadow">#80CCCCCC</color>
+
+    <!-- Android Material colors -->
+
     <color name="primary_color">@color/night_blue</color>
     <color name="primary_dark_color">#161921</color>
+    <color name="accent_color">@color/action_green</color>
 
 </resources>
