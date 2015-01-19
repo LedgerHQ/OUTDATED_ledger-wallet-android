@@ -32,7 +32,7 @@
 package com.ledger.ledgerwallet.base
 
 import android.os.Bundle
-import android.support.v7.app.ActionBarActivity
+import android.support.v7.app.{ActionBar, ActionBarActivity}
 import com.ledger.ledgerwallet.widget.Toolbar
 import android.view.ViewGroup.LayoutParams
 import android.view.{LayoutInflater, View}
@@ -52,9 +52,6 @@ abstract class BaseActivity extends ActionBarActivity with Loggable {
     super.setContentView(R.layout.base_activity)
     setSupportActionBar(toolbar)
     toolbar.style = actionBarStyle
-    getSupportActionBar.setDisplayShowTitleEnabled(false)
-    getSupportActionBar.setDisplayShowCustomEnabled(true)
-    getSupportActionBar.setCustomView(toolbar.titleView)
     toolbar.setTitle(getTitle)
   }
 

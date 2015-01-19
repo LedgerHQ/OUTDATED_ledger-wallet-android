@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical" android:layout_width="match_parent"
     style="@style/BigActionBarTitleViewStyle"
+    android:layout_gravity="center"
     android:layout_height="wrap_content">
 
     <com.ledger.ledgerwallet.widget.TextView
@@ -10,6 +11,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/action_bar_title"
         app:kerning="@dimen/large_font_spacing"
+        android:layout_gravity="center"
         style="@style/ActionBarTitleStyle" />
 
     <com.ledger.ledgerwallet.widget.TextView
@@ -21,5 +23,5 @@
         android:background="@android:color/transparent"
         android:textSize="@dimen/small_font_size"
         app:kerning="@dimen/small_font_spacing"
-        android:layout_gravity="left" />
+        android:layout_gravity="center" />
 </LinearLayout>

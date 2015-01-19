@@ -31,9 +31,11 @@
 package com.ledger.ledgerwallet.widget
 
 import android.content.Context
+import android.support.v7.app.ActionBar
 
 import android.util.AttributeSet
-import android.view.{View, LayoutInflater}
+import android.view.ViewGroup.LayoutParams
+import android.view.{ViewGroup, View, LayoutInflater}
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.utils.TR
 
@@ -77,6 +79,7 @@ class Toolbar(context: Context, attrs: AttributeSet) extends android.support.v7.
       case Toolbar.Style.Normal => inflater.inflate(R.layout.action_bar_title, this, false)
       case Toolbar.Style.Expanded => inflater.inflate(R.layout.expanded_action_bar_title, this, false)
     }
+    addView(titleView)
     setTitle(_title.orNull)
     setSubtitle(_subtitle.orNull)
   }

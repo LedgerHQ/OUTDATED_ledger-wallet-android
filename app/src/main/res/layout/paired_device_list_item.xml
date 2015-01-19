@@ -4,8 +4,8 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="@dimen/large_margin"
-    android:paddingBottom="@dimen/large_margin"
+    android:paddingTop="@dimen/very_large_margin"
+    android:paddingBottom="@dimen/very_large_margin"
     >
 
     <com.ledger.ledgerwallet.widget.TextView
@@ -39,11 +39,13 @@
         android:layout_toLeftOf="@+id/delete_btn"
         android:layout_toStartOf="@+id/delete_btn" />
 
-    <ImageView
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+    <ImageButton
+        android:layout_width="19dp"
+        android:layout_height="21dp"
         android:id="@+id/delete_btn"
-        android:layout_alignParentTop="true"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_grey_trash"
+        android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 </RelativeLayout>

@@ -11,7 +11,6 @@
         android:id="@+id/action_bar_title"
         android:layout_marginTop="8dp"
         app:kerning="@dimen/large_font_spacing"
-        android:text="Salut"
         style="@style/ActionBarTitleStyle" />
 
     <com.ledger.ledgerwallet.widget.TextView
@@ -22,7 +21,6 @@
         android:textColor="@color/light_grey_blue"
         android:background="@android:color/transparent"
         android:textSize="@dimen/small_font_size"
-        android:text="SALUT"
         app:kerning="@dimen/small_font_spacing"
         android:layout_gravity="left" />
 </LinearLayout>
