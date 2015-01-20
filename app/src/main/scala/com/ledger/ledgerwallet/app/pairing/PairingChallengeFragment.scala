@@ -34,14 +34,23 @@ import android.os.Bundle
 import android.view.{View, ViewGroup, LayoutInflater}
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{ContractFragment, BaseFragment}
+import com.ledger.ledgerwallet.utils.TR
+import com.ledger.ledgerwallet.widget.PinTextView
+import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 
 class PairingChallengeFragment extends BaseFragment with ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] {
+
+  lazy val pinTextView = TR(R.id.pin_view).as[PinTextView]
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     super.onCreateView(inflater, container, savedInstanceState)
     inflater.inflate(R.layout.pairing_challenge_fragment, container, false)
   }
 
-
-
+  override def onResume(): Unit = {
+    super.onResume()
+    pinTextView.postDelayed({
+      pinTextView.requestFocus()
+    }, 200)
+  }
 }

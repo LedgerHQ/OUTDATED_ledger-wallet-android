@@ -16,7 +16,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".app.pairing.CreateDonglePairingActivity" android:label="@string/create_dongle_title">
+        <activity android:name=".app.pairing.CreateDonglePairingActivity" android:label="@string/create_dongle_title" android:windowSoftInputMode="adjustResize">
 
         </activity>
     </application>

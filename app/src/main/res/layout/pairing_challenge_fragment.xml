@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center">
+    android:gravity="center"
+
+    >
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -56,22 +59,10 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:id="@+id/pin_view"
+        android:imeOptions="actionNext"
+        android:digits="qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890"
+        android:inputType="textNoSuggestions"
         android:layout_below="@+id/challenge_box"
         android:layout_centerHorizontal="true" />
-    
-    <com.ledger.ledgerwallet.widget.TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/very_large_margin"
-        android:text="@string/create_dongle_instruction_step_2_bottom"
-        android:textSize="@dimen/small_font_size"
-        android:textColor="@color/dark_grey"
-        android:gravity="center"
-        app:kerning="@dimen/small_font_spacing"
-        android:layout_below="@+id/pin_view"
-        android:layout_alignLeft="@+id/pin_view"
-        android:layout_alignStart="@+id/pin_view"
-        android:layout_alignRight="@+id/pin_view"
-        android:layout_alignEnd="@+id/pin_view" />
     
 </RelativeLayout>

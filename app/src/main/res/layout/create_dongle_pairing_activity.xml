@@ -15,7 +15,7 @@
         android:paddingBottom="@dimen/large_margin"
         android:paddingLeft="@dimen/activity_border_margin"
         android:paddingRight="@dimen/activity_border_margin"
-        android:background="@color/very_light_grey"
+        android:background="@color/extra_light_grey"
      >
 
         <com.ledger.ledgerwallet.widget.TextView
@@ -43,7 +43,7 @@
     </LinearLayout>
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp" android:background="@color/light_grey"/>
+        android:layout_height="1dp" android:background="@color/very_light_grey"/>
 
     <FrameLayout
         android:layout_width="match_parent"

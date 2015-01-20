@@ -50,7 +50,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
   }
 
   override def gotToStep(stepNumber: Int, instructionText: CharSequence, fragment: BaseFragment): Unit = {
-    stepNumberTextView.setText(stepNumber.toString)
+    stepNumberTextView.setText(stepNumber.toString + ".")
     stepInstructionTextView.setText(instructionText)
     val ft = getSupportFragmentManager.beginTransaction()
     ft.replace(R.id.fragment_container, fragment)

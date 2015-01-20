@@ -33,6 +33,7 @@ package com.ledger.ledgerwallet.widget
 import android.content.Context
 import android.graphics.{Color, Canvas}
 import android.os.Build
+import android.text.InputFilter
 import android.util.AttributeSet
 import android.view.View.MeasureSpec
 import android.widget.EditText
@@ -44,15 +45,12 @@ class PinTextView(context: Context, attrs: AttributeSet) extends EditText(contex
   lazy val DefaultBoxWidth = Convert.dpToPx(55)
   lazy val DefaultBoxMargin = Convert.dpToPx(10)
 
-  setCursorVisible(false)
-  if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN)
-    setBackgroundDrawable(null)
-  else
-    setBackground(null)
+
 
   val a = context.obtainStyledAttributes(attrs, R.styleable.PinTextView)
 
   val numberOfDigits = a.getInt(R.styleable.PinTextView_numberOfDigits, 4)
+
 
   private var _boxWidth = DefaultBoxWidth
   private var _boxHeight = DefaultBoxHeight
@@ -85,6 +83,18 @@ class PinTextView(context: Context, attrs: AttributeSet) extends EditText(contex
   }
 
   override def onDraw(canvas: Canvas): Unit = {
-    canvas.drawColor(Color.RED)
+    super.onDraw(canvas)
   }
+
+  private def initialize(): Unit = {
+    setCursorVisible(false)
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN)
+      setBackgroundDrawable(null)
+    else
+      setBackground(null)
+    setFilters(getFilters :+ new InputFilter.LengthFilter(numberOfDigits))
+  }
+
+
+  initialize()
 }
