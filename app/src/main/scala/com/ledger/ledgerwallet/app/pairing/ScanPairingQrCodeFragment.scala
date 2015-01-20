@@ -31,14 +31,38 @@
 package com.ledger.ledgerwallet.app.pairing
 
 import android.os.Bundle
+import android.view.ViewGroup.LayoutParams
 import android.view.{View, ViewGroup, LayoutInflater}
 import com.ledger.ledgerwallet.base.ContractFragment
-import me.dm7.barcodescanner.zxing.ZXingScannerView
+import com.ledger.ledgerwallet.widget.ScannerFrame
+import me.dm7.barcodescanner.zbar.{Result, ZBarScannerView}
+import me.dm7.barcodescanner.zbar.ZBarScannerView.ResultHandler
 
-class ScanPairingQrCodeFragment extends ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] {
+class ScanPairingQrCodeFragment extends ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] with ResultHandler {
 
-  private lazy val _scannerView = new ZXingScannerView(getActivity)
+  private lazy val _scannerView = new ZBarScannerView(getActivity)
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = _scannerView
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+    _scannerView.removeViewAt(1)
+    _scannerView.addView(new ScannerFrame(getActivity), new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+    _scannerView
+  }
+
+
+  override def onResume(): Unit = {
+    super.onResume()
+    _scannerView.setResultHandler(this)
+    _scannerView.startCamera()
+  }
+
+
+  override def onPause(): Unit = {
+    super.onPause()
+    _scannerView.stopCamera()
+  }
+
+  override def handleResult(result: Result): Unit = {
+
+  }
 
 }
