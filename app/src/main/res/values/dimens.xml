@@ -27,7 +27,7 @@
     <dimen name="very_small_margin">8dp</dimen>
     <dimen name="extra_small_margin">4dp</dimen>
 
-
+    <dimen name="list_bottom_margin_with_fab">72dp</dimen>
 
     <!-- Floating Action Button dimensions -->
 

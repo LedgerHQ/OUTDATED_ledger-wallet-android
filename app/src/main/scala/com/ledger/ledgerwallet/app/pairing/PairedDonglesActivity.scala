@@ -28,27 +28,26 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.app
+package com.ledger.ledgerwallet.app.pairing
 
-import android.content.Context
+import android.content.{Context, Intent}
 import android.os.Bundle
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageButton
 import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.app.PairedDonglesActivity.PairedDonglesAdapter.ViewHolder
 import com.ledger.ledgerwallet.base.BaseActivity
 import com.ledger.ledgerwallet.models.PairedDongle
+import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 import com.ledger.ledgerwallet.utils.TR
-import com.ledger.ledgerwallet.widget.{DividerItemDecoration, TextView, Toolbar}
 import com.ledger.ledgerwallet.widget.Toolbar.Style
-
+import com.ledger.ledgerwallet.widget.{DividerItemDecoration, TextView, Toolbar}
 
 class PairedDonglesActivity extends BaseActivity {
 
   lazy val addPairingButton = TR(R.id.add_pairing_btn).as[ImageButton]
   lazy val pairedDevicesList = TR(R.id.paired_devices_recycler_view).as[RecyclerView]
-  private lazy val pairedDevicesAdapter = new PairedDonglesActivity.PairedDonglesAdapter(this)
+  private lazy val pairedDevicesAdapter = new PairedDonglesAdapter(this)
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -60,17 +59,19 @@ class PairedDonglesActivity extends BaseActivity {
     pairedDevicesList.setItemAnimator(new DefaultItemAnimator)
     pairedDevicesList.addItemDecoration(new DividerItemDecoration(this, null))
 
-    val l = Array(new PairedDongle("My Ledger Wallet"), new PairedDongle("Sophie's Wallet"), new PairedDongle("Office Wallet"))
+    val l = Array(new PairedDongle("My Ledger Wallet"), new PairedDongle("Sophie's Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"))
     pairedDevicesAdapter.pairedDongles = l
+
+    addPairingButton setOnClickListener {
+      val intent = new Intent(this, classOf[CreateDonglePairingActivity])
+      startActivity(intent)
+    }
+
   }
 
   override def actionBarStyle: Style = Toolbar.Style.Expanded
 
-}
-
-private object PairedDonglesActivity {
-
-  class PairedDonglesAdapter(c: Context) extends RecyclerView.Adapter[PairedDonglesAdapter.ViewHolder] {
+  class PairedDonglesAdapter(c: Context) extends RecyclerView.Adapter[ViewHolder] {
 
     private var _pairedDongles = Array[PairedDongle]()
     def pairedDongles = _pairedDongles
@@ -95,14 +96,18 @@ private object PairedDonglesActivity {
     }
   }
 
-  object PairedDonglesAdapter {
 
-    class ViewHolder(v: View) extends RecyclerView.ViewHolder(v) {
-      lazy val dongleName = TR(v, R.id.dongle_name).as[TextView]
-      lazy val pairingDate = TR(v, R.id.pairing_date).as[TextView]
-      lazy val deleteButton = TR(v, R.id.delete_btn).as[View]
-    }
-
+  class ViewHolder(v: View) extends RecyclerView.ViewHolder(v) {
+    lazy val dongleName = TR(v, R.id.dongle_name).as[TextView]
+    lazy val pairingDate = TR(v, R.id.pairing_date).as[TextView]
+    lazy val deleteButton = TR(v, R.id.delete_btn).as[View]
   }
+
+
+}
+
+private object PairedDonglesActivity {
+
+
 
 }

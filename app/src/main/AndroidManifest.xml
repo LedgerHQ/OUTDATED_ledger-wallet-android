@@ -1,11 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.ledger.ledgerwallet">
 
-    <application android:allowBackup="true" android:label="@string/app_name"
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <application android:name="android.support.multidex.MultiDexApplication" android:allowBackup="true" android:label="@string/app_name"
         android:icon="@drawable/ic_launcher" android:theme="@style/AppTheme">
 
         <activity
-            android:name="com.ledger.ledgerwallet.app.PairedDonglesActivity"
+            android:name=".app.pairing.PairedDonglesActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -14,6 +16,9 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".app.pairing.CreateDonglePairingActivity" android:label="@string/create_dongle_title">
+
+        </activity>
     </application>
 
 </manifest>

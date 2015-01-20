@@ -1,6 +1,12 @@
 <resources>
     <string name="app_name">Ledger Wallet</string>
 
+
+    <!-- Paired Dongle Activity -->
     <string name="paired_dongle_waiting_for_an_operation">WAITING FOR AN OPERATION…</string>
+
+    <!-- Create Dongle Pairing Activity -->
+    <string name="create_dongle_title">Pair a new device</string>
+    <string name="create_dongle_instruction_step_1">First, scan the <b>pairing QR Code</b> on the Ledger Wallet Chrome application</string>
 
 </resources>

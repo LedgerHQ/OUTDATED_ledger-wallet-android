@@ -2,6 +2,7 @@
 <resources>
 
     <style name="AppTheme" parent="AppTheme.Base">
+        <item name="android:colorBackground">@color/background_color</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
@@ -11,6 +12,7 @@
         <item name="android:colorPrimary">@color/primary_color</item>
         <item name="android:colorPrimaryDark">@color/primary_dark_color</item>
         <item name="android:colorAccent">@color/accent_color</item>
+        <item name="android:homeAsUpIndicator">@drawable/abc_ic_ab_back_mtrl_am_alpha</item>
     </style>
 
     <style name="Base.ButtonStyle">

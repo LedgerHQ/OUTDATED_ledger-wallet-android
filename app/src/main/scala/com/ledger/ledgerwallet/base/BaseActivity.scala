@@ -52,6 +52,11 @@ abstract class BaseActivity extends ActionBarActivity with Loggable {
     super.setContentView(R.layout.base_activity)
     setSupportActionBar(toolbar)
     toolbar.style = actionBarStyle
+    if (actionBarStyle == Toolbar.Style.Normal) {
+      getSupportActionBar.setDisplayShowTitleEnabled(false)
+      getSupportActionBar.setDisplayShowCustomEnabled(true)
+      getSupportActionBar.setCustomView(toolbar.titleView)
+    }
     toolbar.setTitle(getTitle)
   }
 
@@ -76,6 +81,6 @@ abstract class BaseActivity extends ActionBarActivity with Loggable {
     content.addView(view, params)
   }
 
-  def actionBarStyle: Toolbar.Style
+  def actionBarStyle: Toolbar.Style = Toolbar.Style.Normal
 
 }
