@@ -31,7 +31,7 @@
 package com.ledger.ledgerwallet.widget
 
 import android.content.Context
-import android.graphics.{Color, Canvas}
+import android.graphics.{RectF, Paint, Color, Canvas}
 import android.os.Build
 import android.text.InputFilter
 import android.util.AttributeSet
@@ -44,16 +44,51 @@ class PinTextView(context: Context, attrs: AttributeSet) extends EditText(contex
   lazy val DefaultBoxHeight = Convert.dpToPx(75)
   lazy val DefaultBoxWidth = Convert.dpToPx(55)
   lazy val DefaultBoxMargin = Convert.dpToPx(10)
-
-
+  lazy val DefaultBoxRadius = Convert.dpToPx(5)
+  lazy val DefaultBoxBorderThickness = Convert.dpToPx(1)
+  lazy val DefaultPlaceHolderSize = Convert.dpToPx(15)
 
   val a = context.obtainStyledAttributes(attrs, R.styleable.PinTextView)
-
   val numberOfDigits = a.getInt(R.styleable.PinTextView_numberOfDigits, 4)
-
 
   private var _boxWidth = DefaultBoxWidth
   private var _boxHeight = DefaultBoxHeight
+  private val _boxMargin = DefaultBoxMargin
+  private val _borderThickness = DefaultBoxBorderThickness
+  private val _placeHolderSize = DefaultPlaceHolderSize
+
+  private val _boxBackgroundPaint = {
+    val p = new Paint()
+    p.setColor(Color.WHITE)
+    p.setAntiAlias(true)
+    p
+  }
+  private val _boxInactiveBorderPaint = {
+    val p = new Paint()
+    p.setColor(Color.rgb(0xC9, 0xC9, 0xC9))
+    p.setAntiAlias(true)
+    p
+  }
+  private val _boxActiveBorderPaint = {
+    val p = new Paint()
+    p.setColor(Color.rgb(0xEA, 0x2E, 0x49))
+    p.setAntiAlias(true)
+    p
+  }
+  private val _boxFilledBorderPaint = {
+    val p = new Paint()
+    p.setColor(Color.rgb(0x66, 0x66, 0x66))
+    p.setAntiAlias(true)
+    p
+  }
+  private val _boxRect = new RectF()
+
+
+  override def onSelectionChanged(selStart: Int, selEnd: Int): Unit = {
+    if (getText != null && (selStart != getText.length() || selEnd != getText.length()))
+      setSelection(getText.length())
+    super.onSelectionChanged(selStart, selEnd)
+  }
 
   override def onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int): Unit = {
     val widthMode = MeasureSpec.getMode(widthMeasureSpec)
@@ -83,7 +118,41 @@ class PinTextView(context: Context, attrs: AttributeSet) extends EditText(contex
   }
 
   override def onDraw(canvas: Canvas): Unit = {
-    super.onDraw(canvas)
+    var i = 0
+    while (i < numberOfDigits) {
+      drawLetterBox(canvas, i)
+      i += 1
+    }
+  }
+
+  private def drawLetterBox(canvas: Canvas, index: Int): Unit = {
+    val left = index * _boxWidth + index * _boxMargin
+    var borderPaint: Paint = null
+
+    if (getSelectionStart == index)
+      borderPaint = _boxActiveBorderPaint
+    else if (index < getSelectionStart)
+      borderPaint = _boxFilledBorderPaint
+    else
+      borderPaint = _boxInactiveBorderPaint
+
+    _boxRect.set(
+      left,
+      0,
+      left + _boxWidth,
+      _boxHeight
+    )
+    canvas.drawRoundRect(_boxRect, DefaultBoxRadius, DefaultBoxRadius, borderPaint)
+
+    _boxRect.set(
+      left + _borderThickness,
+      _borderThickness,
+      left + _boxWidth - _borderThickness,
+      _boxHeight - _borderThickness
+    )
+    canvas.drawRoundRect(_boxRect, DefaultBoxRadius, DefaultBoxRadius, _boxBackgroundPaint)
+    if (index < getSelectionStart)
+      canvas.drawCircle(left + _boxWidth / 2f, _boxHeight / 2, _placeHolderSize / 2f, borderPaint)
   }
 
   private def initialize(): Unit = {
