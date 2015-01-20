@@ -34,8 +34,12 @@ import android.os.Bundle
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{BaseFragment, BaseActivity}
 import com.ledger.ledgerwallet.utils.TR
+import com.ledger.ledgerwallet.widget.TextView
 
 class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingActivity.CreateDonglePairingProccessContract {
+
+  lazy val stepNumberTextView = TR(R.id.step_number).as[TextView]
+  lazy val stepInstructionTextView = TR(R.id.instruction_text).as[TextView]
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -46,6 +50,8 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
   }
 
   override def gotToStep(stepNumber: Int, instructionText: CharSequence, fragment: BaseFragment): Unit = {
+    stepNumberTextView.setText(stepNumber.toString)
+    stepInstructionTextView.setText(instructionText)
     val ft = getSupportFragmentManager.beginTransaction()
     ft.replace(R.id.fragment_container, fragment)
     ft.commit()

@@ -8,5 +8,7 @@
     <!-- Create Dongle Pairing Activity -->
     <string name="create_dongle_title">Pair a new device</string>
     <string name="create_dongle_instruction_step_1">First, scan the <b>pairing QR Code</b> on the Ledger Wallet Chrome application</string>
+    <string name="create_dongle_instruction_step_2">Grab your <b>security card</b> and enter the matching value for each character.</string>
+    <string name="create_dongle_instruction_step_2_bottom">Type in the letter or digit in the black box matching "%s" on your security card.</string>
 
 </resources>

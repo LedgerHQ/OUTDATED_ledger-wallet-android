@@ -3,6 +3,7 @@
 
     <dimen name="action_bar_height">280dp</dimen>
 
+    <dimen name="huge_font_size">42sp</dimen>
     <dimen name="extra_large_font_size">20sp</dimen>
     <dimen name="very_large_font_size">19sp</dimen>
     <dimen name="large_font_size">16sp</dimen>

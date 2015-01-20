@@ -35,7 +35,9 @@ import java.util
 import android.os.Bundle
 import android.view.ViewGroup.LayoutParams
 import android.view.{View, ViewGroup, LayoutInflater}
+import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.ContractFragment
+import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.utils.logs.Logger
 import com.ledger.ledgerwallet.widget.ScannerFrame
 import me.dm7.barcodescanner.zbar.{BarcodeFormat, Result, ZBarScannerView}
@@ -60,6 +62,7 @@ class ScanPairingQrCodeFragment extends ContractFragment[CreateDonglePairingActi
     _scannerView.setAutoFocus(true)
     _scannerView.setFormats(formats)
     _scannerView.startCamera()
+    nextStep()
   }
 
 
@@ -72,5 +75,7 @@ class ScanPairingQrCodeFragment extends ContractFragment[CreateDonglePairingActi
     Logger.d("Got result " + result.getContents)
 
   }
+
+  def nextStep(): Unit = contract.gotToStep(2, TR(R.string.create_dongle_instruction_step_2).as[String], new PairingChallengeFragment)
 
 }

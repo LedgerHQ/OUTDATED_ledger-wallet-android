@@ -41,6 +41,9 @@
             android:lineSpacingExtra="5dp"
             android:layout_gravity="center_vertical" />
     </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp" android:background="@color/light_grey"/>
 
     <FrameLayout
         android:layout_width="match_parent"

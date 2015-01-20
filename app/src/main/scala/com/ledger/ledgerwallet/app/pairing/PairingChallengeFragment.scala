@@ -1,9 +1,9 @@
 /**
  *
- * AndroidImplicitConversions
+ * PairingChallengeFragment
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 19/01/15.
+ * Created by Pierre Pollastri on 20/01/15.
  *
  * The MIT License (MIT)
  *
@@ -28,22 +28,20 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.utils
+package com.ledger.ledgerwallet.app.pairing
 
-import android.view.View
+import android.os.Bundle
+import android.view.{View, ViewGroup, LayoutInflater}
+import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.base.{ContractFragment, BaseFragment}
 
-object AndroidImplicitConversions {
+class PairingChallengeFragment extends BaseFragment with ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] {
 
-  implicit def funcToViewOnClickListener[F](f: => F): View.OnClickListener = {
-    new View.OnClickListener {
-      override def onClick(v: View): Unit = f
-    }
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+    super.onCreateView(inflater, container, savedInstanceState)
+    inflater.inflate(R.layout.pairing_challenge_fragment, container, false)
   }
 
-  implicit def funcToRunnable[F](f: => F): Runnable = {
-    new Runnable {
-      override def run(): Unit = f
-    }
-  }
+
 
 }

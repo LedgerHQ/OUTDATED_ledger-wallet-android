@@ -21,4 +21,8 @@
         <attr name="fontFamily"/>
     </declare-styleable>
 
+    <declare-styleable name="PinTextView">
+        <attr name="numberOfDigits" format="integer" />
+    </declare-styleable>
+
 </resources>
