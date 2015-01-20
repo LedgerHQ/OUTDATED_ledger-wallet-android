@@ -62,6 +62,9 @@ class ScannerFrame(context: Context) extends View(context) {
     p
   }
 
+  private val _roundedWhiteRect = new RectF()
+  private val _roundedRectCut = new RectF()
+
   override def onDraw(canvas: Canvas): Unit = {
     super.onDraw(canvas)
     drawMask(canvas)
@@ -80,21 +83,29 @@ class ScannerFrame(context: Context) extends View(context) {
     val left = (width - frameSize) / 2
     val top = (height - frameSize) / 2
 
-    canvas.drawRoundRect(
+    _roundedWhiteRect.set(
       left,
       top,
       left + frameSize,
-      top + frameSize,
+      top + frameSize
+    )
+
+    canvas.drawRoundRect(
+      _roundedWhiteRect,
       _aimingFrameRadius,
       _aimingFrameRadius,
       _aimingWhiteFrame
     )
 
-    canvas.drawRoundRect(
+    _roundedRectCut.set(
       left + _aimingFrameBorderThickness,
       top + _aimingFrameBorderThickness,
       left + frameSize - _aimingFrameBorderThickness,
-      top + frameSize - _aimingFrameBorderThickness,
+      top + frameSize - _aimingFrameBorderThickness
+    )
+
+    canvas.drawRoundRect(
+      _roundedRectCut,
       _aimingFrameRadius,
       _aimingFrameRadius,
       _cutPaint

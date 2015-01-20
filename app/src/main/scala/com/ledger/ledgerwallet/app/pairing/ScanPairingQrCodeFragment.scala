@@ -30,12 +30,15 @@
  */
 package com.ledger.ledgerwallet.app.pairing
 
+import java.util
+
 import android.os.Bundle
 import android.view.ViewGroup.LayoutParams
 import android.view.{View, ViewGroup, LayoutInflater}
 import com.ledger.ledgerwallet.base.ContractFragment
+import com.ledger.ledgerwallet.utils.logs.Logger
 import com.ledger.ledgerwallet.widget.ScannerFrame
-import me.dm7.barcodescanner.zbar.{Result, ZBarScannerView}
+import me.dm7.barcodescanner.zbar.{BarcodeFormat, Result, ZBarScannerView}
 import me.dm7.barcodescanner.zbar.ZBarScannerView.ResultHandler
 
 class ScanPairingQrCodeFragment extends ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] with ResultHandler {
@@ -51,7 +54,11 @@ class ScanPairingQrCodeFragment extends ContractFragment[CreateDonglePairingActi
 
   override def onResume(): Unit = {
     super.onResume()
+    val formats = new util.ArrayList[BarcodeFormat](1)
+    formats.add(BarcodeFormat.QRCODE)
     _scannerView.setResultHandler(this)
+    _scannerView.setAutoFocus(true)
+    _scannerView.setFormats(formats)
     _scannerView.startCamera()
   }
 
@@ -62,6 +69,7 @@ class ScanPairingQrCodeFragment extends ContractFragment[CreateDonglePairingActi
   }
 
   override def handleResult(result: Result): Unit = {
+    Logger.d("Got result " + result.getContents)
 
   }
 
