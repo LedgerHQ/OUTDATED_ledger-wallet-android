@@ -90,7 +90,7 @@ trait FontView {
   }
 
   def fontStyle_=(fontStyle: FontView.Font.Style.Style):Unit = {
-    if (fontStyle != _fontStyle)
+    if (fontStyle == _fontStyle)
       return
     _fontStyle = fontStyle
     typeface = FontView.loadTypefaceFromAssets(this.asInstanceOf[View], _fontFamily, _fontStyle)

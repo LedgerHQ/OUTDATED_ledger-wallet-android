@@ -46,4 +46,8 @@ class BaseFragment extends Fragment with Loggable {
   implicit def FragmentToContext(f: Fragment) = f.getActivity
   implicit def FragmentActivityToBaseActivity(activity: FragmentActivity) = activity.asInstanceOf[BaseActivity]
 
+  def activity = {
+    Option(getActivity)
+  }
+
 }

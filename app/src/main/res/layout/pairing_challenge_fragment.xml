@@ -6,14 +6,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
-
+    android:id="@+id/frame"
     >
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="46sp"
         android:id="@+id/challenge_box"
         android:orientation="horizontal"
+        android:gravity="center"
         android:layout_alignRight="@+id/pin_view"
         android:layout_alignEnd="@+id/pin_view"
         android:layout_alignLeft="@+id/pin_view"
@@ -21,37 +22,41 @@
         android:layout_marginBottom="@dimen/large_margin">
 
         <com.ledger.ledgerwallet.widget.TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textSize="@dimen/huge_font_size"
             android:gravity="center"
             android:layout_weight="1"
             android:textColor="@color/dark_grey"
-            android:text="k"/>
+            app:fontStyle="light"
+            android:text=""/>
         <com.ledger.ledgerwallet.widget.TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="@color/dark_grey"
             android:textSize="@dimen/huge_font_size"
-            android:text="5"/>
+            app:fontStyle="light"
+            android:text=""/>
         <com.ledger.ledgerwallet.widget.TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="@color/dark_grey"
             android:textSize="@dimen/huge_font_size"
-            android:text="E"/>
+            app:fontStyle="light"
+            android:text=""/>
         <com.ledger.ledgerwallet.widget.TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="@color/dark_grey"
             android:textSize="@dimen/huge_font_size"
-            android:text="9"/>
+            app:fontStyle="light"
+            android:text=""/>
     </LinearLayout>
 
     <com.ledger.ledgerwallet.widget.PinTextView
@@ -64,5 +69,21 @@
         android:inputType="textNoSuggestions"
         android:layout_below="@+id/challenge_box"
         android:layout_centerHorizontal="true" />
-    
+
+    <com.ledger.ledgerwallet.widget.TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/create_dongle_instruction_step_2_bottom"
+        android:id="@+id/bottom_text"
+        android:textSize="@dimen/small_font_size"
+        android:textColor="@color/soft_grey"
+        android:layout_marginTop="@dimen/large_margin"
+        android:gravity="center"
+        app:kerning="@dimen/medium_font_spacing"
+        android:layout_below="@+id/pin_view"
+        android:layout_alignLeft="@+id/pin_view"
+        android:layout_alignStart="@+id/pin_view"
+        android:layout_alignRight="@+id/pin_view"
+        android:layout_alignEnd="@+id/pin_view" />
+
 </RelativeLayout>

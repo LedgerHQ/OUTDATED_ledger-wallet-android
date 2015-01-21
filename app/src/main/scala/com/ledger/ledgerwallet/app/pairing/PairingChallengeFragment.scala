@@ -30,17 +30,42 @@
  */
 package com.ledger.ledgerwallet.app.pairing
 
+import android.content.Context
 import android.os.Bundle
+import android.text.{Editable, TextWatcher}
+import android.view.ViewTreeObserver.OnGlobalLayoutListener
+import android.view.inputmethod.InputMethodManager
 import android.view.{View, ViewGroup, LayoutInflater}
+import android.widget.RelativeLayout
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{ContractFragment, BaseFragment}
-import com.ledger.ledgerwallet.utils.TR
-import com.ledger.ledgerwallet.widget.PinTextView
-import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
+import com.ledger.ledgerwallet.utils.{Convert, TR}
+import com.ledger.ledgerwallet.widget.traits.FontView
+import com.ledger.ledgerwallet.widget.{TextView, PinTextView}
 
 class PairingChallengeFragment extends BaseFragment with ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] {
 
+  lazy val PreviousCharacterColor = TR(R.color.dark_grey).asColor
+  lazy val CurrentCharacterColor = TR(R.color.invalid_red).asColor
+  lazy val NextCharacterColor = TR(R.color.soft_grey).asColor
+  lazy val DefaultCharacterFontStyle = FontView.Font.Style.Light
+  lazy val CurrentCharacterFontStyle = FontView.Font.Style.SemiBold
+
   lazy val pinTextView = TR(R.id.pin_view).as[PinTextView]
+  lazy val frame = TR(R.id.frame).as[RelativeLayout]
+  lazy val bottomText = TR(R.id.bottom_text).as[TextView]
+  lazy val letters = {
+    val challengeBox = TR(R.id.challenge_box).as[ViewGroup]
+    var views = Array[TextView]()
+    for (index <- 0 until challengeBox.getChildCount) {
+      views = challengeBox.getChildAt(index) match {
+        case textView: TextView => views :+ textView
+        case _ => views
+      }
+    }
+    views
+  }
+  private val _challenge = "k5E9"
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     super.onCreateView(inflater, container, savedInstanceState)
@@ -49,8 +74,57 @@ class PairingChallengeFragment extends BaseFragment with ContractFragment[Create
 
   override def onResume(): Unit = {
     super.onResume()
-    pinTextView.postDelayed({
-      pinTextView.requestFocus()
-    }, 200)
+    updateUI()
+    pinTextView.requestFocus()
+    val imr = activity.map(_.getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager])
+    imr.foreach(_.showSoftInput(pinTextView, InputMethodManager.SHOW_FORCED))
+    frame.getViewTreeObserver.addOnGlobalLayoutListener(layoutObserver)
+    pinTextView.addTextChangedListener(pinTextWatcher)
   }
+
+  override def onPause(): Unit = {
+    super.onPause()
+    frame.getViewTreeObserver.removeOnGlobalLayoutListener(layoutObserver)
+    pinTextView.removeTextChangedListener(pinTextWatcher)
+  }
+
+  private def updateUI(): Unit = {
+    val text = pinTextView.getText
+    for (i <- 0 until _challenge.length) {
+      letters(i).setText(_challenge.charAt(i).toString)
+      if (i < text.length()) {
+        letters(i).setTextColor(PreviousCharacterColor)
+        letters(i).fontStyle = DefaultCharacterFontStyle
+      } else if (i == text.length()) {
+        letters(i).setTextColor(CurrentCharacterColor)
+        letters(i).fontStyle = CurrentCharacterFontStyle
+      } else {
+        letters(i).setTextColor(NextCharacterColor)
+        letters(i).fontStyle = DefaultCharacterFontStyle
+      }
+    }
+    if (text.length() < _challenge.length)
+      bottomText.setText(
+        getResources.getString(R.string.create_dongle_instruction_step_2_bottom,
+          _challenge.charAt(text.length).toString)
+      )
+  }
+
+  val layoutObserver = new OnGlobalLayoutListener {
+    override def onGlobalLayout(): Unit = {
+        if (frame.getHeight < Convert.dpToPx(200)) {
+          bottomText.setVisibility(View.GONE)
+        }
+        else {
+          bottomText.setVisibility(View.VISIBLE)
+        }
+    }
+  }
+
+  val pinTextWatcher = new TextWatcher {
+    override def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int): Unit = {}
+    override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit = {}
+    override def afterTextChanged(s: Editable): Unit = updateUI()
+  }
+
 }
