@@ -55,6 +55,8 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     stepNumberTextView.setText(stepNumber.toString + ".")
     stepInstructionTextView.setText(instructionText)
     val ft = getSupportFragmentManager.beginTransaction()
+    if (stepNumber > 1)
+      ft.setCustomAnimations(R.anim.slide_from_right, R.anim.slide_to_left, R.anim.slide_from_left, R.anim.slide_to_right)
     ft.replace(R.id.fragment_container, fragment)
     ft.commit()
   }

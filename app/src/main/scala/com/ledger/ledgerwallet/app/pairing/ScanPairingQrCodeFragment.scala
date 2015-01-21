@@ -62,7 +62,6 @@ class ScanPairingQrCodeFragment extends ContractFragment[CreateDonglePairingActi
     _scannerView.setAutoFocus(true)
     _scannerView.setFormats(formats)
     _scannerView.startCamera()
-    nextStep()
   }
 
 
@@ -73,6 +72,7 @@ class ScanPairingQrCodeFragment extends ContractFragment[CreateDonglePairingActi
 
   override def handleResult(result: Result): Unit = {
     Logger.d("Got result " + result.getContents)
+    nextStep()
 
   }
 

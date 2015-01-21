@@ -121,9 +121,9 @@ class ScannerFrame(context: Context) extends View(context) {
 
     canvas.drawRect(
       left + _aimingFrameBorderSize,
-      top,
+      top - 1,
       left + frameSize - _aimingFrameBorderSize,
-      top + frameSize,
+      top + frameSize + 1,
       _cutPaint
     )
 

@@ -33,13 +33,14 @@ package com.ledger.ledgerwallet.app.pairing
 import android.os.Bundle
 import android.text.{Editable, TextWatcher}
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
-import android.view.{LayoutInflater, View, ViewGroup}
+import android.view.{WindowManager, LayoutInflater, View, ViewGroup}
 import android.widget.RelativeLayout
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{BaseFragment, ContractFragment}
 import com.ledger.ledgerwallet.utils.{Convert, TR}
 import com.ledger.ledgerwallet.widget.traits.FontView
 import com.ledger.ledgerwallet.widget.{PinTextView, TextView}
+import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 
 class PairingChallengeFragment extends BaseFragment with ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] {
 
@@ -63,20 +64,27 @@ class PairingChallengeFragment extends BaseFragment with ContractFragment[Create
     }
     views
   }
-  private val _challenge = "k5E9"
+  private val _challenge = "x5E9"
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     super.onCreateView(inflater, container, savedInstanceState)
     inflater.inflate(R.layout.pairing_challenge_fragment, container, false)
   }
 
+
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+    super.onViewCreated(view, savedInstanceState)
+    pinTextView.requestFocus()
+    pinTextView.setFocusableInTouchMode(true)
+  }
+
   override def onResume(): Unit = {
     super.onResume()
     updateUI()
     pinTextView.requestFocus()
+    pinTextView.postDelayed(pinTextView.requestFocus(), 1000)
     frame.getViewTreeObserver.addOnGlobalLayoutListener(layoutObserver)
     pinTextView.addTextChangedListener(pinTextWatcher)
-    nextStep()
   }
 
   override def onPause(): Unit = {
@@ -124,7 +132,11 @@ class PairingChallengeFragment extends BaseFragment with ContractFragment[Create
   val pinTextWatcher = new TextWatcher {
     override def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int): Unit = {}
     override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit = {}
-    override def afterTextChanged(s: Editable): Unit = updateUI()
+    override def afterTextChanged(s: Editable): Unit = {
+      updateUI()
+      if (s.length() == _challenge.length)
+        nextStep()
+    }
   }
 
   def nextStep(): Unit = contract.gotToStep(3, TR(R.string.create_dongle_instruction_step_3).as[String], new NameDongleFragment)
