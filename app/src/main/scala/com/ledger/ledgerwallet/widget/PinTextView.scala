@@ -36,7 +36,6 @@ import android.os.Build
 import android.text.InputFilter
 import android.util.AttributeSet
 import android.view.View.MeasureSpec
-import android.widget.EditText
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.utils.Convert
 
@@ -44,7 +43,7 @@ class PinTextView(context: Context, attrs: AttributeSet) extends EditText(contex
   lazy val DefaultBoxHeight = Convert.dpToPx(75)
   lazy val DefaultBoxWidth = Convert.dpToPx(55)
   lazy val DefaultBoxMargin = Convert.dpToPx(10)
-  lazy val DefaultBoxRadius = Convert.dpToPx(5)
+  lazy val DefaultBoxRadius = Convert.dpToPx(10)
   lazy val DefaultBoxBorderThickness = Convert.dpToPx(1)
   lazy val DefaultPlaceHolderSize = Convert.dpToPx(15)
 

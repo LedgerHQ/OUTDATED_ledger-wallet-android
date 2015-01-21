@@ -30,18 +30,16 @@
  */
 package com.ledger.ledgerwallet.app.pairing
 
-import android.content.Context
 import android.os.Bundle
 import android.text.{Editable, TextWatcher}
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
-import android.view.inputmethod.InputMethodManager
-import android.view.{View, ViewGroup, LayoutInflater}
+import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.RelativeLayout
 import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.base.{ContractFragment, BaseFragment}
+import com.ledger.ledgerwallet.base.{BaseFragment, ContractFragment}
 import com.ledger.ledgerwallet.utils.{Convert, TR}
 import com.ledger.ledgerwallet.widget.traits.FontView
-import com.ledger.ledgerwallet.widget.{TextView, PinTextView}
+import com.ledger.ledgerwallet.widget.{PinTextView, TextView}
 
 class PairingChallengeFragment extends BaseFragment with ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] {
 
@@ -76,10 +74,9 @@ class PairingChallengeFragment extends BaseFragment with ContractFragment[Create
     super.onResume()
     updateUI()
     pinTextView.requestFocus()
-    val imr = activity.map(_.getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager])
-    imr.foreach(_.showSoftInput(pinTextView, InputMethodManager.SHOW_FORCED))
     frame.getViewTreeObserver.addOnGlobalLayoutListener(layoutObserver)
     pinTextView.addTextChangedListener(pinTextWatcher)
+    nextStep()
   }
 
   override def onPause(): Unit = {
@@ -90,11 +87,14 @@ class PairingChallengeFragment extends BaseFragment with ContractFragment[Create
 
   private def updateUI(): Unit = {
     val text = pinTextView.getText
+    val isSmallScreen = if (frame.getTag != null && frame.getTag.equals("normal")) true else false
     for (i <- 0 until _challenge.length) {
       letters(i).setText(_challenge.charAt(i).toString)
       if (i < text.length()) {
         letters(i).setTextColor(PreviousCharacterColor)
         letters(i).fontStyle = DefaultCharacterFontStyle
+        if (isSmallScreen)
+          letters(i).setText("")
       } else if (i == text.length()) {
         letters(i).setTextColor(CurrentCharacterColor)
         letters(i).fontStyle = CurrentCharacterFontStyle
@@ -126,5 +126,7 @@ class PairingChallengeFragment extends BaseFragment with ContractFragment[Create
     override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit = {}
     override def afterTextChanged(s: Editable): Unit = updateUI()
   }
+
+  def nextStep(): Unit = contract.gotToStep(3, TR(R.string.create_dongle_instruction_step_3).as[String], new NameDongleFragment)
 
 }

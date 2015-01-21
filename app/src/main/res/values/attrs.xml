@@ -19,10 +19,17 @@
     <declare-styleable name="TextView">
         <attr name="fontStyle"/>
         <attr name="fontFamily"/>
+        <attr name="kerning" />
     </declare-styleable>
 
     <declare-styleable name="PinTextView">
         <attr name="numberOfDigits" format="integer" />
+    </declare-styleable>
+
+    <declare-styleable name="EditText">
+        <attr name="fontStyle"/>
+        <attr name="fontFamily"/>
+        <attr name="kerning" />
     </declare-styleable>
 
 </resources>

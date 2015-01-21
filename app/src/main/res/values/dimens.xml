@@ -4,6 +4,7 @@
     <dimen name="action_bar_height">280dp</dimen>
 
     <dimen name="huge_font_size">42sp</dimen>
+    <dimen name="extra_extra_large_font_size">27sp</dimen>
     <dimen name="extra_large_font_size">20sp</dimen>
     <dimen name="very_large_font_size">19sp</dimen>
     <dimen name="large_font_size">16sp</dimen>
@@ -20,6 +21,7 @@
 
     <dimen name="activity_border_margin">16dp</dimen>
 
+    <dimen name="huge_margin">40dp</dimen>
     <dimen name="extra_large_margin">28dp</dimen>
     <dimen name="very_large_margin">24dp</dimen>
     <dimen name="large_margin">20dp</dimen>

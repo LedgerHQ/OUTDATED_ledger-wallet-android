@@ -31,6 +31,8 @@
 package com.ledger.ledgerwallet.app.pairing
 
 import android.os.Bundle
+import android.support.v4.app.NavUtils
+import android.view.MenuItem
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{BaseFragment, BaseActivity}
 import com.ledger.ledgerwallet.utils.TR
@@ -55,6 +57,16 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     val ft = getSupportFragmentManager.beginTransaction()
     ft.replace(R.id.fragment_container, fragment)
     ft.commit()
+  }
+
+  override def onOptionsItemSelected(item: MenuItem): Boolean = {
+    item.getItemId match {
+      case android.R.id.home => {
+        NavUtils.navigateUpFromSameTask(this)
+        true
+      }
+      case _ => super.onOptionsItemSelected(item)
+    }
   }
 }
 

@@ -121,15 +121,17 @@ trait FontView {
     var length = _originalCharSequence.get.length()
     for (i <- 0 until length) {
       builder.append(_originalCharSequence.get.charAt(i))
-      if (i + 1 < length)
+      if (i + 1 < length && _kerning != 0f)
         builder.append("\u00A0")
     }
 
     val finalSequence = new SpannableString(builder)
     length = builder.toString.length
-    for (i <- 1 until length by 2) {
-      val span = new ScaleXSpan((_kerning + 1) / 10)
-      finalSequence.setSpan(span, i, i + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    if (_kerning != 0f) {
+      for (i <- 1 until length by 2) {
+        val span = new ScaleXSpan((_kerning + 1) / 10)
+        finalSequence.setSpan(span, i, i + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+      }
     }
 
     onCharacterStyleChanged(finalSequence)

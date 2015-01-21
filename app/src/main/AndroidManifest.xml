@@ -16,8 +16,16 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".app.pairing.CreateDonglePairingActivity" android:label="@string/create_dongle_title" android:windowSoftInputMode="adjustResize">
-
+        <activity
+            android:name=".app.pairing.CreateDonglePairingActivity"
+            android:label="@string/create_dongle_title"
+            android:windowSoftInputMode="adjustResize"
+            android:parentActivityName=".app.pairing.PairedDonglesActivity"
+            >
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.pairing.PairedDonglesActivity" />
         </activity>
     </application>
 
