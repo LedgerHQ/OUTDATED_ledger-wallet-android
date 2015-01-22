@@ -58,7 +58,6 @@ class PairedDonglesActivity extends BaseActivity {
     pairedDevicesList.setAdapter(pairedDevicesAdapter)
     pairedDevicesList.setHasFixedSize(true)
     pairedDevicesList.setItemAnimator(new DefaultItemAnimator)
-    pairedDevicesList.addItemDecoration(new DividerItemDecoration(this, null))
 
     val l = Array(new PairedDongle("My Ledger Wallet"), new PairedDongle("Sophie's Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"))
     pairedDevicesAdapter.pairedDongles = l

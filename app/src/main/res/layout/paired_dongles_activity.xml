@@ -14,8 +14,6 @@
         android:layout_height="match_parent"
         android:paddingTop="0dp"
         android:paddingBottom="@dimen/list_bottom_margin_with_fab"
-        android:paddingLeft="@dimen/activity_border_margin"
-        android:paddingRight="@dimen/activity_border_margin"
         />
 
     <ImageButton style="@style/GreenFloatingActionButton"

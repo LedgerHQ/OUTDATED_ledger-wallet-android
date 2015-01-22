@@ -1,52 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="@dimen/very_large_margin"
-    android:paddingBottom="@dimen/very_large_margin"
-    android:background="@drawable/bg_dialog_button"
+    android:orientation="vertical"
     >
-
-    <com.ledger.ledgerwallet.widget.TextView
-        android:layout_width="wrap_content"
+    <RelativeLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/dongle_name"
-        android:layout_alignParentLeft="true"
-        android:layout_marginLeft="0dp"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="0dp"
-        android:textColor="@color/black"
-        android:textSize="@dimen/large_font_size"
-        app:kerning="@dimen/medium_font_spacing"
-        android:layout_toLeftOf="@+id/delete_btn"
-        android:layout_toStartOf="@+id/delete_btn" />
+        android:paddingTop="@dimen/very_large_margin"
+        android:paddingBottom="@dimen/very_large_margin"
+        android:background="@drawable/bg_dialog_button"
+        android:paddingLeft="@dimen/activity_border_margin"
+        >
 
-    <com.ledger.ledgerwallet.widget.TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/pairing_date"
-        android:layout_below="@+id/dongle_name"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:textColor="@color/dark_grey"
-        android:textSize="@dimen/small_font_size"
-        app:kerning="@dimen/medium_font_spacing"
-        app:fontStyle="light"
-        android:layout_marginTop="@dimen/extra_small_margin"
-        android:layout_toLeftOf="@+id/delete_btn"
-        android:layout_toStartOf="@+id/delete_btn" />
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/dongle_name"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="0dp"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="0dp"
+            android:textColor="@color/black"
+            android:textSize="@dimen/large_font_size"
+            app:kerning="@dimen/medium_font_spacing"
+            android:layout_toLeftOf="@+id/delete_btn"
+            android:layout_toStartOf="@+id/delete_btn" />
 
-    <ImageButton
-        android:layout_width="19dp"
-        android:layout_height="21dp"
-        android:id="@+id/delete_btn"
-        android:background="@android:color/transparent"
-        android:src="@drawable/ic_grey_trash"
-        android:layout_centerVertical="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-</RelativeLayout>
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/pairing_date"
+            android:layout_below="@+id/dongle_name"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:textColor="@color/dark_grey"
+            android:textSize="@dimen/small_font_size"
+            app:kerning="@dimen/medium_font_spacing"
+            app:fontStyle="light"
+            android:layout_marginTop="@dimen/extra_small_margin"
+            android:layout_toLeftOf="@+id/delete_btn"
+            android:layout_toStartOf="@+id/delete_btn" />
+
+        <View
+            android:layout_width="50dp"
+            android:layout_height="46dp"
+            android:id="@+id/delete_touch_area"
+            android:background="@drawable/bg_dialog_button"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true" />
+
+        <ImageButton
+            android:layout_width="19dp"
+            android:layout_height="21dp"
+            android:id="@+id/delete_btn"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_grey_trash"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="@dimen/activity_border_margin"
+            android:layout_alignParentEnd="true" />
+
+    </RelativeLayout>
+    <View
+        android:layout_width="match_parent"
+        android:background="@color/light_grey"
+        android:layout_marginLeft="@dimen/activity_border_margin"
+        android:layout_marginRight="@dimen/activity_border_margin"
+        android:layout_height="1dp" />
+</LinearLayout>
