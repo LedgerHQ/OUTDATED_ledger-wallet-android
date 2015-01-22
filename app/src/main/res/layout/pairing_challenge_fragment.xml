@@ -19,6 +19,7 @@
         android:digits="0123456789ABCDEFabcdef"
         android:inputType="textNoSuggestions"
         android:layout_centerHorizontal="true"
+        android:singleLine="true"
         android:layout_centerInParent="true"/>
 
     <LinearLayout

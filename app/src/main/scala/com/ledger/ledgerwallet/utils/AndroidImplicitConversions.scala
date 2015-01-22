@@ -30,7 +30,9 @@
  */
 package com.ledger.ledgerwallet.utils
 
-import android.view.View
+import android.view.{KeyEvent, View}
+import android.widget.TextView
+import android.widget.TextView.OnEditorActionListener
 
 object AndroidImplicitConversions {
 
@@ -43,6 +45,12 @@ object AndroidImplicitConversions {
   implicit def funcToRunnable[F](f: => F): Runnable = {
     new Runnable {
       override def run(): Unit = f
+    }
+  }
+
+  implicit def funcToOnEditorActionListener(f: (Int, KeyEvent) => Boolean): OnEditorActionListener = {
+    new OnEditorActionListener {
+      override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = f(actionId, event)
     }
   }
 

@@ -33,10 +33,12 @@ package com.ledger.ledgerwallet.app.pairing
 import android.os.Bundle
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view._
+import android.view.inputmethod.EditorInfo
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{ContractFragment, BaseFragment}
 import com.ledger.ledgerwallet.utils.{Convert, TR}
 import com.ledger.ledgerwallet.widget.{TextView, EditText}
+import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 
 class NameDongleFragment extends BaseFragment with ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] {
 
@@ -53,6 +55,16 @@ class NameDongleFragment extends BaseFragment with ContractFragment[CreateDongle
     inflater.inflate(R.layout.name_dongle_fragment, container, false)
   }
 
+
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+    super.onViewCreated(view, savedInstanceState)
+    nameEditText.setOnEditorActionListener((actionId: Int, event: KeyEvent) => {
+      actionId match {
+        case EditorInfo.IME_ACTION_DONE => nextStep()
+        case _ => false
+      }
+    })
+  }
 
   override def onCreateOptionsMenu(menu: Menu, inflater: MenuInflater): Unit = {
     super.onCreateOptionsMenu(menu, inflater)

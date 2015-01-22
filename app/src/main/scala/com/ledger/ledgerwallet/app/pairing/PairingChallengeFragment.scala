@@ -30,10 +30,13 @@
  */
 package com.ledger.ledgerwallet.app.pairing
 
+import android.content.Context
+import android.inputmethodservice.InputMethodService
 import android.os.Bundle
 import android.text.{Editable, TextWatcher}
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
-import android.view.{WindowManager, LayoutInflater, View, ViewGroup}
+import android.view.inputmethod.{EditorInfo, InputMethodManager}
+import android.view._
 import android.widget.RelativeLayout
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{BaseFragment, ContractFragment}
@@ -76,6 +79,14 @@ class PairingChallengeFragment extends BaseFragment with ContractFragment[Create
     super.onViewCreated(view, savedInstanceState)
     pinTextView.requestFocus()
     pinTextView.setFocusableInTouchMode(true)
+    pinTextView.setOnEditorActionListener((actionId: Int, event: KeyEvent) => {
+      actionId match {
+        case EditorInfo.IME_ACTION_NEXT =>
+          nextStep()
+          true
+        case _ => false
+      }
+    })
   }
 
   override def onResume(): Unit = {
@@ -85,6 +96,7 @@ class PairingChallengeFragment extends BaseFragment with ContractFragment[Create
     pinTextView.postDelayed(pinTextView.requestFocus(), 1000)
     frame.getViewTreeObserver.addOnGlobalLayoutListener(layoutObserver)
     pinTextView.addTextChangedListener(pinTextWatcher)
+    activity.map(_.getSystemService(Context.INPUT_METHOD_SERVICE)).foreach(_.asInstanceOf[InputMethodManager].showSoftInput(pinTextView, InputMethodManager.SHOW_IMPLICIT))
   }
 
   override def onPause(): Unit = {
@@ -139,6 +151,9 @@ class PairingChallengeFragment extends BaseFragment with ContractFragment[Create
     }
   }
 
-  def nextStep(): Unit = contract.gotToStep(3, TR(R.string.create_dongle_instruction_step_3).as[String], new NameDongleFragment)
+  def nextStep(): Unit = {
+    if (pinTextView.getText().length() == _challenge.length)
+      contract.gotToStep(3, TR(R.string.create_dongle_instruction_step_3).as[String], new NameDongleFragment)
+  }
 
 }
