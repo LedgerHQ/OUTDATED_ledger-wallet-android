@@ -30,7 +30,9 @@
  */
 package com.ledger.ledgerwallet.base
 
-trait ContractFragment[T] extends BaseFragment{
+import android.support.v4.app.Fragment
+
+trait ContractFragment[T] extends Fragment {
 
   def contract = getActivity.asInstanceOf[T]
 

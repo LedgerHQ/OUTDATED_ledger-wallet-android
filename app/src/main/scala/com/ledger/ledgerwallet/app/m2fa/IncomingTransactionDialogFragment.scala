@@ -1,9 +1,9 @@
 /**
  *
- * AndroidImplicitConversions
+ * IncomingTransactionDialogFragment
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 19/01/15.
+ * Created by Pierre Pollastri on 22/01/15.
  *
  * The MIT License (MIT)
  *
@@ -28,36 +28,29 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.utils
+package com.ledger.ledgerwallet.app.m2fa
 
-import android.view.{KeyEvent, View}
-import android.widget.TextView
-import android.widget.TextView.OnEditorActionListener
+import android.os.Bundle
+import android.view.{View, ViewGroup, LayoutInflater}
+import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.base.BaseDialogFragment
+import com.ledger.ledgerwallet.view.DialogActionBarController
 
-object AndroidImplicitConversions {
+class IncomingTransactionDialogFragment extends BaseDialogFragment {
 
-  implicit def funcToViewOnClickListener[F](f: => F): View.OnClickListener = {
-    new View.OnClickListener {
-      override def onClick(v: View): Unit = f
-    }
+  lazy val actions = DialogActionBarController(R.id.dialog_action_bar).noNeutralButton
+
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+    inflater.inflate(R.layout.incoming_transaction_dialog_fragment, container, false)
   }
 
-  implicit def funcToViewOnClickListener[F](f: (View) => F): View.OnClickListener = {
-    new View.OnClickListener {
-      override def onClick(v: View): Unit = f(v)
-    }
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+    super.onViewCreated(view, savedInstanceState)
+    actions onPositiveClick dismiss
+    actions onNegativeClick dismiss
   }
+}
 
-  implicit def funcToRunnable[F](f: => F): Runnable = {
-    new Runnable {
-      override def run(): Unit = f
-    }
-  }
-
-  implicit def funcToOnEditorActionListener(f: (Int, KeyEvent) => Boolean): OnEditorActionListener = {
-    new OnEditorActionListener {
-      override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = f(actionId, event)
-    }
-  }
-
+object IncomingTransactionDialogFragment {
+  val DefaultTag = "IncomingTransactionDialogFragment"
 }

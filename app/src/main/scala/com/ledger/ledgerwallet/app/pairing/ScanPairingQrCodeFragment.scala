@@ -36,14 +36,14 @@ import android.os.Bundle
 import android.view.ViewGroup.LayoutParams
 import android.view.{View, ViewGroup, LayoutInflater}
 import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.base.ContractFragment
+import com.ledger.ledgerwallet.base.{BaseFragment, ContractFragment}
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.utils.logs.Logger
 import com.ledger.ledgerwallet.widget.ScannerFrame
 import me.dm7.barcodescanner.zbar.{BarcodeFormat, Result, ZBarScannerView}
 import me.dm7.barcodescanner.zbar.ZBarScannerView.ResultHandler
 
-class ScanPairingQrCodeFragment extends ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] with ResultHandler {
+class ScanPairingQrCodeFragment extends BaseFragment with ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] with ResultHandler {
 
   private lazy val _scannerView = new ZBarScannerView(getActivity)
 

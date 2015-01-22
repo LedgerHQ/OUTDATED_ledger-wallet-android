@@ -1,9 +1,9 @@
 /**
  *
- * AndroidImplicitConversions
+ * FragmentHelper
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 19/01/15.
+ * Created by Pierre Pollastri on 22/01/15.
  *
  * The MIT License (MIT)
  *
@@ -28,36 +28,24 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.utils
+package com.ledger.ledgerwallet.base
 
-import android.view.{KeyEvent, View}
-import android.widget.TextView
-import android.widget.TextView.OnEditorActionListener
+import android.support.v4.app.{FragmentActivity, Fragment}
 
-object AndroidImplicitConversions {
+trait RichFragment extends Fragment {
 
-  implicit def funcToViewOnClickListener[F](f: => F): View.OnClickListener = {
-    new View.OnClickListener {
-      override def onClick(v: View): Unit = f
-    }
-  }
+  implicit val fragment = this
+  implicit lazy val context: BaseActivity = getBaseActivity
 
-  implicit def funcToViewOnClickListener[F](f: (View) => F): View.OnClickListener = {
-    new View.OnClickListener {
-      override def onClick(v: View): Unit = f(v)
-    }
-  }
+  def findView[T](id: Int) = getView.findViewById(id).asInstanceOf[T]
 
-  implicit def funcToRunnable[F](f: => F): Runnable = {
-    new Runnable {
-      override def run(): Unit = f
-    }
-  }
+  def getBaseActivity[T <: BaseActivity] = getActivity.asInstanceOf[T]
 
-  implicit def funcToOnEditorActionListener(f: (Int, KeyEvent) => Boolean): OnEditorActionListener = {
-    new OnEditorActionListener {
-      override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = f(actionId, event)
-    }
+  implicit def FragmentToContext(f: Fragment) = f.getActivity
+  implicit def FragmentActivityToBaseActivity(activity: FragmentActivity) = activity.asInstanceOf[BaseActivity]
+
+  def activity = {
+    Option(getActivity)
   }
 
 }

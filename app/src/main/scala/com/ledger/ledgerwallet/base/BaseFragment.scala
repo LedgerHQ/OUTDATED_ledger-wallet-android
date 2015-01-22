@@ -34,20 +34,6 @@ package com.ledger.ledgerwallet.base
 import android.support.v4.app.{FragmentActivity, Fragment}
 import com.ledger.ledgerwallet.utils.logs.Loggable
 
-class BaseFragment extends Fragment with Loggable {
-
-  implicit val fragment = this
-  implicit lazy val context: BaseActivity = getBaseActivity
-
-  def findView[T](id: Int) = getView.findViewById(id).asInstanceOf[T]
-
-  def getBaseActivity[T <: BaseActivity] = getActivity.asInstanceOf[T]
-
-  implicit def FragmentToContext(f: Fragment) = f.getActivity
-  implicit def FragmentActivityToBaseActivity(activity: FragmentActivity) = activity.asInstanceOf[BaseActivity]
-
-  def activity = {
-    Option(getActivity)
-  }
+class BaseFragment extends Fragment with Loggable with RichFragment {
 
 }

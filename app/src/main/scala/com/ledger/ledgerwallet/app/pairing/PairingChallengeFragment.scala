@@ -31,7 +31,6 @@
 package com.ledger.ledgerwallet.app.pairing
 
 import android.content.Context
-import android.inputmethodservice.InputMethodService
 import android.os.Bundle
 import android.text.{Editable, TextWatcher}
 import android.view.ViewTreeObserver.OnGlobalLayoutListener

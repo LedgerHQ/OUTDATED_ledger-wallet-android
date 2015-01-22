@@ -1,9 +1,9 @@
 /**
  *
- * AndroidImplicitConversions
+ * DialogFragment
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 19/01/15.
+ * Created by Pierre Pollastri on 22/01/15.
  *
  * The MIT License (MIT)
  *
@@ -28,36 +28,24 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.utils
+package com.ledger.ledgerwallet.base
 
-import android.view.{KeyEvent, View}
-import android.widget.TextView
-import android.widget.TextView.OnEditorActionListener
+import android.app.Dialog
+import android.graphics.drawable.Drawable
+import android.os.Bundle
+import android.support.v4.app.DialogFragment
+import android.view.Window
+import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.utils.TR
 
-object AndroidImplicitConversions {
+class BaseDialogFragment extends DialogFragment with RichFragment {
 
-  implicit def funcToViewOnClickListener[F](f: => F): View.OnClickListener = {
-    new View.OnClickListener {
-      override def onClick(v: View): Unit = f
-    }
+  implicit lazy val dialog = this
+
+  override def onCreateDialog(savedInstanceState: Bundle): Dialog = {
+    val dialog = super.onCreateDialog(savedInstanceState)
+    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+    dialog.getWindow.setBackgroundDrawable(TR(R.drawable.bg_dialog).as[Drawable])
+    dialog
   }
-
-  implicit def funcToViewOnClickListener[F](f: (View) => F): View.OnClickListener = {
-    new View.OnClickListener {
-      override def onClick(v: View): Unit = f(v)
-    }
-  }
-
-  implicit def funcToRunnable[F](f: => F): Runnable = {
-    new Runnable {
-      override def run(): Unit = f
-    }
-  }
-
-  implicit def funcToOnEditorActionListener(f: (Int, KeyEvent) => Boolean): OnEditorActionListener = {
-    new OnEditorActionListener {
-      override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = f(actionId, event)
-    }
-  }
-
 }

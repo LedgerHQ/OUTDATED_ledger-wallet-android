@@ -1,6 +1,8 @@
 <resources>
-    <string name="app_name">Ledger Wallet</string>
 
+    <!-- General -->
+    <string name="app_name">Ledger Wallet</string>
+    <string name="btc_acronyme">BTC</string>
 
     <!-- Paired Dongle Activity -->
     <string name="paired_dongle_waiting_for_an_operation">WAITING FOR AN OPERATION…</string>
@@ -15,7 +17,18 @@
     <string name="create_dongle_instruction_step_3_name_hint">Ledger Wallet name</string>
     <string name="create_dongle_instruction_step_3_bottom">Enter a name to assign to this Ledger Wallet</string>
 
+    <!-- Incoming Transaction Dialog -->
+    <string name="incoming_tx_title">NEW OPERATION</string>
+    <string name="incoming_tx_date" formatted="false">requested on %s at %s</string>
+
     <!-- Actions -->
     <string name="action_done">Done</string>
+
+    <!-- Dialog Actions -->
+    <string name="dialog_action_confirm">CONFIRM</string>
+    <string name="dialog_action_refuse">REFUSE</string>
+    <string name="dialog_action_close">CLOSE</string>
+    <string name="dialog_action_ok">OK</string>
+    <string name="dialog_action_cancel">CANCEL</string>
 
 </resources>

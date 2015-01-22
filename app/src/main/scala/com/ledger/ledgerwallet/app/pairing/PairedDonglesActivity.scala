@@ -36,6 +36,7 @@ import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, Recy
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageButton
 import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.app.m2fa.IncomingTransactionDialogFragment
 import com.ledger.ledgerwallet.base.BaseActivity
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
@@ -66,7 +67,6 @@ class PairedDonglesActivity extends BaseActivity {
       val intent = new Intent(this, classOf[CreateDonglePairingActivity])
       startActivity(intent)
     }
-
   }
 
   override def actionBarStyle: Style = Toolbar.Style.Expanded
@@ -101,6 +101,12 @@ class PairedDonglesActivity extends BaseActivity {
     lazy val dongleName = TR(v, R.id.dongle_name).as[TextView]
     lazy val pairingDate = TR(v, R.id.pairing_date).as[TextView]
     lazy val deleteButton = TR(v, R.id.delete_btn).as[View]
+
+
+    v.setOnClickListener((v: View) => {
+      (new IncomingTransactionDialogFragment).show(getSupportFragmentManager, IncomingTransactionDialogFragment.DefaultTag)
+    })
+
   }
 
 

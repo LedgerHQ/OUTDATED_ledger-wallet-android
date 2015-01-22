@@ -33,6 +33,7 @@ package com.ledger.ledgerwallet.utils
 
 import android.app.Activity
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.support.v4.app.Fragment
 import android.view.View
 
@@ -85,6 +86,7 @@ class TR(id: Int, context: AnyRef) {
       case string if classOf[String] == classTag.runtimeClass => c.getResources.getString(id).asInstanceOf[A]
       case float if classOf[Float] == classTag.runtimeClass => c.getResources.getDimension(id).asInstanceOf[A]
       case int if classOf[Int] == classTag.runtimeClass => c.getResources.getColor(id).asInstanceOf[A]
+      case drawable if classOf[Drawable] == classTag.runtimeClass => c.getResources.getDrawable(id).asInstanceOf[A]
     }
   }
 

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:gravity="center_horizontal"
+    android:layout_height="46dp">
+
+    <com.ledger.ledgerwallet.widget.TextView
+        android:layout_width="wrap_content"
+        android:layout_height="46dp"
+        android:text="@string/dialog_action_cancel"
+        android:id="@+id/negative_button"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:gravity="center"
+        android:textColor="@color/soft_grey"
+        android:textSize="@dimen/medium_font_size"
+        app:kerning="@dimen/medium_font_spacing"
+        app:fontStyle="semiBold"
+        android:background="@drawable/bg_dialog_button"
+ />
+
+    <com.ledger.ledgerwallet.widget.TextView
+        android:layout_width="wrap_content"
+        android:layout_height="46dp"
+        android:text="@string/dialog_action_close"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:gravity="center"
+        android:textColor="@color/action_green"
+        android:textSize="@dimen/medium_font_size"
+        app:kerning="@dimen/medium_font_spacing"
+        app:fontStyle="semiBold"
+        android:background="@drawable/bg_dialog_button"
+        android:id="@+id/neutral_button" />
+
+    <com.ledger.ledgerwallet.widget.TextView
+        android:layout_width="wrap_content"
+        android:layout_height="46dp"
+        android:text="@string/dialog_action_confirm"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:background="@drawable/bg_dialog_button"
+        android:gravity="center"
+        android:textSize="@dimen/medium_font_size"
+        app:kerning="@dimen/medium_font_spacing"
+        app:fontStyle="semiBold"
+        android:textColor="@color/action_green"
+        android:id="@+id/positive_button" />
+</LinearLayout>

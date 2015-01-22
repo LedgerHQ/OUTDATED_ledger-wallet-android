@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:paddingTop="@dimen/very_large_margin"
     android:paddingBottom="@dimen/very_large_margin"
-    android:background="@color/background_color"
+    android:background="@drawable/bg_dialog_button"
     >
 
     <com.ledger.ledgerwallet.widget.TextView
