@@ -64,7 +64,7 @@ class PairedDonglesActivity extends BaseActivity {
 
     addPairingButton setOnClickListener {
       val intent = new Intent(this, classOf[CreateDonglePairingActivity])
-      startActivity(intent)
+      startActivityForResult(intent, CreateDonglePairingActivity.CreateDonglePairingRequest)
     }
   }
 

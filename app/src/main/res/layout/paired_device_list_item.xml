@@ -50,7 +50,7 @@
             android:layout_width="50dp"
             android:layout_height="46dp"
             android:id="@+id/delete_touch_area"
-            android:background="@drawable/bg_dialog_button"
+            android:background="@android:color/transparent"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true" />
@@ -72,5 +72,5 @@
         android:background="@color/light_grey"
         android:layout_marginLeft="@dimen/activity_border_margin"
         android:layout_marginRight="@dimen/activity_border_margin"
-        android:layout_height="1dp" />
+        android:layout_height="0.5dp" />
 </LinearLayout>

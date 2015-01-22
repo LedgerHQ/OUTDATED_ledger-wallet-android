@@ -74,6 +74,8 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
 
 object CreateDonglePairingActivity {
 
+  val CreateDonglePairingRequest = 0xCAFE
+
   trait CreateDonglePairingProccessContract {
     def gotToStep(stepNumber: Int, instructionText: CharSequence, fragment: BaseFragment): Unit
   }
