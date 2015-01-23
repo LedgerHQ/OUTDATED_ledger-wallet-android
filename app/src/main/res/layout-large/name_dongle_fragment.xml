@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/frame"
+    android:gravity="center_vertical|center_horizontal">
+
+    <com.ledger.ledgerwallet.widget.EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/name"
+        app:fontStyle="light"
+        android:textSize="@dimen/extra_extra_large_font_size"
+        android:text="@string/create_dongle_instruction_step_3_default_name"
+        android:textColor="@color/dark_grey"
+        android:textCursorDrawable="@drawable/bg_edittext_cursor"
+        android:background="@android:color/transparent"
+        android:layout_marginLeft="@dimen/large_margin"
+        android:layout_marginRight="@dimen/large_margin"
+        android:gravity="center_horizontal"
+        android:hint="@string/create_dongle_instruction_step_3_name_hint"
+        android:textColorHint="@color/soft_grey"
+        android:imeOptions="actionDone"
+        android:inputType="text"
+        android:singleLine="true"
+    />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/dongle_image"
+        android:src="@drawable/ledger_wallet_nano"
+        android:layout_marginRight="@dimen/large_margin"
+        android:layout_marginTop="@dimen/medium_margin"
+        android:layout_marginLeft="@dimen/large_margin" />
+
+    <com.ledger.ledgerwallet.widget.TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/create_dongle_instruction_step_3_bottom"
+        android:id="@+id/bottom_text"
+        app:kerning="@dimen/small_font_spacing"
+        android:textSize="@dimen/small_font_size"
+        android:textColor="@color/soft_grey"
+        android:layout_marginLeft="@dimen/large_margin"
+        android:layout_marginRight="@dimen/large_margin"
+        android:layout_marginTop="@dimen/medium_margin"
+        android:gravity="center_horizontal"
+ />
+
+
+</LinearLayout>
