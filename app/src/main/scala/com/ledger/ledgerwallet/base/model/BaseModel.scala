@@ -1,0 +1,62 @@
+/**
+ *
+ * BaseModel
+ * Ledger wallet
+ *
+ * Created by Pierre Pollastri on 23/01/15.
+ *
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015 Ledger
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+package com.ledger.ledgerwallet.base.model
+
+import scala.collection.mutable
+
+class BaseModel {
+
+  protected val structure: mutable.Map[String, Property[AnyRef]] = mutable.Map[String, Property[AnyRef]]()
+
+  protected def string(name: String): StringProperty = null
+  protected def int(name: String): IntProperty = null
+
+  def apply[T <: AnyRef](propertyName: String): T = structure(propertyName).get.asInstanceOf[T]
+  def update[T <: AnyRef](propertyName: String, value: T): Unit = structure(propertyName).set(value)
+
+  class Property[T <: AnyRef](val name: String) {
+    structure(name) = this.asInstanceOf[Property[AnyRef]]
+
+    private var _value: T = _
+
+    def get: Option[T] = Option(_value)
+    def set(value: T): Unit = _value = value
+  }
+
+  class StringProperty(name: String) extends Property[String](name) {
+
+  }
+
+  class IntProperty(name: String) extends Property[Int](name) {
+
+  }
+
+}

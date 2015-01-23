@@ -36,6 +36,12 @@ dependencies {
     compile "com.android.support:support-v4:21.0.+"
     compile "com.android.support:recyclerview-v7:21.0.+"
     compile 'com.android.support:multidex:1.0.0'
+
+}
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.deprecation = false
+    scalaCompileOptions.useCompileDaemon = true
 }
 
 afterEvaluate {
