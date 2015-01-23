@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical|center_horizontal">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_big_green_success"
+        android:layout_marginTop="@dimen/extra_large_margin"
+        android:id="@+id/icon" />
+
+    <com.ledger.ledgerwallet.widget.TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/pairing_success_dialog_title"
+        android:layout_marginLeft="@dimen/extra_large_margin"
+        android:layout_marginRight="@dimen/extra_large_margin"
+        android:layout_marginTop="@dimen/extra_large_margin"
+        app:fontStyle="semiBold"
+        android:textColor="@color/black"
+        android:textSize="@dimen/large_font_size"
+        app:kerning="@dimen/large_font_spacing"
+        android:id="@+id/title" />
+
+    <com.ledger.ledgerwallet.widget.TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/large_margin"
+        android:text="@string/pairing_success_dialog_content"
+        android:gravity="center"
+        android:lineSpacingExtra="6dp"
+        android:textColor="@color/black"
+        android:textSize="@dimen/medium_font_size"
+        app:kerning="@dimen/medium_font_spacing"
+        android:layout_marginLeft="@dimen/extra_large_margin"
+        android:layout_marginRight="@dimen/extra_large_margin"
+        android:id="@+id/content" />
+
+    <include
+        android:id="@+id/dialog_action_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/extra_large_margin"
+        android:layout_marginRight="@dimen/extra_large_margin"
+        android:layout_marginTop="@dimen/small_margin"
+        android:layout_marginBottom="@dimen/small_margin"
+        layout="@layout/include_dialog_actions" />
+
+</LinearLayout>

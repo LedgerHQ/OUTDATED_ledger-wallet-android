@@ -41,7 +41,7 @@
             android:textColor="@color/dark_grey"
             android:textSize="@dimen/small_font_size"
             app:kerning="@dimen/medium_font_spacing"
-            app:fontStyle="light"
+            app:fontStyle="regular"
             android:layout_marginTop="@dimen/extra_small_margin"
             android:layout_toLeftOf="@+id/delete_btn"
             android:layout_toStartOf="@+id/delete_btn" />

@@ -37,7 +37,7 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageButton
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.app.m2fa.IncomingTransactionDialogFragment
-import com.ledger.ledgerwallet.base.BaseActivity
+import com.ledger.ledgerwallet.base.{BigIconAlertDialog, BaseActivity}
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 import com.ledger.ledgerwallet.utils.TR
@@ -103,7 +103,12 @@ class PairedDonglesActivity extends BaseActivity {
 
 
     v.setOnClickListener((v: View) => {
-      (new IncomingTransactionDialogFragment).show(getSupportFragmentManager, IncomingTransactionDialogFragment.DefaultTag)
+      //(new IncomingTransactionDialogFragment).show(getSupportFragmentManager, IncomingTransactionDialogFragment.DefaultTag)
+      new BigIconAlertDialog.Builder(PairedDonglesActivity.this)
+      .setIcon(R.drawable.ic_big_green_success)
+      .setTitle(R.string.pairing_success_dialog_title)
+      .setContentText(R.string.pairing_success_dialog_content)
+      .create().show(getSupportFragmentManager, "Toto")
     })
 
   }

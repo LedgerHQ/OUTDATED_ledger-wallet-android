@@ -21,6 +21,15 @@
     <string name="incoming_tx_title">NEW OPERATION</string>
     <string name="incoming_tx_date" formatted="false">requested on %s at %s</string>
 
+    <!-- Pairing Success Dialog -->
+    <string name="pairing_success_dialog_title">PAIRING SUCCEED</string>
+    <string name="pairing_success_dialog_content">Your Ledger Wallet \"%s\" is now paired with your mobile device</string>
+
+    <!-- Pairing Failure Dialog -->
+    <string name="pairing_failure_dialog_title">PAIRING FAILED</string>
+    <string name="pairing_failure_dialog_error_network">Your Ledger Wallet \"%s\" is now paired with your mobile device</string>
+    <string name="pairing_failure_dialog_wrong_answer">Your Ledger Wallet \"%s\" is now paired with your mobile device</string>
+
     <!-- Actions -->
     <string name="action_done">Done</string>
 
