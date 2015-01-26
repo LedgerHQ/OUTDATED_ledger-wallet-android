@@ -1,9 +1,9 @@
 /**
  *
- * Queryable
+ * Collection
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/01/15.
+ * Created by Pierre Pollastri on 26/01/15.
  *
  * The MIT License (MIT)
  *
@@ -32,10 +32,44 @@ package com.ledger.ledgerwallet.base.model
 
 import org.json.{JSONArray, JSONObject}
 
-import scala.collection.mutable
 import scala.reflect.ClassTag
 
-class Queryable[T <: BaseModel](implicit T: ClassTag[T]) {
+class Collection[T <: BaseModel](implicit T: ClassTag[T]) {
 
+  def inflate(jsonObject: JSONObject): Option[T] = {
+    val obj = T.runtimeClass.newInstance().asInstanceOf[T]
+    obj.structure.foreach {case (key, property) =>
+       if (jsonObject.has(key)) {
+         property match {
+           case string: obj.StringProperty => string.set(jsonObject.getString(key))
+           case int: obj.IntProperty => int.set(jsonObject.getInt(key))
+           case double: obj.DoubleProperty => double.set(jsonObject.getDouble(key))
+           case float: obj.BooleanProperty => float.set(jsonObject.getBoolean(key))
+         }
+       }
+    }
+    Option(obj)
+  }
+
+  def inflate(jsonArray: JSONArray): Array[Option[T]] = {
+    val array = new Array[Option[T]](jsonArray.length())
+    for (i <- 0 until jsonArray.length()) {
+      array(i) = inflate(jsonArray.getJSONObject(i))
+    }
+    array
+  }
+
+  def toJson(obj: BaseModel) = obj.toJson
+  def toJson(objs: Array[BaseModel]): JSONArray = {
+    val array = new JSONArray()
+    for (obj <- objs) {
+      array.put(obj.toJson)
+    }
+    array
+  }
+
+}
+
+object Collection extends Collection[BaseModel] {
 
 }
