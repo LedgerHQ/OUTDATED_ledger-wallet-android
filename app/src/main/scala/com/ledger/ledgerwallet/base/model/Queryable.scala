@@ -37,30 +37,5 @@ import scala.reflect.ClassTag
 
 class Queryable[T <: BaseModel](implicit T: ClassTag[T]) {
 
-  val structure = Model.modelStructure
 
-  def inflate(json: JSONObject): T = {
-    val obj = create
-    structure foreach { case (key, property) =>
-      if (json.has(key)) {
-        property match {
-          case string: BaseModel#StringProperty => string.set(json.getString(key))
-          case int: BaseModel#IntProperty => int.set(json.getInt(key))
-        }
-      }
-    }
-    obj
-  }
-
-  def inflate(json: JSONArray): Array[T] = {
-    val array = T.newArray(json.length())
-    array(0) = create
-    array
-  }
-
-  def create = T.runtimeClass.newInstance().asInstanceOf[T]
-
-  private object Model extends T {
-     def modelStructure: mutable.Map[String, BaseModel#Property[AnyRef]] = structure
-  }
 }

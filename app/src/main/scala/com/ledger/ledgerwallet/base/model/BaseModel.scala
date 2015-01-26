@@ -34,29 +34,6 @@ import scala.collection.mutable
 
 class BaseModel {
 
-  protected val structure: mutable.Map[String, Property[AnyRef]] = mutable.Map[String, Property[AnyRef]]()
 
-  protected def string(name: String): StringProperty = null
-  protected def int(name: String): IntProperty = null
-
-  def apply[T <: AnyRef](propertyName: String): T = structure(propertyName).get.asInstanceOf[T]
-  def update[T <: AnyRef](propertyName: String, value: T): Unit = structure(propertyName).set(value)
-
-  class Property[T <: AnyRef](val name: String) {
-    structure(name) = this.asInstanceOf[Property[AnyRef]]
-
-    private var _value: T = _
-
-    def get: Option[T] = Option(_value)
-    def set(value: T): Unit = _value = value
-  }
-
-  class StringProperty(name: String) extends Property[String](name) {
-
-  }
-
-  class IntProperty(name: String) extends Property[Int](name) {
-
-  }
 
 }

@@ -26,6 +26,11 @@ android {
         javaMaxHeapSize "2g"
     }
 
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+    }
+
 }
 
 dependencies {
@@ -37,11 +42,11 @@ dependencies {
     compile "com.android.support:recyclerview-v7:21.0.+"
     compile 'com.android.support:multidex:1.0.0'
 
+    androidTestCompile 'com.android.support:multidex-instrumentation:1.0.1'
 }
 
 tasks.withType(ScalaCompile) {
     scalaCompileOptions.deprecation = false
-    scalaCompileOptions.useCompileDaemon = true
 }
 
 afterEvaluate {

@@ -1,9 +1,9 @@
 /**
  *
- * BaseModelSerializationTests
+ * PairedDonglesActivityTest
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/01/15.
+ * Created by Pierre Pollastri on 26/01/15.
  *
  * The MIT License (MIT)
  *
@@ -28,10 +28,20 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.base.model
+package com.ledger.ledgerwallet.app
 
-import android.test.InstrumentationTestCase
+import android.test.ActivityInstrumentationTestCase2
+import com.ledger.ledgerwallet.app.pairing.PairedDonglesActivity
+import junit.framework.Assert
 
-class BaseModelSerializationTests extends InstrumentationTestCase {
+class PairedDonglesActivityTest extends ActivityInstrumentationTestCase2[PairedDonglesActivity](classOf[PairedDonglesActivity]) {
+
+  def test1() {
+    Assert.assertTrue(true)
+  }
+
+  def test2() {
+    //Assert.assertEquals("Hello. I'm Java !", "Yo")
+  }
 
 }
