@@ -35,20 +35,67 @@ import java.util.concurrent.CountDownLatch
 import android.net.Uri
 import android.test.InstrumentationTestCase
 import junit.framework.Assert
+import org.json.JSONObject
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.collection.JavaConversions._
 
 import scala.util.{Failure, Success}
 
 class HttpClientTest extends InstrumentationTestCase {
 
+  var client: HttpClient = _
+  var signal: CountDownLatch = _
+
+  override def setUp(): Unit = {
+    super.setUp()
+    client = new HttpClient(Uri.parse("http://httpbin.org"))
+    client.headers("Global-Header") = "LWGLOBAL"
+    signal = new CountDownLatch(1)
+  }
+
   def testGetJsonObject(): Unit = {
-    val client = new HttpClient(Uri.parse("http://httpbin.org"))
     val request = client.getJsonObject("/get")
-    val signal = new CountDownLatch(1)
     request.future onComplete {
       case Success(json) => {
         Assert.assertNotNull(json)
         Assert.assertEquals("http://httpbin.org/get", json.get("url"))
+        signal.countDown()
+      }
+      case Failure(e) => Assert.fail("HTTP failed " + e.getMessage)
+    }
+    signal.await()
+  }
+
+  def testGetJsonObjectWithUrlParameters(): Unit = {
+    val params = Map(
+      "HTTP-Test" -> "Ledger",
+      "Ledger-Wallet" -> "Android"
+    )
+    val request = client.getJsonObject(url = "/get", params = Option(params))
+    request.future onComplete {
+      case Success(json) => {
+        val args = json.getJSONObject("args")
+        params foreach {case (key, value) =>
+          Assert.assertEquals(value, args.getString(key))
+        }
+        signal.countDown()
+      }
+      case Failure(e) => Assert.fail("HTTP failed " + e.getMessage)
+    }
+    signal.await()
+  }
+
+  def testPostJsonObject(): Unit = {
+    val json = new JSONObject()
+    json.put("a_param", "a_value")
+    json.put("another_param", 42)
+    val request = client.postJsonObject(url = "/post", body = Some(json))
+    request.future onComplete {
+      case Success(resultJson) => {
+        val data = new JSONObject(resultJson.getString("data"))
+        for (key <- json.keys()) {
+          Assert.assertEquals(json.get(key), data.get(key))
+        }
         signal.countDown()
       }
       case Failure(e) => Assert.fail("HTTP failed " + e.getMessage)

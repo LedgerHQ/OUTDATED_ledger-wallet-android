@@ -32,12 +32,13 @@ package com.ledger.ledgerwallet.remote
 
 import android.net.Uri
 import com.koushikdutta.async.http._
-import com.koushikdutta.async.http.body.AsyncHttpRequestBody
+import com.koushikdutta.async.http.body.{JSONObjectBody, AsyncHttpRequestBody}
 import org.apache.http.impl.DefaultHttpRequestFactory
 import org.apache.http.HttpRequest
-import org.apache.http.client.methods.HttpGet
+import org.apache.http.client.methods.{HttpPost, HttpGet}
 import org.json.{JSONArray, JSONObject}
 
+import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
 
 
@@ -47,6 +48,8 @@ class HttpClient(baseUrl: Uri) {
   type HeadersMap = Map[String, String]
 
   private type HttpFuture[T] = com.koushikdutta.async.future.Future[T]
+
+  val headers = new mutable.HashMap[String, String]()
 
   def getJsonObject(url: String,
                     params: Option[ParametersMap] = None,
@@ -59,6 +62,18 @@ class HttpClient(baseUrl: Uri) {
                    body: Option[AsyncHttpRequestBody[_]] = None,
                    headers: Option[HeadersMap] = None)
   : Request[JSONArray] = Request.getJsonArray(url, params, body, headers)
+
+  def post(url: String,
+           params: Option[ParametersMap] = None,
+           body: Option[AsyncHttpRequestBody[_]] = None,
+           headers: Option[HeadersMap] = None)
+  : Request[JSONObject] = Request.post(url, params, body, headers)
+
+  def postJsonObject(url: String,
+                     params: Option[ParametersMap] = None,
+                     body: Option[JSONObject] = None,
+                     headers: Option[HeadersMap] = None)
+  : Request[JSONObject] = Request.post(url, params, body.map(new JSONObjectBody(_)), headers)
 
   trait Request[T] {
     def future: Future[T]
@@ -89,6 +104,9 @@ class HttpClient(baseUrl: Uri) {
 
     def getJsonArray(url: String, params: Option[ParametersMap], body: Option[AsyncHttpRequestBody[_]], headers: Option[HeadersMap])
     : Request[JSONArray] = executeJsonArray(new HttpGet(url), params, body, headers)
+
+    def post(url: String, params: Option[ParametersMap], body: Option[AsyncHttpRequestBody[_]], headers: Option[HeadersMap])
+    : Request[JSONObject] = executeJsonObject(new HttpPost(url), params, body, headers)
 
     private[this] def executeJsonObject(httpRequest: HttpRequest,
                                         params: Option[ParametersMap],
@@ -125,6 +143,7 @@ class HttpClient(baseUrl: Uri) {
       val uriBuilder = requestUri.buildUpon()
       params.foreach { _ foreach {case (key, value) => uriBuilder.appendQueryParameter(key, value.toString)} }
       val configuredRequest = (new DefaultHttpRequestFactory).newHttpRequest(request.getRequestLine.getMethod, uriBuilder.toString)
+      HttpClient.this.headers foreach {case (key, value) => configuredRequest.setHeader(key, value) }
       headers foreach {_ foreach {case (key, value) => configuredRequest.setHeader(key, value)}}
       val asyncRequest = AsyncHttpRequest.create(configuredRequest)
       body foreach asyncRequest.setBody
