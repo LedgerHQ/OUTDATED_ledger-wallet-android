@@ -30,11 +30,12 @@
  */
 package com.ledger.ledgerwallet.remote
 
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent.{TimeUnit, CountDownLatch}
 
 import android.net.Uri
 import android.test.InstrumentationTestCase
 import junit.framework.Assert
+import org.json.JSONObject
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.util.{Failure, Success}
@@ -47,7 +48,7 @@ class WebSocketTest extends InstrumentationTestCase {
   override def setUp(): Unit = {
     super.setUp()
     client = new HttpClient(Uri.parse("https://echo.websocket.org"))
-    this.signal = new CountDownLatch(1)
+    this.signal = new CountDownLatch(2)
     val signal = new CountDownLatch(1)
     client.websocket("") onComplete {
       case Success(websocket) => {
@@ -64,12 +65,30 @@ class WebSocketTest extends InstrumentationTestCase {
     websocket on {
       case StringData(s) => {
         Assert.assertEquals(testString, s)
+        signal.countDown()
         websocket.close()
       }
       case Close(ex) => signal.countDown()
     }
     websocket.send(testString)
-    signal.await()
+    signal.await(30, TimeUnit.SECONDS)
+  }
+
+  def testJsonEchoWebsocket: Unit = {
+    val testJson = new JSONObject()
+    testJson.put("android", "test")
+    testJson.put("value", 16)
+    websocket on {
+      case StringData(s) => {
+        val result = new JSONObject(s)
+        Assert.assertEquals(testJson.toString, result.toString)
+        websocket.close()
+        signal.countDown()
+      }
+      case Close(ex) => signal.countDown()
+    }
+    websocket.send(testJson)
+    signal.await(30, TimeUnit.SECONDS)
   }
 
 }
