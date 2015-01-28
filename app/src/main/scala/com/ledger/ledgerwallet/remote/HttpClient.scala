@@ -31,6 +31,7 @@
 package com.ledger.ledgerwallet.remote
 
 import android.net.Uri
+import com.koushikdutta.async.http.AsyncHttpClient.WebSocketConnectCallback
 import com.koushikdutta.async.http._
 import com.koushikdutta.async.http.body.{JSONObjectBody, AsyncHttpRequestBody}
 import org.apache.http.impl.DefaultHttpRequestFactory
@@ -44,12 +45,13 @@ import scala.concurrent.{Future, Promise}
 
 class HttpClient(baseUrl: Uri) {
 
-  type ParametersMap = Map[String, AnyRef]
+  type ParametersMap = Map[String, String]
   type HeadersMap = Map[String, String]
 
   private type HttpFuture[T] = com.koushikdutta.async.future.Future[T]
 
   val headers = new mutable.HashMap[String, String]()
+  val _client = AsyncHttpClient.getDefaultInstance
 
   def getJsonObject(url: String,
                     params: Option[ParametersMap] = None,
@@ -74,6 +76,12 @@ class HttpClient(baseUrl: Uri) {
                      body: Option[JSONObject] = None,
                      headers: Option[HeadersMap] = None)
   : Request[JSONObject] = Request.post(url, params, body.map(new JSONObjectBody(_)), headers)
+
+  def websocket(url: String,
+                protocol: Option[String] = None,
+                params: Option[ParametersMap] = None,
+                headers: Option[HeadersMap] = None)
+  : Future[Websocket] = Request.websocket(url, protocol, params, headers).future
 
   trait Request[T] {
     def future: Future[T]
@@ -115,7 +123,7 @@ class HttpClient(baseUrl: Uri) {
     : Request[JSONObject] = {
       val httpAsyncRequest = configureRequest(httpRequest, params, body, headers)
       val request = new RequestImpl[JSONObject](httpAsyncRequest)
-      request.httpFuture = AsyncHttpClient.getDefaultInstance.executeJSONObject(httpAsyncRequest, new JSONObjectCallback(request))
+      request.httpFuture = _client.executeJSONObject(httpAsyncRequest, new JSONObjectCallback(request))
       request
     }
 
@@ -126,7 +134,28 @@ class HttpClient(baseUrl: Uri) {
     : Request[JSONArray] = {
       val httpAsyncRequest = configureRequest(httpRequest, params, body, headers)
       val request = new RequestImpl[JSONArray](httpAsyncRequest)
-      request.httpFuture = AsyncHttpClient.getDefaultInstance.executeJSONArray(httpAsyncRequest, new JSONArrayCallback(request))
+      request.httpFuture = _client.executeJSONArray(httpAsyncRequest, new JSONArrayCallback(request))
+      request
+    }
+
+    def websocket(url: String,
+                  protocol: Option[String],
+                  params: Option[ParametersMap],
+                  headers: Option[HeadersMap])
+    : Request[Websocket] = {
+      val httpAsyncRequest = configureRequest(new HttpGet(url), params, None, headers)
+      val request = new RequestImpl[Websocket](httpAsyncRequest)
+      _client.websocket(httpAsyncRequest, protocol.get, new WebSocketConnectCallback {
+        override def onCompleted(ex: Exception, webSocket: com.koushikdutta.async.http.WebSocket): Unit = {
+          if (ex == null) {
+            request.responsePromise.success(null)
+            request.resultPromise.success(new Websocket(webSocket))
+          } else {
+            request.responsePromise.failure(ex)
+            request.resultPromise.failure(ex)
+          }
+        }
+      })
       request
     }
 
