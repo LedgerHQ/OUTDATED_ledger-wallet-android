@@ -36,7 +36,7 @@ import scala.collection.mutable
 
 class BaseModel {
 
-  private val _structure = new mutable.HashMap[String, Property[_]]()
+  private[this] val _structure = new mutable.HashMap[String, Property[_]]()
   def structure = _structure
 
   protected def string(name: String): StringProperty = new StringProperty(name)
