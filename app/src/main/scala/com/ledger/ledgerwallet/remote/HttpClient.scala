@@ -81,7 +81,7 @@ class HttpClient(baseUrl: Uri) {
                 protocol: Option[String] = None,
                 params: Option[ParametersMap] = None,
                 headers: Option[HeadersMap] = None)
-  : Future[Websocket] = Request.websocket(url, protocol, params, headers).future
+  : Future[WebSocket] = Request.websocket(url, protocol, params, headers).future
 
   trait Request[T] {
     def future: Future[T]
@@ -142,14 +142,15 @@ class HttpClient(baseUrl: Uri) {
                   protocol: Option[String],
                   params: Option[ParametersMap],
                   headers: Option[HeadersMap])
-    : Request[Websocket] = {
+    : Request[WebSocket] = {
       val httpAsyncRequest = configureRequest(new HttpGet(url), params, None, headers)
-      val request = new RequestImpl[Websocket](httpAsyncRequest)
-      _client.websocket(httpAsyncRequest, protocol.get, new WebSocketConnectCallback {
+
+      val request = new RequestImpl[WebSocket](httpAsyncRequest)
+      _client.websocket(httpAsyncRequest, protocol.orNull, new WebSocketConnectCallback {
         override def onCompleted(ex: Exception, webSocket: com.koushikdutta.async.http.WebSocket): Unit = {
           if (ex == null) {
             request.responsePromise.success(null)
-            request.resultPromise.success(new Websocket(webSocket))
+            request.resultPromise.success(new WebSocket(webSocket))
           } else {
             request.responsePromise.failure(ex)
             request.resultPromise.failure(ex)
@@ -166,8 +167,10 @@ class HttpClient(baseUrl: Uri) {
                                       )
     : AsyncHttpRequest = {
       var requestUri = Uri.parse(request.getRequestLine.getUri)
-      if (requestUri.isRelative) {
+      if (requestUri.isRelative && !requestUri.toString.equals("/")) {
         requestUri = baseUrl.buildUpon().appendEncodedPath(requestUri.toString).build()
+      } else if (requestUri.isRelative) {
+        requestUri = baseUrl
       }
       val uriBuilder = requestUri.buildUpon()
       params.foreach { _ foreach {case (key, value) => uriBuilder.appendQueryParameter(key, value.toString)} }

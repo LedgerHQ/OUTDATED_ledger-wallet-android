@@ -60,35 +60,36 @@ class WebSocket(webSocket: com.koushikdutta.async.http.WebSocket) {
   def on(f: (Event) => Unit): Unit = _wsCallback = Option(f)
 
   webSocket.setPongCallback(new PongCallback {
-    override def onPongReceived(s: String): Unit = _wsCallback foreach _(new Pong(s))
+    override def onPongReceived(s: String): Unit = _wsCallback foreach {_(new Pong(s))}
   })
 
   webSocket.setStringCallback(new StringCallback {
-    override def onStringAvailable(s: String): Unit = _wsCallback foreach _(new StringData(s))
+    override def onStringAvailable(s: String): Unit = _wsCallback foreach {_(new StringData(s))}
   })
 
   webSocket.setDataCallback(new DataCallback {
-    override def onDataAvailable(emitter: DataEmitter, bb: ByteBufferList): Unit = _wsCallback foreach _(new Data(bb))
+    override def onDataAvailable(emitter: DataEmitter, bb: ByteBufferList): Unit = _wsCallback foreach {_(new Data(bb))}
   })
 
   webSocket.setClosedCallback(new CompletedCallback {
-    override def onCompleted(ex: Exception): Unit = _wsCallback foreach _(new Close(ex))
+    override def onCompleted(ex: Exception): Unit = _wsCallback foreach {_(new Close(ex))}
   })
 
   webSocket.setEndCallback(new CompletedCallback {
-    override def onCompleted(ex: Exception): Unit = _wsCallback foreach _(new End(ex))
+    override def onCompleted(ex: Exception): Unit = _wsCallback foreach {_(new End(ex))}
   })
 
   webSocket.setWriteableCallback(new WritableCallback {
-    override def onWriteable(): Unit = _wsCallback foreach _(new Send())
+    override def onWriteable(): Unit = _wsCallback foreach {_(new Send())}
   })
 
-  abstract class Event
-  case class Pong(s: String) extends Event
-  case class StringData(s: String) extends Event
-  case class Data(b: ByteBufferList) extends Event
-  case class Send() extends Event
-  case class End(ex: Exception) extends Event
-  case class Close(ex: Exception) extends Event
-  case class Json(json: JSONObject) extends Event
 }
+
+abstract class Event
+case class Pong(s: String) extends Event
+case class StringData(s: String) extends Event
+case class Data(b: ByteBufferList) extends Event
+case class Send() extends Event
+case class End(ex: Exception) extends Event
+case class Close(ex: Exception) extends Event
+case class Json(json: JSONObject) extends Event
