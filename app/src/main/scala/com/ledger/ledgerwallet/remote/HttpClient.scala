@@ -34,6 +34,7 @@ import android.net.Uri
 import com.koushikdutta.async.http.AsyncHttpClient.WebSocketConnectCallback
 import com.koushikdutta.async.http._
 import com.koushikdutta.async.http.body.{JSONObjectBody, AsyncHttpRequestBody}
+import com.ledger.ledgerwallet.app.Config
 import org.apache.http.impl.DefaultHttpRequestFactory
 import org.apache.http.HttpRequest
 import org.apache.http.client.methods.{HttpPost, HttpGet}
@@ -212,6 +213,19 @@ class HttpClient(baseUrl: Uri) {
       }
     }
 
+  }
+
+}
+
+object HttpClient {
+
+  private var _defaultInstance: Option[HttpClient] = None
+
+  def apply(): HttpClient = {
+    _defaultInstance getOrElse {
+      _defaultInstance = Option(new HttpClient(Config.ApiBaseUri))
+      _defaultInstance.get
+    }
   }
 
 }
