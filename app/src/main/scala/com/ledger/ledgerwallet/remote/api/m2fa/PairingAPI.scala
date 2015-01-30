@@ -32,17 +32,31 @@ package com.ledger.ledgerwallet.remote.api.m2fa
 
 import android.content.Context
 import com.ledger.ledgerwallet.models.PairedDongle
-import com.ledger.ledgerwallet.remote.HttpClient
+import com.ledger.ledgerwallet.remote.{StringData, Close, WebSocket, HttpClient}
+import org.json.{JSONException, JSONObject}
+import scala.concurrent.ExecutionContext.Implicits.global
+import com.ledger.ledgerwallet.utils.JsonUtils._
 
 import scala.concurrent.{Promise, Future}
+import scala.util.{Failure, Success}
 
 class PairingAPI(context: Context, httpClient: HttpClient = HttpClient()) {
 
-  private var _promise: Option[Promise[PairedDongle]] = None
+  private[this] var _promise: Option[Promise[PairedDongle]] = None
   def future = _promise.map(_.future)
 
-  private var _currentState = State.Resting
-  private var _onRequireUserInput: (RequiredUserInput) => Future[String] = _
+  private[this] var _currentState = State.Resting
+  private[this] var _onRequireUserInput: (RequiredUserInput) => Future[String] = _
+  private[this] var _websocket: Option[WebSocket] = None
+  private[this] def websocket = _websocket
+  private[this] def websocket_=(websocket: WebSocket): Unit = _websocket = Option(websocket)
+
+  private[this] var _websocketConnectionRetry = 0
+  private[this] val NumberOfWebSocketRetry = 3
+
+  private[this] var _pendingPackage: Option[JSONObject] = None
+
+  private[this] var _pairingId: Option[String] = None
 
   def onRequireUserInput(f: (RequiredUserInput) => Future[String]): Unit =  {
 
@@ -59,7 +73,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient()) {
     }
     _promise = Some(Promise())
     _currentState = State.Starting
-
+    initiateConnection()
     _promise.get.future
   }
 
@@ -68,10 +82,112 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient()) {
       _currentState = State.Resting
       _promise.get.failure(new InterruptedException())
       _promise = None
+      websocket foreach { _.close() }
+      _websocketConnectionRetry = 0
     }
   }
 
   def isStarted = _currentState != State.Resting
+
+  private[this] def initiateConnection(): Unit = {
+    httpClient.websocket("/2fa/channels") onComplete {
+      case Success(websocket) => {
+        _websocketConnectionRetry = 0
+        if (_pairingId.isDefined) {
+           sendJoinPackage()
+        }
+        performPairing(websocket)
+      }
+      case Failure(exception) => {
+        _websocketConnectionRetry += 1
+        if (_websocketConnectionRetry > NumberOfWebSocketRetry) {
+          _promise foreach {
+            _.failure(exception)
+          }
+        }
+      }
+    }
+  }
+
+  private[this] def performPairing(socket: WebSocket): Unit = {
+    sendPendingPackage(socket)
+    handleCurrentStep(socket)
+    socket on {
+      case StringData(data) => {
+        try {
+          val pkg = new JSONObject(data)
+          answerToPackage(socket, pkg)
+        } catch {
+          case jsonException: JSONException => _promise foreach {_.failure(jsonException)}
+          case illegalRequestException: IllegalRequestException => _promise foreach {_.failure(illegalRequestException)}
+        }
+      }
+      case Close(ex) => {
+        if (_currentState != State.Resting) {
+          initiateConnection()
+        }
+      }
+    }
+  }
+
+  private[this] def handleCurrentStep(socket: WebSocket): Unit = {
+    _currentState match {
+      case State.Starting => handleStartingStep(socket)
+      case State.Connecting => handleConnectingStep(socket)
+    }
+  }
+
+  private[this] def handleStartingStep(socket: WebSocket): Unit = {
+    _onRequireUserInput(new RequirePairingId) onComplete {
+      case Success(pairingId) => {
+         if (pairingId == null)
+           _promise. foreach {_.failure(new IllegalUserInputException("Pairing id cannot be null"))}
+          _pairingId = Some(pairingId)
+          _currentState = State.Connecting
+        sendJoinPackage()
+        sendPendingPackage(socket)
+        handleCurrentStep(socket)
+      }
+      case Failure(exception) => _promise foreach {_.failure(exception)}
+    }
+  }
+
+  private[this] def handleConnectingStep(socket: WebSocket): Unit = {
+    // Generate KeyPair
+
+    // ECDH Key agreement
+
+    _currentState = State.Challenging
+    sendIdentifyPackage(publicKey = "A superb public key")
+  }
+
+  private[this] def handleChallengingStep(socket: WebSocket, pkg: JSONObject): Unit = {
+    // Ask the user to answer to the challenge
+    //_onRequireUserInput(new Requi)
+  }
+
+  private[this] def handleNamingStep(socket: WebSocket, pkg: JSONObject): Unit = {
+    // Ask the user a name for its dongle
+    // Success the promise
+    // Close the connection
+  }
+
+  private[this] def answerToPackage(socket: WebSocket, pkg: JSONObject): Unit = {
+    pkg.getString("type") match {
+      case "challenge" => handleChallengingStep(socket, pkg)
+      case "pairing" => handleNamingStep(socket, pkg)
+      case "repeat" => sendPendingPackage(socket)
+    }
+  }
+
+  private[this] def sendPendingPackage(socket: WebSocket): Unit = _pendingPackage foreach socket.send
+
+  private[this] def sendIdentifyPackage(publicKey: String): Unit = sendPackage(Map("type" -> "identify", "public_key" -> publicKey))
+  private[this] def sendJoinPackage(): Unit = sendPackage(Map("type" -> "join", "room" -> _pairingId.get))
+
+  private[this] def sendPackage(pkg: JSONObject): Unit = {
+    _pendingPackage = Option(pkg)
+  }
 
   private object State extends Enumeration {
     type State = Value
@@ -80,7 +196,10 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient()) {
 
 }
 
-abstract class RequiredUserInput
-case class RequirePairingId() extends RequiredUserInput
-case class RequireChallengeResponse(challenge: String) extends RequiredUserInput
-case class RequireDongleName() extends RequiredUserInput
+sealed abstract class RequiredUserInput
+sealed case class RequirePairingId() extends RequiredUserInput
+sealed case class RequireChallengeResponse(challenge: String) extends RequiredUserInput
+sealed case class RequireDongleName() extends RequiredUserInput
+
+sealed class IllegalRequestException(reason: String = null) extends Exception(reason)
+sealed class IllegalUserInputException(reason: String = null) extends Exception(reason)

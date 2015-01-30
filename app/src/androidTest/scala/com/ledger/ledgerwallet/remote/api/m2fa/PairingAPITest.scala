@@ -34,13 +34,18 @@ import java.util.concurrent.{TimeUnit, CountDownLatch}
 
 import android.net.Uri
 import android.test.InstrumentationTestCase
-import com.koushikdutta.async.http.WebSocket
-import com.koushikdutta.async.http.WebSocket.StringCallback
-import com.koushikdutta.async.http.server.{AsyncHttpServerRequest, AsyncHttpServer}
+import com.koushikdutta.async.LineEmitter.StringCallback
+import com.koushikdutta.async.callback.CompletedCallback
+import com.koushikdutta.async.future.FutureCallback
+import com.koushikdutta.async.http._
+import com.koushikdutta.async.http.server.{AsyncHttpServerResponse, HttpServerRequestCallback, AsyncHttpServerRequest, AsyncHttpServer}
 import com.koushikdutta.async.http.server.AsyncHttpServer.WebSocketRequestCallback
 import com.ledger.ledgerwallet.remote.HttpClient
+import com.ledger.ledgerwallet.utils.logs.Logger
 import junit.framework.Assert
-import org.json.JSONObject
+import org.json.{JSONException, JSONObject}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Promise
 
 import scala.util.{Failure, Success}
 
@@ -51,23 +56,32 @@ class PairingAPITest extends InstrumentationTestCase {
 
   override def setUp(): Unit = {
     super.setUp()
+    server = new ApiServer
     server.run()
-    API = new PairingAPI(getInstrumentation.getTargetContext, new HttpClient(Uri.parse("http://localhost")))
+    API = new PairingAPI(getInstrumentation.getTargetContext, new HttpClient(Uri.parse("http://localhost:5000")))
   }
 
   override def tearDown(): Unit = {
-    server.stop()
+    //server.stop()
     super.tearDown()
   }
 
   def testShouldPairDevice: Unit = {
     val signal = new CountDownLatch(1)
 
-    API onRequireUserInput {
-      case RequirePairingId() => null
+    val answer = (s: String) => {
+      val p = Promise[String]()
+      p.success(s)
+      p.future
     }
-    val future = API.startPairingProcess()
 
+    API onRequireUserInput {
+      case RequirePairingId() => answer("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
+      case RequireChallengeResponse(challenge) => answer("4abf2")
+      case RequireDongleName() => answer("Test Dongle")
+    }
+
+    val future = API.startPairingProcess()
     future onComplete {
       case Success(device) => {
         Assert.assertNotNull(device)
@@ -76,35 +90,63 @@ class PairingAPITest extends InstrumentationTestCase {
       case Failure(ex) => Assert.fail("Failed to pair device " + ex.getMessage)
     }
 
-    signal.await(30, TimeUnit.SECONDS)
+    signal.await(555530, TimeUnit.SECONDS)
   }
 
 }
 
-private sealed class ApiServer {
+sealed class ApiServer {
 
   val server = new AsyncHttpServer
-
+  var websocket: WebSocket = _
   def run(): Unit = {
 
-    server.websocket("/pairing", new WebSocketRequestCallback {
+    server.setErrorCallback(new CompletedCallback {
+      override def onCompleted(ex: Exception): Unit = {
+        Assert.failSame(ex.getMessage)
+      }
+    })
+
+    server.listen(5000)
+    server.websocket("/2fa/channels", new WebSocketRequestCallback {
       override def onConnected(webSocket: WebSocket, request: AsyncHttpServerRequest): Unit = {
-        webSocket.setStringCallback(new StringCallback {
+        Logger.d("Connecting \\o/")
+        var room: String = null
+        websocket = webSocket
+        webSocket.setStringCallback(new WebSocket.StringCallback {
           override def onStringAvailable(s: String): Unit = {
-            val r = new JSONObject(s)
-
-            r.getString("type") match {
-              case "join" =>
+            Logger.d("Data received \\o/ " + s)
+            try {
+              val r = new JSONObject(s)
+              if (r.getString("type") != "join" && room == null) {
+                webSocket.close()
+                return
+              }
+              r.getString("type") match {
+                case "join" => room = r.getString("room")
+                case "identify" => {
+                  val a = new JSONObject()
+                  a.put("type", "challenge")
+                  a.put("data", "qdwdqwidwjdioqdjiqwjdqjioq")
+                  webSocket.send(a.toString)
+                }
+                case "challenge" => {
+                  val a = new JSONObject()
+                  a.put("type", "pairing")
+                  a.put("is_succesfull", true)
+                  webSocket.send(a.toString)
+                }
+              }
+            } catch {
+              case ex: JSONException => webSocket.close()
             }
-
           }
         })
       }
     })
 
-    server.listen(3000)
   }
 
-  def stop(): Unit = server.stop()
+  //def stop(): Unit = server.stop()
 
 }

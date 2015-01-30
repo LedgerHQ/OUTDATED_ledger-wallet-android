@@ -91,4 +91,14 @@ class WebSocketTest extends InstrumentationTestCase {
     signal.await(30, TimeUnit.SECONDS)
   }
 
+  def testShouldFailedConnection: Unit = {
+    websocket.close()
+    signal.countDown()
+    client.websocket("/no/websocket") onComplete {
+      case Success(w) => Assert.fail("Should fail")
+      case Failure(ex) => signal.countDown()
+    }
+    signal.await(30, TimeUnit.SECONDS)
+  }
+
 }

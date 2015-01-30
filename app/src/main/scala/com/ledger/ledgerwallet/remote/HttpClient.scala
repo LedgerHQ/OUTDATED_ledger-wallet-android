@@ -31,10 +31,13 @@
 package com.ledger.ledgerwallet.remote
 
 import android.net.Uri
+import com.koushikdutta.async.future.FutureCallback
+import com.koushikdutta.async.http
 import com.koushikdutta.async.http.AsyncHttpClient.WebSocketConnectCallback
 import com.koushikdutta.async.http._
 import com.koushikdutta.async.http.body.{JSONObjectBody, AsyncHttpRequestBody}
 import com.ledger.ledgerwallet.app.Config
+import com.ledger.ledgerwallet.utils.logs.Logger
 import org.apache.http.impl.DefaultHttpRequestFactory
 import org.apache.http.HttpRequest
 import org.apache.http.client.methods.{HttpPost, HttpGet}
@@ -147,14 +150,18 @@ class HttpClient(baseUrl: Uri) {
       val httpAsyncRequest = configureRequest(new HttpGet(url), params, None, headers)
 
       val request = new RequestImpl[WebSocket](httpAsyncRequest)
-      _client.websocket(httpAsyncRequest, protocol.orNull, new WebSocketConnectCallback {
-        override def onCompleted(ex: Exception, webSocket: com.koushikdutta.async.http.WebSocket): Unit = {
-          if (ex == null) {
+      _client.websocket(httpAsyncRequest, protocol.orNull, null).setCallback(new FutureCallback[http.WebSocket] {
+        override def onCompleted(ex: Exception, webSocket: http.WebSocket): Unit = {
+          if (ex == null && webSocket != null) {
             request.responsePromise.success(null)
             request.resultPromise.success(new WebSocket(webSocket))
-          } else {
+          } else if (ex != null) {
             request.responsePromise.failure(ex)
             request.resultPromise.failure(ex)
+          } else {
+            val e = new Exception("Websocket call completed without any socket nor exception")
+            request.responsePromise.failure(e)
+            request.resultPromise.failure(e)
           }
         }
       })
@@ -168,8 +175,11 @@ class HttpClient(baseUrl: Uri) {
                                       )
     : AsyncHttpRequest = {
       var requestUri = Uri.parse(request.getRequestLine.getUri)
-      if (requestUri.isRelative && !requestUri.toString.equals("/")) {
-        requestUri = baseUrl.buildUpon().appendEncodedPath(requestUri.toString).build()
+      if (requestUri.isRelative) {
+        val path = requestUri.toString.split('/')
+        val builder = baseUrl.buildUpon()
+        path foreach builder.appendPath
+        requestUri = builder.build()
       } else if (requestUri.isRelative) {
         requestUri = baseUrl
       }

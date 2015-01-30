@@ -31,10 +31,11 @@
 package com.ledger.ledgerwallet.utils
 
 import org.json.{JSONArray, JSONObject}
+import scala.collection.Map
 
 object JsonUtils {
 
-  implicit def map2JsonObject(map: Map[String, AnyRef]): JSONObject = {
+  implicit def Map2JsonObject[T](map: Map[String, T]): JSONObject = {
     val json = new JSONObject()
     map foreach {case (key, value) =>
       value match {
@@ -44,15 +45,15 @@ object JsonUtils {
         case boolean: Boolean => json.put(key, boolean)
         case jsonObject: JSONObject => json.put(key, jsonObject)
         case jsonArray: JSONArray => json.put(key, jsonArray)
-        case map: Map[String, AnyRef] => json.put(key, map2JsonObject(map))
-        case array: Array[AnyRef] => json.put(key, array2JsonArray(array))
+        case map: Map[_, _] => json.put(key, Map2JsonObject(map.asInstanceOf[Map[String, _]]))
+        case array: Array[_] => json.put(key, Array2JsonArray(array))
         case _ => json.put(key, value.toString)
       }
     }
-    null
+    json
   }
 
-  implicit def array2JsonArray(array: Array[AnyRef]): JSONArray = {
+  implicit def Array2JsonArray[T](array: Array[T]): JSONArray = {
     val json = new JSONArray()
     array foreach {
         case string: String => json.put(string)
@@ -61,8 +62,8 @@ object JsonUtils {
         case boolean: Boolean => json.put(boolean)
         case jsonObject: JSONObject => json.put(jsonObject)
         case jsonArray: JSONArray => json.put(jsonArray)
-        case map: Map[String, AnyRef] => json.put(map2JsonObject(map))
-        case array: Array[AnyRef] => json.put(array2JsonArray(array))
+        case map: Map[_, _] => json.put(Map2JsonObject(map.asInstanceOf[Map[String, _]]))
+        case array: Array[AnyRef] => json.put(Array2JsonArray(array))
         case value => json.put(value.toString)
     }
     json
