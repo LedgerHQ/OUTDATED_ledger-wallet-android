@@ -28,7 +28,7 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.app.pairing
+package com.ledger.ledgerwallet.app.m2fa.pairing
 
 import android.os.Bundle
 import android.view.ViewTreeObserver.OnGlobalLayoutListener

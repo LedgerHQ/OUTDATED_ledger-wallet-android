@@ -28,7 +28,7 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.app.pairing
+package com.ledger.ledgerwallet.app.m2fa
 
 import android.content.{Context, Intent}
 import android.os.Bundle
@@ -36,13 +36,13 @@ import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, Recy
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageButton
 import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.app.m2fa.IncomingTransactionDialogFragment
-import com.ledger.ledgerwallet.base.{BigIconAlertDialog, BaseActivity}
+import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
+import com.ledger.ledgerwallet.base.{BaseActivity, BigIconAlertDialog}
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.Toolbar.Style
-import com.ledger.ledgerwallet.widget.{DividerItemDecoration, TextView, Toolbar}
+import com.ledger.ledgerwallet.widget.{TextView, Toolbar}
 
 class PairedDonglesActivity extends BaseActivity {
 

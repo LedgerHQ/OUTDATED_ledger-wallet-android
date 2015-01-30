@@ -1,9 +1,9 @@
 /**
  *
- * PairedDonglesActivityTest
+ * CreateDonglePairingActivityTest
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 26/01/15.
+ * Created by Pierre Pollastri on 30/01/15.
  *
  * The MIT License (MIT)
  *
@@ -28,20 +28,23 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.app
+package com.ledger.ledgerwallet.app.m2fa.pairing
 
-import android.test.ActivityInstrumentationTestCase2
-import com.ledger.ledgerwallet.app.pairing.PairedDonglesActivity
-import junit.framework.Assert
+import android.content.Intent
+import com.ledger.ledgerwallet.ActivityInstrumentationTestCase
 
-class PairedDonglesActivityTest extends ActivityInstrumentationTestCase2[PairedDonglesActivity](classOf[PairedDonglesActivity]) {
+class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase[CreateDonglePairingActivity] {
 
-  def test1() {
-    Assert.assertTrue(true)
+
+  override def setUp(): Unit = {
+    super.setUp()
+
   }
 
-  def test2() {
-    //Assert.assertEquals("Hello. I'm Java !", "Yo")
+  def testShouldCompletePairing(): Unit = {
+    val intent = new Intent(getInstrumentation.getTargetContext, classOf[CreateDonglePairingActivity])
+    intent.putExtra(CreateDonglePairingActivity.ExtraUseTestClient, true)
+    getInstrumentation.startActivitySync(intent)
   }
 
 }

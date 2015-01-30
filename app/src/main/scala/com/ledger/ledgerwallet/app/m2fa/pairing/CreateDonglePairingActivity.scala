@@ -28,13 +28,16 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.app.pairing
+package com.ledger.ledgerwallet.app.m2fa.pairing
 
+import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.NavUtils
 import android.view.MenuItem
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{BaseFragment, BaseActivity}
+import com.ledger.ledgerwallet.remote.HttpClient
+import com.ledger.ledgerwallet.remote.api.m2fa.PairingAPI
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.TextView
 
@@ -42,6 +45,11 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
 
   lazy val stepNumberTextView = TR(R.id.step_number).as[TextView]
   lazy val stepInstructionTextView = TR(R.id.instruction_text).as[TextView]
+  lazy val pairingApi = {
+    if (getIntent.getBooleanExtra(CreateDonglePairingActivity.ExtraUseTestClient, false))
+      new PairingAPI(this)
+    else new PairingAPI(this, new HttpClient(Uri.parse("http://localhost:5000")))
+  }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -74,6 +82,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
 
 object CreateDonglePairingActivity {
 
+  val ExtraUseTestClient = "ExtraUseTestClient"
   val CreateDonglePairingRequest = 0xCAFE
 
   trait CreateDonglePairingProccessContract {
