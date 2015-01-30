@@ -33,6 +33,7 @@ package com.ledger.ledgerwallet.remote.api.m2fa
 import android.content.Context
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.{StringData, Close, WebSocket, HttpClient}
+import com.ledger.ledgerwallet.utils.logs.Logger
 import org.json.{JSONException, JSONObject}
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.ledger.ledgerwallet.utils.JsonUtils._
@@ -94,7 +95,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient()) {
       case Success(websocket) => {
         _websocketConnectionRetry = 0
         if (_pairingId.isDefined) {
-           sendJoinPackage()
+           prepareJoinPackage()
         }
         performPairing(websocket)
       }
@@ -144,7 +145,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient()) {
            _promise. foreach {_.failure(new IllegalUserInputException("Pairing id cannot be null"))}
           _pairingId = Some(pairingId)
           _currentState = State.Connecting
-        sendJoinPackage()
+        prepareJoinPackage()
         sendPendingPackage(socket)
         handleCurrentStep(socket)
       }
@@ -158,18 +159,41 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient()) {
     // ECDH Key agreement
 
     _currentState = State.Challenging
-    sendIdentifyPackage(publicKey = "A superb public key")
+    Logger.d("Sending public key")
+    prepareIdentifyPackage(publicKey = "A superb public key")
+    sendPendingPackage(socket)
   }
 
   private[this] def handleChallengingStep(socket: WebSocket, pkg: JSONObject): Unit = {
     // Ask the user to answer to the challenge
     //_onRequireUserInput(new Requi)
+    Logger.d("Client received a challenge " + pkg.toString)
+
+    _onRequireUserInput(new RequireChallengeResponse("xpgg")) onComplete {
+      case Success(answer) => {
+        prepareChallengePackage(answer = answer)
+        sendPendingPackage(socket)
+      }
+      case Failure(ex) => _promise foreach {_ failure ex}
+    }
   }
 
   private[this] def handleNamingStep(socket: WebSocket, pkg: JSONObject): Unit = {
     // Ask the user a name for its dongle
     // Success the promise
     // Close the connection
+    Logger.d("Client must give a name " + pkg.toString)
+    _onRequireUserInput(new RequireDongleName) onComplete {
+      case Success(name) => {
+        Logger.d("Got the name, now finalize and success")
+        finalizePairing(name)
+      }
+      case Failure(ex) => _promise foreach {_.failure(ex)}
+    }
+  }
+
+  private[this] def finalizePairing(dongleName: String): Unit = {
+    _promise foreach {_.success(new PairedDongle())}
   }
 
   private[this] def answerToPackage(socket: WebSocket, pkg: JSONObject): Unit = {
@@ -182,10 +206,11 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient()) {
 
   private[this] def sendPendingPackage(socket: WebSocket): Unit = _pendingPackage foreach socket.send
 
-  private[this] def sendIdentifyPackage(publicKey: String): Unit = sendPackage(Map("type" -> "identify", "public_key" -> publicKey))
-  private[this] def sendJoinPackage(): Unit = sendPackage(Map("type" -> "join", "room" -> _pairingId.get))
+  private[this] def prepareIdentifyPackage(publicKey: String): Unit = preparePackage(Map("type" -> "identify", "public_key" -> publicKey))
+  private[this] def prepareJoinPackage(): Unit = preparePackage(Map("type" -> "join", "room" -> _pairingId.get))
+  private[this] def prepareChallengePackage(answer: String): Unit = preparePackage(Map("type" -> "challenge", "data" -> answer))
 
-  private[this] def sendPackage(pkg: JSONObject): Unit = {
+  private[this] def preparePackage(pkg: JSONObject): Unit = {
     _pendingPackage = Option(pkg)
   }
 

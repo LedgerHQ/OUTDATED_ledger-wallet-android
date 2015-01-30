@@ -35,11 +35,30 @@ import android.util.Log
 
 class Logger {
 
-  def d(log: String)(implicit logTag: String = null) = Log.d(logTag, log)
-  def i(log: String)(implicit logTag: String = null) = Log.i(logTag, log)
-  def v(log: String)(implicit logTag: String = null) = Log.v(logTag, log)
-  def e(log: String)(implicit logTag: String = null) = Log.e(logTag, log)
-  def wtf(log: String)(implicit logTag: String = null) = Log.wtf(logTag, log)
+  def d(log: String)(implicit logTag: String = null, DisableLogging: Boolean = false) = {
+    if (!DisableLogging)
+      Log.d(logTag, log)
+  }
+
+  def i(log: String)(implicit logTag: String = null, DisableLogging: Boolean = false) = {
+    if (!DisableLogging)
+      Log.i(logTag, log)
+  }
+
+  def v(log: String)(implicit logTag: String = null, DisableLogging: Boolean = false) = {
+    if (!DisableLogging)
+      Log.v(logTag, log)
+  }
+
+  def e(log: String)(implicit logTag: String = null, DisableLogging: Boolean = false) = {
+    if (!DisableLogging)
+      Log.e(logTag, log)
+  }
+
+  def wtf(log: String)(implicit logTag: String = null, DisableLogging: Boolean = false) = {
+    if (!DisableLogging)
+      Log.wtf(logTag, log)
+  }
 
 }
 

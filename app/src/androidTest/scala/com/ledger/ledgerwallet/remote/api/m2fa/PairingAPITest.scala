@@ -51,12 +51,12 @@ import scala.util.{Failure, Success}
 
 class PairingAPITest extends InstrumentationTestCase {
 
-  var server: ApiServer = _
+  var server: PairingApiServer = _
   var API: PairingAPI = _
 
   override def setUp(): Unit = {
     super.setUp()
-    server = new ApiServer
+    server = new PairingApiServer
     server.run()
     API = new PairingAPI(getInstrumentation.getTargetContext, new HttpClient(Uri.parse("http://localhost:5000")))
   }
@@ -95,7 +95,7 @@ class PairingAPITest extends InstrumentationTestCase {
 
 }
 
-sealed class ApiServer {
+sealed class PairingApiServer {
 
   val server = new AsyncHttpServer
   var websocket: WebSocket = _
