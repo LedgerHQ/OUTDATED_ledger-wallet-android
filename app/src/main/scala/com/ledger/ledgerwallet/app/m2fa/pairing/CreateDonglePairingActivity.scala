@@ -87,7 +87,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     val ft = getSupportFragmentManager.beginTransaction()
     if (stepNumber > 1)
       ft.setCustomAnimations(R.anim.slide_from_right, R.anim.slide_to_left, R.anim.slide_from_left, R.anim.slide_to_right)
-    ft.replace(R.id.fragment_container, fragment)
+    ft.replace(R.id.fragment_container, fragment, fragment.tag)
     ft.commit()
   }
 
@@ -105,6 +105,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     pairindId.success(id)
     gotToStep(2, TR(R.string.create_dongle_instruction_step_2).as[String],
       new PairingInProgressFragment(
+        2,
         R.string.create_dongle_instruction_step_2_title,
         R.string.create_dongle_instruction_step_2_text
       )
@@ -115,6 +116,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     challengeResponse.complete(Try(answer))
     gotToStep(4, TR(R.string.create_dongle_instruction_step_4).as[String],
       new PairingInProgressFragment(
+        4,
         R.string.create_dongle_instruction_step_4_title,
         R.string.create_dongle_instruction_step_4_text
       )

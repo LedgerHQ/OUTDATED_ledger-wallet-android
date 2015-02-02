@@ -37,6 +37,7 @@ import android.test.ActivityInstrumentationTestCase2
 import com.ledger.ledgerwallet.app.{Config, TestConfig}
 import com.ledger.ledgerwallet.remote.api.m2fa.PairingApiServer
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
+import junit.framework.Assert
 
 class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[CreateDonglePairingActivity](classOf[CreateDonglePairingActivity]) {
 
@@ -56,6 +57,7 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
   def testShouldCompletePairing(): Unit = {
     val signal = new CountDownLatch(1)
 
+    Assert.assertTrue(getActivity.getSupportFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
     getActivity runOnUiThread {
       activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
     }
