@@ -31,12 +31,21 @@
 package com.ledger.ledgerwallet.app.m2fa.pairing
 
 import android.os.Bundle
+import android.view.{View, ViewGroup, LayoutInflater}
+import android.widget.ProgressBar
+import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{ContractFragment, BaseFragment}
+import com.ledger.ledgerwallet.utils.TR
+import com.ledger.ledgerwallet.widget.TextView
 
 class PairingInProgressFragment extends BaseFragment with ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] {
 
   private val ExtraTitleId = "ExtraTitleId"
   private val ExtraTextId = "ExtraTextId"
+
+  lazy val titleView = TR(R.id.title).as[TextView]
+  lazy val textView = TR(R.id.text).as[TextView]
+  lazy val loader = TR(R.id.progress).as[ProgressBar]
 
   def this(title: Int, text: Int) = {
     this()
@@ -44,6 +53,15 @@ class PairingInProgressFragment extends BaseFragment with ContractFragment[Creat
     args.putInt(ExtraTitleId, title)
     args.putInt(ExtraTextId, text)
     setArguments(args)
+  }
+
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = inflater.inflate(R.layout.pairing_in_progress_fragment, container, false)
+
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+    super.onViewCreated(view, savedInstanceState)
+    titleView.setText(getArguments.getInt(ExtraTitleId))
+    textView.setText(getArguments.getInt(ExtraTextId))
+    // Sets the progress drawable
   }
 
 }

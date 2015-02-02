@@ -38,9 +38,9 @@ import com.ledger.ledgerwallet.base.{BaseFragment, BaseActivity}
 import com.ledger.ledgerwallet.remote.api.m2fa.{RequireDongleName, RequireChallengeResponse, RequirePairingId, PairingAPI}
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.TextView
-
 import scala.concurrent.Promise
 import scala.util.{Try, Failure, Success}
+import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 
 class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingActivity.CreateDonglePairingProccessContract {
 
@@ -61,12 +61,16 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
 
     pairingApi onRequireUserInput {
       case RequirePairingId() => pairindId.future
-      case RequireChallengeResponse() => {
-        gotToStep(3, TR(R.string.create_dongle_instruction_step_3).as[String], new PairingChallengeFragment)
+      case RequireChallengeResponse(challenge) => {
+        this runOnUiThread {
+          gotToStep(3, TR(R.string.create_dongle_instruction_step_3).as[String], new PairingChallengeFragment(challenge))
+        }
         challengeResponse.future
       }
       case RequireDongleName() => {
-        gotToStep(5, TR(R.string.create_dongle_instruction_step_5).as[String], new NameDongleFragment)
+        this runOnUiThread {
+          gotToStep(5, TR(R.string.create_dongle_instruction_step_5).as[String], new NameDongleFragment)
+        }
         dongleName.future
       }
     }

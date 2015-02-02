@@ -35,9 +35,11 @@ import java.util.concurrent.CountDownLatch
 import android.app.Instrumentation
 import android.app.Instrumentation.ActivityMonitor
 import android.content.Intent
+import android.os.Handler
 import android.test.ActivityInstrumentationTestCase2
 import com.ledger.ledgerwallet.app.{Config, TestConfig}
 import com.ledger.ledgerwallet.remote.api.m2fa.PairingApiServer
+import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 
 class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[CreateDonglePairingActivity](classOf[CreateDonglePairingActivity]) {
 
@@ -48,7 +50,7 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
   override def setUp(): Unit = {
     super.setUp()
     Config.setImplementation(TestConfig)
-    server = new PairingApiServer
+    server = new PairingApiServer(5000L)
     server.run()
     instrumentation = getInstrumentation
     activity = getActivity
@@ -56,8 +58,9 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
 
   def testShouldCompletePairing(): Unit = {
     val signal = new CountDownLatch(1)
-    getInstrumentation.callActivityOnCreate(activity, null)
-    val monitor = new ActivityMonitor()
+    getActivity runOnUiThread {
+      activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
+    }
     signal.await()
   }
 

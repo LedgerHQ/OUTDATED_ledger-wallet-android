@@ -47,6 +47,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Promise
 
 import scala.util.{Failure, Success}
+import concurrent._
 
 class PairingAPITest extends InstrumentationTestCase {
 
@@ -61,7 +62,7 @@ class PairingAPITest extends InstrumentationTestCase {
   }
 
   override def tearDown(): Unit = {
-    //server.stop()
+    server.stop()
     super.tearDown()
   }
 
@@ -110,9 +111,11 @@ sealed class PairingApiServer(responseDelay: Long = 0) {
     server.websocket("/2fa/channels", new WebSocketRequestCallback {
       override def onConnected(webSocket: WebSocket, request: AsyncHttpServerRequest): Unit = {
         val send = (s: String) => {
-          new Handler().postDelayed(new Runnable {
-            override def run(): Unit = websocket.send(s)
-          }, responseDelay)
+          Future {
+            blocking(Thread.sleep(responseDelay, 0))
+            Logger.d("Server sends " + s)
+            websocket.send(s)
+          }
         }
         Logger.d("Connecting \\o/")
         var room: String = null

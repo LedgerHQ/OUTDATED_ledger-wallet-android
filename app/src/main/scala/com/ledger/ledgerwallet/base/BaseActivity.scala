@@ -41,8 +41,11 @@ import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.utils.logs.Loggable
 
+import scala.concurrent.ExecutionContext
+
 abstract class BaseActivity extends ActionBarActivity with Loggable {
   implicit val context = this
+  implicit val executor: ExecutionContext = com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.ui
 
   lazy val toolbar = TR(R.id.toolbar).as[Toolbar]
   lazy val content = TR(R.id.content_view).as[FrameLayout]

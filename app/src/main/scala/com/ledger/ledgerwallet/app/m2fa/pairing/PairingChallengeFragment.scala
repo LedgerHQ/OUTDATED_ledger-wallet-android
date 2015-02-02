@@ -46,6 +46,8 @@ import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 
 class PairingChallengeFragment extends BaseFragment with ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] {
 
+  val ExtraChallenge = "ExtraChallenge"
+
   lazy val PreviousCharacterColor = TR(R.color.dark_grey).asColor
   lazy val CurrentCharacterColor = TR(R.color.invalid_red).asColor
   lazy val NextCharacterColor = TR(R.color.soft_grey).asColor
@@ -66,13 +68,19 @@ class PairingChallengeFragment extends BaseFragment with ContractFragment[Create
     }
     views
   }
-  private val _challenge = "x5E9"
+  private lazy val _challenge = getArguments.getString(ExtraChallenge)
+
+  def this(challenge: String) = {
+    this()
+    val args = new Bundle()
+    args.putString(ExtraChallenge, challenge)
+    setArguments(args)
+  }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     super.onCreateView(inflater, container, savedInstanceState)
     inflater.inflate(R.layout.pairing_challenge_fragment, container, false)
   }
-
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     super.onViewCreated(view, savedInstanceState)
@@ -124,7 +132,7 @@ class PairingChallengeFragment extends BaseFragment with ContractFragment[Create
     }
     if (text.length() < _challenge.length)
       bottomText.setText(
-        getResources.getString(R.string.create_dongle_instruction_step_2_bottom,
+        getResources.getString(R.string.create_dongle_instruction_step_3_bottom,
           _challenge.charAt(text.length).toString)
       )
   }

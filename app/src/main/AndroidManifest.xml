@@ -9,6 +9,7 @@
 
         <activity
             android:name=".app.m2fa.PairedDonglesActivity"
+            android:screenOrientation="portrait"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -19,6 +20,7 @@
 
         <activity
             android:name=".app.m2fa.pairing.CreateDonglePairingActivity"
+            android:screenOrientation="portrait"
             android:label="@string/create_dongle_title"
             android:windowSoftInputMode="adjustResize"
             android:parentActivityName=".app.m2fa.PairedDonglesActivity"

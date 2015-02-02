@@ -38,7 +38,7 @@ import org.json.{JSONException, JSONObject}
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.ledger.ledgerwallet.utils.JsonUtils._
 
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.{ExecutionContext, Promise, Future}
 import scala.util.{Failure, Success}
 
 class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultInstance) {
@@ -60,7 +60,6 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
   private[this] var _pairingId: Option[String] = None
 
   def onRequireUserInput(f: (RequiredUserInput) => Future[String]): Unit =  {
-
     _onRequireUserInput = f
   }
 
@@ -94,9 +93,6 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
     httpClient.websocket("/2fa/channels") onComplete {
       case Success(websocket) => {
         _websocketConnectionRetry = 0
-        if (_pairingId.isDefined) {
-           prepareJoinPackage()
-        }
         performPairing(websocket)
       }
       case Failure(exception) => {
@@ -111,7 +107,6 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
   }
 
   private[this] def performPairing(socket: WebSocket): Unit = {
-    sendPendingPackage(socket)
     handleCurrentStep(socket)
     socket on {
       case StringData(data) => {
@@ -123,11 +118,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
           case illegalRequestException: IllegalRequestException => _promise foreach {_.failure(illegalRequestException)}
         }
       }
-      case Close(ex) => {
-        if (_currentState != State.Resting) {
-          initiateConnection()
-        }
-      }
+      case Close(ex) => _promise foreach {_.failure(ex)}
     }
   }
 
@@ -135,6 +126,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
     _currentState match {
       case State.Starting => handleStartingStep(socket)
       case State.Connecting => handleConnectingStep(socket)
+      case state =>
     }
   }
 
