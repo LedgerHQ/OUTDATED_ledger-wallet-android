@@ -112,7 +112,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
   }
   override def setDongleName(name: String): Unit = dongleName.complete(Try(name))
   override def setChallengeAnswer(answer: String): Unit = {
-    dongleName.complete(Try(answer))
+    challengeResponse.complete(Try(answer))
     gotToStep(4, TR(R.string.create_dongle_instruction_step_4).as[String],
       new PairingInProgressFragment(
         R.string.create_dongle_instruction_step_4_title,
