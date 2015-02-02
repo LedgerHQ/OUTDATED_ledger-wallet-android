@@ -74,4 +74,6 @@ class ScanPairingQrCodeFragment extends BaseFragment with ContractFragment[Creat
     val content = result.getContents
     contract.setPairingId(content)
   }
+
+  override def tag: String = "ScanPairingQrCodeFragment"
 }

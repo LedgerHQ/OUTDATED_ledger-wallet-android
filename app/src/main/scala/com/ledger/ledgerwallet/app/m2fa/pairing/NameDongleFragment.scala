@@ -110,4 +110,5 @@ class NameDongleFragment extends BaseFragment with ContractFragment[CreateDongle
     true
   }
 
+  override def tag: String = "NameDongleFragment"
 }

@@ -36,4 +36,6 @@ import com.ledger.ledgerwallet.utils.logs.Loggable
 
 class BaseFragment extends Fragment with Loggable with RichFragment {
 
+  def tag = ""
+
 }

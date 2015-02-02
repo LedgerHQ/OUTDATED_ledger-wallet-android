@@ -33,9 +33,6 @@ package com.ledger.ledgerwallet.app.m2fa.pairing
 import java.util.concurrent.CountDownLatch
 
 import android.app.Instrumentation
-import android.app.Instrumentation.ActivityMonitor
-import android.content.Intent
-import android.os.Handler
 import android.test.ActivityInstrumentationTestCase2
 import com.ledger.ledgerwallet.app.{Config, TestConfig}
 import com.ledger.ledgerwallet.remote.api.m2fa.PairingApiServer
@@ -58,9 +55,11 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
 
   def testShouldCompletePairing(): Unit = {
     val signal = new CountDownLatch(1)
+
     getActivity runOnUiThread {
       activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
     }
+
     signal.await()
   }
 

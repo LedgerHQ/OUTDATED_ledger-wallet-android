@@ -42,16 +42,18 @@ class PairingInProgressFragment extends BaseFragment with ContractFragment[Creat
 
   private val ExtraTitleId = "ExtraTitleId"
   private val ExtraTextId = "ExtraTextId"
+  private val ExtraStep = "ExtraStep"
 
   lazy val titleView = TR(R.id.title).as[TextView]
   lazy val textView = TR(R.id.text).as[TextView]
   lazy val loader = TR(R.id.progress).as[ProgressBar]
 
-  def this(title: Int, text: Int) = {
+  def this(step: Int, title: Int, text: Int) = {
     this()
     val args = new Bundle()
     args.putInt(ExtraTitleId, title)
     args.putInt(ExtraTextId, text)
+    args.putInt(ExtraStep, step)
     setArguments(args)
   }
 
@@ -64,4 +66,5 @@ class PairingInProgressFragment extends BaseFragment with ContractFragment[Creat
     // Sets the progress drawable
   }
 
+  override def tag: String = "PairingInProgressFragment_" + getArguments.getInt(ExtraStep, 0)
 }

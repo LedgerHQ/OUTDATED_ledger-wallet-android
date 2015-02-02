@@ -163,4 +163,5 @@ class PairingChallengeFragment extends BaseFragment with ContractFragment[Create
       contract.setChallengeAnswer(pinTextView.getText().toString)
   }
 
+  override def tag: String = "PairingChallengeFragment"
 }
