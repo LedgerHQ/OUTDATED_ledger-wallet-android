@@ -31,7 +31,6 @@
 package com.ledger.ledgerwallet.app.m2fa
 
 import android.test.ActivityInstrumentationTestCase2
-import com.ledger.ledgerwallet.app.m2fa.PairedDonglesActivity
 import junit.framework.Assert
 
 class PairedDonglesActivityTest extends ActivityInstrumentationTestCase2[PairedDonglesActivity](classOf[PairedDonglesActivity]) {

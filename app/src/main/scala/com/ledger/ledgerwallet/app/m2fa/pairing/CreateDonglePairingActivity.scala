@@ -30,26 +30,27 @@
  */
 package com.ledger.ledgerwallet.app.m2fa.pairing
 
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.NavUtils
 import android.view.MenuItem
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{BaseFragment, BaseActivity}
-import com.ledger.ledgerwallet.remote.HttpClient
-import com.ledger.ledgerwallet.remote.api.m2fa.PairingAPI
+import com.ledger.ledgerwallet.remote.api.m2fa.{RequireDongleName, RequireChallengeResponse, RequirePairingId, PairingAPI}
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.TextView
+
+import scala.concurrent.Promise
+import scala.util.{Try, Failure, Success}
 
 class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingActivity.CreateDonglePairingProccessContract {
 
   lazy val stepNumberTextView = TR(R.id.step_number).as[TextView]
   lazy val stepInstructionTextView = TR(R.id.instruction_text).as[TextView]
-  lazy val pairingApi = {
-    if (getIntent.getBooleanExtra(CreateDonglePairingActivity.ExtraUseTestClient, false))
-      new PairingAPI(this)
-    else new PairingAPI(this, new HttpClient(Uri.parse("http://localhost:5000")))
-  }
+  lazy val pairingApi = new PairingAPI(this)
+
+  lazy val pairindId = Promise[String]()
+  lazy val challengeResponse = Promise[String]()
+  lazy val dongleName = Promise[String]()
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -57,6 +58,23 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     getSupportActionBar.setHomeButtonEnabled(true)
     getSupportActionBar.setDisplayHomeAsUpEnabled(true)
     gotToStep(1, TR(R.string.create_dongle_instruction_step_1).as[String], new ScanPairingQrCodeFragment())
+
+    pairingApi onRequireUserInput {
+      case RequirePairingId() => pairindId.future
+      case RequireChallengeResponse() => {
+        gotToStep(3, TR(R.string.create_dongle_instruction_step_3).as[String], new PairingChallengeFragment)
+        challengeResponse.future
+      }
+      case RequireDongleName() => {
+        gotToStep(5, TR(R.string.create_dongle_instruction_step_5).as[String], new NameDongleFragment)
+        dongleName.future
+      }
+    }
+    pairingApi.startPairingProcess()
+    pairingApi.future.get onComplete {
+      case Success(pairedDongle) =>
+      case Failure(ex) =>
+    }
   }
 
   override def gotToStep(stepNumber: Int, instructionText: CharSequence, fragment: BaseFragment): Unit = {
@@ -78,15 +96,40 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
       case _ => super.onOptionsItemSelected(item)
     }
   }
+
+  override def setPairingId(id: String): Unit = {
+    pairindId.success(id)
+    gotToStep(2, TR(R.string.create_dongle_instruction_step_2).as[String],
+      new PairingInProgressFragment(
+        R.string.create_dongle_instruction_step_2_title,
+        R.string.create_dongle_instruction_step_2_text
+      )
+    )
+  }
+  override def setDongleName(name: String): Unit = dongleName.complete(Try(name))
+  override def setChallengeAnswer(answer: String): Unit = {
+    dongleName.complete(Try(answer))
+    gotToStep(4, TR(R.string.create_dongle_instruction_step_4).as[String],
+      new PairingInProgressFragment(
+        R.string.create_dongle_instruction_step_4_title,
+        R.string.create_dongle_instruction_step_4_text
+      )
+    )
+  }
+
 }
 
 object CreateDonglePairingActivity {
 
-  val ExtraUseTestClient = "ExtraUseTestClient"
   val CreateDonglePairingRequest = 0xCAFE
 
   trait CreateDonglePairingProccessContract {
     def gotToStep(stepNumber: Int, instructionText: CharSequence, fragment: BaseFragment): Unit
+
+    def setPairingId(pairingId: String): Unit
+    def setChallengeAnswer(answer: String): Unit
+    def setDongleName(dongleName: String): Unit
+
   }
 
 }

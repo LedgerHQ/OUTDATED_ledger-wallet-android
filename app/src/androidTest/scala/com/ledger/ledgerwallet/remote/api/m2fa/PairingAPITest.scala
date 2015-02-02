@@ -33,12 +33,11 @@ package com.ledger.ledgerwallet.remote.api.m2fa
 import java.util.concurrent.{TimeUnit, CountDownLatch}
 
 import android.net.Uri
+import android.os.Handler
 import android.test.InstrumentationTestCase
-import com.koushikdutta.async.LineEmitter.StringCallback
 import com.koushikdutta.async.callback.CompletedCallback
-import com.koushikdutta.async.future.FutureCallback
 import com.koushikdutta.async.http._
-import com.koushikdutta.async.http.server.{AsyncHttpServerResponse, HttpServerRequestCallback, AsyncHttpServerRequest, AsyncHttpServer}
+import com.koushikdutta.async.http.server.{AsyncHttpServerRequest, AsyncHttpServer}
 import com.koushikdutta.async.http.server.AsyncHttpServer.WebSocketRequestCallback
 import com.ledger.ledgerwallet.remote.HttpClient
 import com.ledger.ledgerwallet.utils.logs.Logger
@@ -95,7 +94,7 @@ class PairingAPITest extends InstrumentationTestCase {
 
 }
 
-sealed class PairingApiServer {
+sealed class PairingApiServer(responseDelay: Long = 0) {
 
   val server = new AsyncHttpServer
   var websocket: WebSocket = _
@@ -110,6 +109,11 @@ sealed class PairingApiServer {
     server.listen(5000)
     server.websocket("/2fa/channels", new WebSocketRequestCallback {
       override def onConnected(webSocket: WebSocket, request: AsyncHttpServerRequest): Unit = {
+        val send = (s: String) => {
+          new Handler().postDelayed(new Runnable {
+            override def run(): Unit = websocket.send(s)
+          }, responseDelay)
+        }
         Logger.d("Connecting \\o/")
         var room: String = null
         websocket = webSocket
@@ -128,13 +132,13 @@ sealed class PairingApiServer {
                   val a = new JSONObject()
                   a.put("type", "challenge")
                   a.put("data", "qdwdqwidwjdioqdjiqwjdqjioq")
-                  webSocket.send(a.toString)
+                  send(a.toString)
                 }
                 case "challenge" => {
                   val a = new JSONObject()
                   a.put("type", "pairing")
                   a.put("is_succesfull", true)
-                  webSocket.send(a.toString)
+                  send(a.toString)
                 }
               }
             } catch {
@@ -147,6 +151,6 @@ sealed class PairingApiServer {
 
   }
 
-  //def stop(): Unit = server.stop()
+  def stop(): Unit = server.stop()
 
 }

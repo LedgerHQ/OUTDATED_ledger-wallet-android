@@ -41,7 +41,7 @@ import com.ledger.ledgerwallet.utils.JsonUtils._
 import scala.concurrent.{Promise, Future}
 import scala.util.{Failure, Success}
 
-class PairingAPI(context: Context, httpClient: HttpClient = HttpClient()) {
+class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultInstance) {
 
   private[this] var _promise: Option[Promise[PairedDongle]] = None
   def future = _promise.map(_.future)

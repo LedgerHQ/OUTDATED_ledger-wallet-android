@@ -79,7 +79,7 @@
     <com.ledger.ledgerwallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/create_dongle_instruction_step_2_bottom"
+        android:text="@string/create_dongle_instruction_step_3_bottom"
         android:id="@+id/bottom_text"
         android:textSize="@dimen/small_font_size"
         android:textColor="@color/soft_grey"

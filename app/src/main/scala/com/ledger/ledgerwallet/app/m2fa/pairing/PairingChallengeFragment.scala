@@ -152,7 +152,7 @@ class PairingChallengeFragment extends BaseFragment with ContractFragment[Create
 
   def nextStep(): Unit = {
     if (pinTextView.getText().length() == _challenge.length)
-      contract.gotToStep(3, TR(R.string.create_dongle_instruction_step_3).as[String], new NameDongleFragment)
+      contract.setChallengeAnswer(pinTextView.getText().toString)
   }
 
 }

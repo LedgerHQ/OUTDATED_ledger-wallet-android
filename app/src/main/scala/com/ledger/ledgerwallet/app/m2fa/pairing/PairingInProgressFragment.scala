@@ -1,9 +1,9 @@
 /**
  *
- * ActivityInstrumentationTestCase
+ * PairingInProgressFragment
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 30/01/15.
+ * Created by Pierre Pollastri on 02/02/15.
  *
  * The MIT License (MIT)
  *
@@ -28,14 +28,22 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet
+package com.ledger.ledgerwallet.app.m2fa.pairing
 
-import android.test.ActivityInstrumentationTestCase2
+import android.os.Bundle
+import com.ledger.ledgerwallet.base.{ContractFragment, BaseFragment}
 
-import scala.reflect.ClassTag
+class PairingInProgressFragment extends BaseFragment with ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] {
 
-class ActivityInstrumentationTestCase[T](implicit classTag: ClassTag[T]) extends ActivityInstrumentationTestCase2(classTag.runtimeClass) {
+  private val ExtraTitleId = "ExtraTitleId"
+  private val ExtraTextId = "ExtraTextId"
 
-
+  def this(title: Int, text: Int) = {
+    this()
+    val args = new Bundle()
+    args.putInt(ExtraTitleId, title)
+    args.putInt(ExtraTextId, text)
+    setArguments(args)
+  }
 
 }

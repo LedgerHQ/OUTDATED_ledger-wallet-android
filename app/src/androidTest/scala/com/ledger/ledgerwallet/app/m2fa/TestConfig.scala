@@ -1,9 +1,9 @@
 /**
  *
- * Config
+ * TestConfig
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 27/01/15.
+ * Created by Pierre Pollastri on 02/02/15.
  *
  * The MIT License (MIT)
  *
@@ -32,28 +32,9 @@ package com.ledger.ledgerwallet.app
 
 import android.net.Uri
 
-object Config extends Config{
+object TestConfig extends Config {
 
-  private var _impl: Config = new ConfigImpl
-
-  def apply(): Config = _impl
-  def setImplementation(impl: Config): Unit = _impl = impl
-
-  def ApiBaseUri = _impl.ApiBaseUri
-  def WebSocketBaseUri = _impl.WebSocketBaseUri
-
-  private class ConfigImpl extends Config {
-    def ApiBaseUri = Uri.parse("https://google.fr")
-    def WebSocketBaseUri = Uri.parse("https://google.fr")
-  }
-
-
-
-}
-
-trait Config {
-
-  def ApiBaseUri: Uri
-  def WebSocketBaseUri: Uri
+  override def ApiBaseUri: Uri = Uri.parse("http://localhost:5000")
+  override def WebSocketBaseUri: Uri = Uri.parse("http://localhost:5000")
 
 }

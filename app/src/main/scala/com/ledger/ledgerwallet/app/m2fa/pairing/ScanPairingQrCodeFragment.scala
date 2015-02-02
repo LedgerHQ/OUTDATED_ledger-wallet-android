@@ -71,11 +71,7 @@ class ScanPairingQrCodeFragment extends BaseFragment with ContractFragment[Creat
   }
 
   override def handleResult(result: Result): Unit = {
-    Logger.d("Got result " + result.getContents)
-    nextStep()
-
+    val content = result.getContents
+    contract.setPairingId(content)
   }
-
-  def nextStep(): Unit = contract.gotToStep(2, TR(R.string.create_dongle_instruction_step_2).as[String], new PairingChallengeFragment)
-
 }

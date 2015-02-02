@@ -105,7 +105,8 @@ class NameDongleFragment extends BaseFragment with ContractFragment[CreateDongle
   }
 
   private def nextStep(): Boolean = {
-    getActivity.finish()
+    if (nameEditText.getText().length() > 0)
+      contract.setDongleName(nameEditText.getText().toString)
     true
   }
 

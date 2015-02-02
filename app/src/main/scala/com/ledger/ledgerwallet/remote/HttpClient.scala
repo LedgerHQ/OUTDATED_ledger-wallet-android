@@ -229,13 +229,7 @@ class HttpClient(baseUrl: Uri) {
 
 object HttpClient {
 
-  private var _defaultInstance: Option[HttpClient] = None
-
-  def apply(): HttpClient = {
-    _defaultInstance getOrElse {
-      _defaultInstance = Option(new HttpClient(Config.ApiBaseUri))
-      _defaultInstance.get
-    }
-  }
+  lazy val defaultInstance = new HttpClient(Config.ApiBaseUri)
+  lazy val websocketInstance = new HttpClient(Config.ApiBaseUri)
 
 }
