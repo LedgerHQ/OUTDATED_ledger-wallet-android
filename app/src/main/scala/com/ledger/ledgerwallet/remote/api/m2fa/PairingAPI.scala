@@ -76,11 +76,11 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
     _onRequireUserInput(new RequirePairingId) onComplete {
       case Success(pairingId) => {
         if (pairingId == null)
-          _promise. foreach {_.failure(new IllegalUserInputException("Pairing id cannot be null"))}
+          failure(new IllegalUserInputException("Pairing id cannot be null"))
         _pairingId = Some(pairingId)
         initiateConnection()
       }
-      case Failure(exception) => _promise foreach {_.failure(exception)}
+      case Failure(exception) => failure(exception)
     }
     _promise.get.future
   }
@@ -106,9 +106,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
       case Failure(exception) => {
         _websocketConnectionRetry += 1
         if (_websocketConnectionRetry > NumberOfWebSocketRetry) {
-          _promise foreach {
-            _.failure(exception)
-          }
+          failure(exception)
         }
       }
     }
@@ -122,11 +120,11 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
           val pkg = new JSONObject(data)
           answerToPackage(socket, pkg)
         } catch {
-          case jsonException: JSONException => _promise foreach {_.failure(jsonException)}
-          case illegalRequestException: IllegalRequestException => _promise foreach {_.failure(illegalRequestException)}
+          case jsonException: JSONException => failure(jsonException)
+          case illegalRequestException: IllegalRequestException => failure(illegalRequestException)
         }
       }
-      case Close(ex) => _promise foreach {_.failure(ex)}
+      case Close(ex) => failure(ex)
     }
   }
 
@@ -180,7 +178,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
         Logger.d("Got the name, now finalize and success")
         finalizePairing(name)
       }
-      case Failure(ex) => _promise foreach {_.failure(ex)}
+      case Failure(ex) => failure(ex)
     }
   }
 
@@ -204,6 +202,11 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
 
   private[this] def preparePackage(pkg: JSONObject): Unit = {
     _pendingPackage = Option(pkg)
+  }
+
+  private[this] def failure(cause: Throwable): Unit = {
+    _websocket foreach {_.close()}
+    _promise foreach {_.failure(cause)}
   }
 
   private object State extends Enumeration {
