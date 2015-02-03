@@ -30,6 +30,7 @@
  */
 package com.ledger.ledgerwallet.app.m2fa.pairing
 
+import android.app.Activity
 import android.os.Bundle
 import android.support.v4.app.NavUtils
 import android.view.MenuItem
@@ -76,8 +77,13 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     }
     pairingApi.startPairingProcess()
     pairingApi.future.get onComplete {
-      case Success(pairedDongle) =>
-      case Failure(ex) =>
+      case Success(pairedDongle) => postResult(CreateDonglePairingActivity.ResultOk)
+      case Failure(ex) => {
+        ex match {
+          case
+          case _ => postResult(CreateDonglePairingActivity.ResultNetworkError)
+        }
+      }
     }
   }
 
@@ -123,11 +129,29 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     )
   }
 
+  private var _postResult: (Int) => Unit = (resultCode) => {
+    setResult(resultCode)
+    finish()
+  }
+
+  def postResult = _postResult
+  def postResult_=(postResult: (Int) => Unit) = {
+    if (postResult == null)
+      throw new IllegalArgumentException("Post result cannot be null")
+    _postResult = postResult
+  }
+
 }
 
 object CreateDonglePairingActivity {
 
   val CreateDonglePairingRequest = 0xCAFE
+
+  val ResultOk = Activity.RESULT_OK
+  val ResultCanceled = Activity.RESULT_CANCELED
+  val ResultNetworkError = 0x02
+  val ResultWrongChallenge = 0x03
+  val ResultPairingCancelled = 0x04
 
   trait CreateDonglePairingProccessContract {
     def gotToStep(stepNumber: Int, instructionText: CharSequence, fragment: BaseFragment): Unit

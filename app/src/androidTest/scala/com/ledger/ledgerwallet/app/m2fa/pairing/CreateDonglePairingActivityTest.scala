@@ -33,16 +33,20 @@ package com.ledger.ledgerwallet.app.m2fa.pairing
 import java.util.concurrent.CountDownLatch
 
 import android.app.Instrumentation
+import android.content.Context
 import android.os.{Looper, Handler}
 import android.test.ActivityInstrumentationTestCase2
+import android.view.KeyEvent
+import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.app.{Config, TestConfig}
 import com.ledger.ledgerwallet.remote.api.m2fa.PairingApiServer
-import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
-import com.ledger.ledgerwallet.utils.logs.Logger
 import junit.framework.Assert
+import scala.concurrent._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[CreateDonglePairingActivity](classOf[CreateDonglePairingActivity]) {
 
+  implicit var context: Context = _
   var server: PairingApiServer = _
   var activity: CreateDonglePairingActivity = _
   var instrumentation: Instrumentation = _
@@ -50,19 +54,54 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
   override def setUp(): Unit = {
     super.setUp()
     Config.setImplementation(TestConfig)
+    setActivityInitialTouchMode(false)
     instrumentation = getInstrumentation
     activity = getActivity
+    context = activity
   }
 
   def testShouldCompletePairing(): Unit = {
     val signal = new CountDownLatch(1)
 
-    implicit val delayTime = 100L
+    implicit val delayTime = 500L
 
-    server = new PairingApiServer(5000L)
+    server = new PairingApiServer(500L) {
+      override def onSendChallenge(s: String, send: (String) => Unit): Unit = {
+        waitForFragment("PairingInProgressFragment_2") {
+          super.onSendChallenge(s, send)
+          waitForFragment("PairingChallengeFragment") {
+            Future {
+              getInstrumentation.waitForIdleSync()
+              getInstrumentation.sendStringSync("aaaa")
+            }
+          }
+        }
+      }
+
+      override def onSendPairing(s: String, send: (String) => Unit): Unit = {
+        waitForFragment("PairingInProgressFragment_4") {
+          super.onSendPairing(s, send)
+          waitForFragment("NameDongleFragment") {
+            Future {
+              getInstrumentation.waitForIdleSync()
+              for (i <- 0 to 100) {
+                getInstrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DEL)
+              }
+              getInstrumentation.sendStringSync("My great test wallet")
+              getInstrumentation.waitForIdleSync()
+              activity.toolbar.getMenu.performIdentifierAction(R.id.action_done, 0)
+            }
+          }
+        }
+      }
+    }
     server.run()
 
-    Assert.assertTrue(getActivity.getSupportFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
+    activity.postResult = (resultCode) => {
+      
+    }
+
+    Assert.assertTrue("Current fragment should be scan", getActivity.getSupportFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
     delay {
       activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
     }
@@ -75,8 +114,30 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
     super.tearDown()
   }
 
-  def delay(r: Runnable)(implicit delayTime: Long): Unit = {
-    new Handler(Looper.getMainLooper).postDelayed(r, delayTime)
+  def delay(r: => Unit)(implicit delayTime: Long): Unit = {
+    new Handler(Looper.getMainLooper).postDelayed(new Runnable {
+      override def run(): Unit = r
+    }, delayTime)
+  }
+
+  def waitForFragment(fragmentTag: String, timeout: Long = 20000L)(r: => Unit): Unit = {
+    implicit val delayTime = 200L
+    val startTime = System.currentTimeMillis()
+    val checkIfFragmentIsPresent = new (() => Unit)  {
+      def apply():Unit = {
+        val f = getActivity.getSupportFragmentManager.findFragmentByTag(fragmentTag)
+        if (f != null && f.isVisible)
+          r
+        else if (System.currentTimeMillis() - startTime >= timeout)
+          Assert.fail("Timeout during waiting for fragment [" + fragmentTag + "]")
+        else {
+          delay {
+           apply()
+          }
+        }
+      }
+    }
+    checkIfFragmentIsPresent()
   }
 
 }

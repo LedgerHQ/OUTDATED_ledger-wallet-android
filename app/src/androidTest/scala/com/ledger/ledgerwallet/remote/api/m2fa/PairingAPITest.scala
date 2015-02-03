@@ -97,6 +97,7 @@ class PairingAPITest extends InstrumentationTestCase {
 
 class PairingApiServer(responseDelay: Long = 0) {
 
+  implicit val logTag = "PairingApiServer"
   val server = new AsyncHttpServer
   var websocket: WebSocket = _
   var send: (String) => Unit = (s: String) => {
@@ -175,13 +176,16 @@ class PairingApiServer(responseDelay: Long = 0) {
     }
   }
 
-  def stop(): Unit = server.stop()
+  def stop(): Unit = {
+    Logger.d("Stopping server")
+    server.stop()
+  }
 
-  def onConnected(): Unit = {}
+  def onConnected(): Unit = Logger.d("Server: On connected")
   def onJoinRoom(roomName: String): Unit = {}
   def onSendChallenge(s: String, send: (String) => Unit): Unit = send(s)
   def onSendPairing(s: String, send: (String) => Unit): Unit = send(s)
   def onSendDisconnect(s: String, send: (String) => Unit): Unit = send(s)
-  def onDisconnect(): Unit = {}
+  def onDisconnect(): Unit = Logger.d("Server: On disconnected")
 
 }

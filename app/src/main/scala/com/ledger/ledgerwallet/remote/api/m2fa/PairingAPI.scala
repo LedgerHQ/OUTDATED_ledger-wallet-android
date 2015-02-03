@@ -173,6 +173,11 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
     // Success the promise
     // Close the connection
     Logger.d("Client must give a name " + pkg.toString)
+    if (!pkg.optBoolean("is_succesfull", false))
+    {
+      failure(new PairingAPI.WrongChallengeAnswerException)
+      return
+    }
     _onRequireUserInput(new RequireDongleName) onComplete {
       case Success(name) => {
         Logger.d("Got the name, now finalize and success")
@@ -191,6 +196,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
       case "challenge" => handleChallengingStep(socket, pkg)
       case "pairing" => handleNamingStep(socket, pkg)
       case "repeat" => sendPendingPackage(socket)
+      case "disconnect" => failure(new PairingAPI.ClientCancelledException)
     }
   }
 
@@ -213,6 +219,13 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
     type State = Value
     val Resting, Starting, Connecting, Challenging, Naming = Value
   }
+
+}
+
+object PairingAPI {
+
+  class WrongChallengeAnswerException extends Exception
+  class ClientCancelledException extends Exception
 
 }
 

@@ -33,6 +33,7 @@ package com.ledger.ledgerwallet.app.m2fa.pairing
 import android.content.Context
 import android.os.Bundle
 import android.text.{Editable, TextWatcher}
+import android.view.View.OnKeyListener
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.inputmethod.{EditorInfo, InputMethodManager}
 import android.view._
