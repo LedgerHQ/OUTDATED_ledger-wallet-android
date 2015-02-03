@@ -33,10 +33,12 @@ package com.ledger.ledgerwallet.app.m2fa.pairing
 import java.util.concurrent.CountDownLatch
 
 import android.app.Instrumentation
+import android.os.{Looper, Handler}
 import android.test.ActivityInstrumentationTestCase2
 import com.ledger.ledgerwallet.app.{Config, TestConfig}
 import com.ledger.ledgerwallet.remote.api.m2fa.PairingApiServer
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
+import com.ledger.ledgerwallet.utils.logs.Logger
 import junit.framework.Assert
 
 class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[CreateDonglePairingActivity](classOf[CreateDonglePairingActivity]) {
@@ -48,8 +50,6 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
   override def setUp(): Unit = {
     super.setUp()
     Config.setImplementation(TestConfig)
-    server = new PairingApiServer(5000L)
-    server.run()
     instrumentation = getInstrumentation
     activity = getActivity
   }
@@ -57,8 +57,13 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
   def testShouldCompletePairing(): Unit = {
     val signal = new CountDownLatch(1)
 
+    implicit val delayTime = 100L
+
+    server = new PairingApiServer(5000L)
+    server.run()
+
     Assert.assertTrue(getActivity.getSupportFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
-    getActivity runOnUiThread {
+    delay {
       activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
     }
 
@@ -69,4 +74,9 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
     server.stop()
     super.tearDown()
   }
+
+  def delay(r: Runnable)(implicit delayTime: Long): Unit = {
+    new Handler(Looper.getMainLooper).postDelayed(r, delayTime)
+  }
+
 }

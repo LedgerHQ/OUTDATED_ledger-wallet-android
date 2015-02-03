@@ -73,7 +73,15 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
     }
     _promise = Some(Promise())
     _currentState = State.Starting
-    initiateConnection()
+    _onRequireUserInput(new RequirePairingId) onComplete {
+      case Success(pairingId) => {
+        if (pairingId == null)
+          _promise. foreach {_.failure(new IllegalUserInputException("Pairing id cannot be null"))}
+        _pairingId = Some(pairingId)
+        initiateConnection()
+      }
+      case Failure(exception) => _promise foreach {_.failure(exception)}
+    }
     _promise.get.future
   }
 
@@ -131,18 +139,10 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
   }
 
   private[this] def handleStartingStep(socket: WebSocket): Unit = {
-    _onRequireUserInput(new RequirePairingId) onComplete {
-      case Success(pairingId) => {
-         if (pairingId == null)
-           _promise. foreach {_.failure(new IllegalUserInputException("Pairing id cannot be null"))}
-          _pairingId = Some(pairingId)
-          _currentState = State.Connecting
-        prepareJoinPackage()
-        sendPendingPackage(socket)
-        handleCurrentStep(socket)
-      }
-      case Failure(exception) => _promise foreach {_.failure(exception)}
-    }
+    _currentState = State.Connecting
+    prepareJoinPackage()
+    sendPendingPackage(socket)
+    handleCurrentStep(socket)
   }
 
   private[this] def handleConnectingStep(socket: WebSocket): Unit = {

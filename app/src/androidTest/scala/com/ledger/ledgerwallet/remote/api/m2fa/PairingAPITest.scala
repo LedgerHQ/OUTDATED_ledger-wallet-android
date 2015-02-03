@@ -95,10 +95,19 @@ class PairingAPITest extends InstrumentationTestCase {
 
 }
 
-sealed class PairingApiServer(responseDelay: Long = 0) {
+class PairingApiServer(responseDelay: Long = 0) {
 
   val server = new AsyncHttpServer
   var websocket: WebSocket = _
+  var send: (String) => Unit = (s: String) => {
+    Future {
+      blocking(Thread.sleep(responseDelay, 0))
+      Logger.d("Server sends " + s)
+      if (websocket != null)
+        websocket.send(s)
+    }
+  }
+
   def run(): Unit = {
 
     server.setErrorCallback(new CompletedCallback {
@@ -110,16 +119,15 @@ sealed class PairingApiServer(responseDelay: Long = 0) {
     server.listen(5000)
     server.websocket("/2fa/channels", new WebSocketRequestCallback {
       override def onConnected(webSocket: WebSocket, request: AsyncHttpServerRequest): Unit = {
-        val send = (s: String) => {
-          Future {
-            blocking(Thread.sleep(responseDelay, 0))
-            Logger.d("Server sends " + s)
-            websocket.send(s)
-          }
-        }
         Logger.d("Connecting \\o/")
         var room: String = null
         websocket = webSocket
+        websocket.setClosedCallback(new CompletedCallback {
+          override def onCompleted(ex: Exception): Unit = {
+            websocket = null
+            onDisconnect()
+          }
+        })
         webSocket.setStringCallback(new WebSocket.StringCallback {
           override def onStringAvailable(s: String): Unit = {
             Logger.d("Data received \\o/ " + s)
@@ -135,13 +143,13 @@ sealed class PairingApiServer(responseDelay: Long = 0) {
                   val a = new JSONObject()
                   a.put("type", "challenge")
                   a.put("data", "qdwdqwidwjdioqdjiqwjdqjioq")
-                  send(a.toString)
+                  onSendChallenge(a.toString, send)
                 }
                 case "challenge" => {
                   val a = new JSONObject()
                   a.put("type", "pairing")
                   a.put("is_succesfull", true)
-                  send(a.toString)
+                  onSendPairing(a.toString, send)
                 }
               }
             } catch {
@@ -154,6 +162,26 @@ sealed class PairingApiServer(responseDelay: Long = 0) {
 
   }
 
+  def disconnectClient(): Unit = {
+    if (websocket != null)
+      websocket.close()
+  }
+
+  def sendDisconnect(): Unit = {
+    if (websocket != null) {
+      val a = new JSONObject()
+      a.put("type", "disconnect")
+      onSendDisconnect(a.toString, send)
+    }
+  }
+
   def stop(): Unit = server.stop()
+
+  def onConnected(): Unit = {}
+  def onJoinRoom(roomName: String): Unit = {}
+  def onSendChallenge(s: String, send: (String) => Unit): Unit = send(s)
+  def onSendPairing(s: String, send: (String) => Unit): Unit = send(s)
+  def onSendDisconnect(s: String, send: (String) => Unit): Unit = send(s)
+  def onDisconnect(): Unit = {}
 
 }
