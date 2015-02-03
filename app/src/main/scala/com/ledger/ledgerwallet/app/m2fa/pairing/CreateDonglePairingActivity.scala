@@ -80,7 +80,8 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
       case Success(pairedDongle) => postResult(CreateDonglePairingActivity.ResultOk)
       case Failure(ex) => {
         ex match {
-          case
+          case disconnect: PairingAPI.ClientCancelledException => postResult(CreateDonglePairingActivity.ResultPairingCancelled)
+          case wrongChallenge: PairingAPI.WrongChallengeAnswerException => postResult(CreateDonglePairingActivity.ResultWrongChallenge)
           case _ => postResult(CreateDonglePairingActivity.ResultNetworkError)
         }
       }

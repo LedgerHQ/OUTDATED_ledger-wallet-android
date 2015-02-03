@@ -98,7 +98,8 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
     server.run()
 
     activity.postResult = (resultCode) => {
-      
+      Assert.assertEquals("Pairing should be done", resultCode, CreateDonglePairingActivity.ResultOk)
+      signal.countDown()
     }
 
     Assert.assertTrue("Current fragment should be scan", getActivity.getSupportFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
