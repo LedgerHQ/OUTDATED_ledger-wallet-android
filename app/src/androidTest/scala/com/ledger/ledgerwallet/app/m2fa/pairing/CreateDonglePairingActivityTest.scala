@@ -110,6 +110,74 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
     signal.await()
   }
 
+  def testShouldEndWithCancel(): Unit = {
+    val signal = new CountDownLatch(1)
+
+    implicit val delayTime = 500L
+
+    server = new PairingApiServer(500L) {
+      override def onSendChallenge(s: String, send: (String) => Unit): Unit = {
+        waitForFragment("PairingInProgressFragment_2") {
+          super.onSendChallenge(s, send)
+          waitForFragment("PairingChallengeFragment") {
+            CreateDonglePairingActivityTest.this.server.sendDisconnect()
+            Future {
+              getInstrumentation.waitForIdleSync()
+              getInstrumentation.sendStringSync("aaaa")
+            }
+          }
+        }
+      }
+    }
+    server.run()
+
+    activity.postResult = (resultCode) => {
+      Assert.assertEquals("Pairing should failed due client cancel", resultCode, CreateDonglePairingActivity.ResultPairingCancelled)
+      signal.countDown()
+    }
+
+    Assert.assertTrue("Current fragment should be scan", getActivity.getSupportFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
+    delay {
+      activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
+    }
+
+    signal.await()
+  }
+
+  def testShouldEndWithNetworkIssue(): Unit = {
+    val signal = new CountDownLatch(1)
+
+    implicit val delayTime = 500L
+
+    server = new PairingApiServer(500L) {
+      override def onSendChallenge(s: String, send: (String) => Unit): Unit = {
+        waitForFragment("PairingInProgressFragment_2") {
+          super.onSendChallenge(s, send)
+          waitForFragment("PairingChallengeFragment") {
+            CreateDonglePairingActivityTest.this.server.disconnectClient()
+            Future {
+              getInstrumentation.waitForIdleSync()
+              getInstrumentation.sendStringSync("aaaa")
+            }
+          }
+        }
+      }
+    }
+    server.run()
+
+    activity.postResult = (resultCode) => {
+      Assert.assertEquals("Pairing should failed due to network error", resultCode, CreateDonglePairingActivity.ResultNetworkError)
+      signal.countDown()
+    }
+
+    Assert.assertTrue("Current fragment should be scan", getActivity.getSupportFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
+    delay {
+      activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
+    }
+
+    signal.await()
+  }
+
   override def tearDown(): Unit = {
     server.stop()
     super.tearDown()
