@@ -11,11 +11,15 @@ android {
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "com.android.test.runner.MultiDexTestRunner"
+        //testInstrumentationRunner "com.android.test.runner.MultiDexTestRunner"
     }
 
     buildTypes {
         release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -42,6 +46,11 @@ dependencies {
     compile "com.android.support:recyclerview-v7:21.0.+"
     compile 'com.koushikdutta.async:androidasync:2.0.5'
     compile 'com.android.support:multidex:1.0.0'
+    compile 'com.madgag.spongycastle:core:1.51.0.0'
+    //compile 'com.madgag.spongycastle:prov:1.51.0.0'
+    //compile 'com.madgag.spongycastle:pkix:1.51.0.0'
+    //compile 'com.madgag.spongycastle:pg:1.51.0.0'
+    //
 
     androidTestCompile 'com.android.support:multidex-instrumentation:1.0.1'
 }
@@ -49,6 +58,7 @@ dependencies {
 tasks.withType(ScalaCompile) {
     scalaCompileOptions.deprecation = false
 }
+
 
 afterEvaluate {
     tasks.matching {

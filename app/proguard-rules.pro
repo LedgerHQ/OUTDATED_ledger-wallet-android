@@ -15,3 +15,13 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+-dontoptimize
+-dontobfuscate
+-dontpreverify
+-keepattributes Signature
+-dontwarn scala.**
+-ignorewarnings
+# temporary workaround; see Scala issue SI-5397
+-keep class scala.collection.SeqLike {
+    public protected *;
+}
