@@ -32,6 +32,7 @@ package com.ledger.ledgerwallet.crypto
 
 import android.test.InstrumentationTestCase
 import com.ledger.ledgerwallet.utils.logs.Logger
+import junit.framework.Assert
 
 class SpongyCastleTest extends InstrumentationTestCase {
 
@@ -41,6 +42,8 @@ class SpongyCastleTest extends InstrumentationTestCase {
     Logger.d("Private: " + keypair.privateKeyHexString)
     Logger.d("Public size: " + (keypair.publicKeyHexString.length / 2))
     Logger.d("Private size: " + (keypair.privateKeyHexString.length / 2))
+    Assert.assertEquals(65, keypair.publicKey.length)
+    Assert.assertEquals(32, keypair.privateKey.length)
   }
 
 }
