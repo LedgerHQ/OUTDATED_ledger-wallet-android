@@ -30,7 +30,8 @@
  */
 package com.ledger.ledgerwallet.crypto
 
-import java.security.SecureRandom
+import java.math.BigInteger
+import java.security.{Security, SecureRandom}
 
 import org.spongycastle.asn1.sec.SECNamedCurves
 import org.spongycastle.crypto.AsymmetricCipherKeyPair
@@ -39,13 +40,10 @@ import org.spongycastle.crypto.params.{ECPrivateKeyParameters, ECPublicKeyParame
 import org.spongycastle.math.ec.ECPoint
 import org.spongycastle.util.encoders.Hex
 
-class ECKeyPair(keyPair: AsymmetricCipherKeyPair) {
+abstract class ECKeyPair {
 
-  def publicKeyParameters = keyPair.getPublic.asInstanceOf[ECPublicKeyParameters]
-  def privateKeyParameters = keyPair.getPrivate.asInstanceOf[ECPrivateKeyParameters]
-
-  def publicKeyPoint = publicKeyParameters.getQ
-  def privateKeyInteger = privateKeyParameters.getD
+  def publicKeyPoint: ECPoint
+  def privateKeyInteger: BigInteger
 
   def privateKey = privateKeyInteger.toByteArray
   def publicKey = publicKeyPoint.getEncoded
@@ -55,10 +53,17 @@ class ECKeyPair(keyPair: AsymmetricCipherKeyPair) {
   def publicKeyHexString = Hex.toHexString(publicKey)
   def compressedPublicKeyHexString = Hex.toHexString(compressedPublicKey)
 
+  def generateAgreementSecret(publicKeyHex: String): Array[Byte] = generateAgreementSecret(Hex.decode(publicKeyHex))
+
+  def generateAgreementSecret(publicKey: Array[Byte]): Array[Byte] = {
+    val publicKeyPoint = ECKeyPair.bytesToEcPoint(publicKey)
+    val P = publicKeyPoint.multiply(ECKeyPair.Domain.getH.multiply(privateKeyInteger))
+    P.getXCoord.getEncoded
+  }
 }
 
 object ECKeyPair {
-
+  Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider)
   val Curve = SECNamedCurves.getByName("secp256k1")
   val Domain = new ECDomainParameters(Curve.getCurve, Curve.getG, Curve.getN, Curve.getH)
   val SecureRandom = new SecureRandom
@@ -66,6 +71,25 @@ object ECKeyPair {
   private[this] val keygenParams = new ECKeyGenerationParameters(ECKeyPair.Domain, ECKeyPair.SecureRandom)
   generator.init(keygenParams)
 
-  def generate(): ECKeyPair = new ECKeyPair(generator.generateKeyPair())
+  def generate(): ECKeyPair = new ECKeyPairFromAsymmetricCipherKeyPair(generator.generateKeyPair())
+  def create(privateKey: Array[Byte]): ECKeyPair = new ECKeyPairFromPrivateKey(privateKey)
+  def bytesToEcPoint(bytes: Array[Byte]): ECPoint = Curve.getCurve.decodePoint(bytes)
+
+  private sealed class ECKeyPairFromAsymmetricCipherKeyPair(keyPair: AsymmetricCipherKeyPair) extends ECKeyPair {
+    def publicKeyParameters = keyPair.getPublic.asInstanceOf[ECPublicKeyParameters]
+    def privateKeyParameters = keyPair.getPrivate.asInstanceOf[ECPrivateKeyParameters]
+
+    def publicKeyPoint = publicKeyParameters.getQ
+    def privateKeyInteger = privateKeyParameters.getD
+  }
+
+  private sealed class ECKeyPairFromPrivateKey(bytes: Array[Byte]) extends ECKeyPair {
+
+    private[this] val _privateKey = new BigInteger(1, bytes).mod(Curve.getN)
+    private[this] val _publicKey = Curve.getG.multiply(_privateKey)
+
+    def publicKeyPoint = _publicKey
+    def privateKeyInteger = _privateKey
+  }
 
 }

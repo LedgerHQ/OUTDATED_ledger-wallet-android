@@ -33,10 +33,11 @@ package com.ledger.ledgerwallet.crypto
 import android.test.InstrumentationTestCase
 import com.ledger.ledgerwallet.utils.logs.Logger
 import junit.framework.Assert
+import org.spongycastle.util.encoders.Hex
 
-class SpongyCastleTest extends InstrumentationTestCase {
+class KeyPairTest extends InstrumentationTestCase {
 
-  def testShouldCompleteEcdhWithSessionKey: Unit = {
+  def testShouldGenerateKeypair(): Unit = {
     val keypair = ECKeyPair.generate()
     Logger.d("Public: " + keypair.publicKeyHexString)
     Logger.d("Private: " + keypair.privateKeyHexString)
@@ -44,6 +45,17 @@ class SpongyCastleTest extends InstrumentationTestCase {
     Logger.d("Private size: " + (keypair.privateKeyHexString.length / 2))
     Assert.assertEquals(65, keypair.publicKey.length)
     Assert.assertEquals(32, keypair.privateKey.length)
+  }
+
+  def testShouldPerformECDH(): Unit = {
+    val key = ECKeyPair.generate()
+    val publicKey = "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
+    Logger.d("Public key: " + publicKey)
+    Logger.d("Public key size: " + (publicKey.length / 2))
+    val secret = key.generateAgreementSecret(publicKey)
+    Logger.d("Secret: " + Hex.toHexString(secret))
+    Logger.d("Secret size: " + secret.length)
+    Assert.assertEquals(32, secret.length)
   }
 
 }

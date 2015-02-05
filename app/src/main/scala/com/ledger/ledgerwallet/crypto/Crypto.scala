@@ -30,6 +30,10 @@
  */
 package com.ledger.ledgerwallet.crypto
 
+import java.security.Security
+
 object Crypto {
+
+  Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider)
 
 }
