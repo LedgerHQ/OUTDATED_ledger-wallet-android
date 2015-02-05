@@ -58,7 +58,7 @@ abstract class ECKeyPair {
   def generateAgreementSecret(publicKey: Array[Byte]): Array[Byte] = {
     val publicKeyPoint = ECKeyPair.bytesToEcPoint(publicKey)
     val P = publicKeyPoint.multiply(ECKeyPair.Domain.getH.multiply(privateKeyInteger))
-    P.getXCoord.getEncoded
+    P.getX.getEncoded
   }
 }
 

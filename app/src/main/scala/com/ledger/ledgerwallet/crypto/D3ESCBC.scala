@@ -1,9 +1,9 @@
 /**
  *
- * Crypto
+ * D3ESCBC
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 04/02/15.
+ * Created by Pierre Pollastri on 05/02/15.
  *
  * The MIT License (MIT)
  *
@@ -30,17 +30,26 @@
  */
 package com.ledger.ledgerwallet.crypto
 
-import java.security.Security
+import javax.crypto.Cipher
+import javax.crypto.spec.{SecretKeySpec, IvParameterSpec}
+import Crypto._
 
-object Crypto {
-  Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider)
+class D3ESCBC(secret: Array[Byte], IV: Option[Array[Byte]] = None) {
+  if (IV.isDefined && IV.get.length != 8) {
+    throw new IllegalArgumentException("Initialization Vector must be a 8 bytes array")
+  }
+  private[this] val iv = new IvParameterSpec(IV.getOrElse(Array[Byte](0, 0, 0, 0, 0, 0, 0, 0)))
+  private[this] val cipher = Cipher.getInstance("DESede/CBC/PKCS5Padding")
+  private[this] val secretKey = new SecretKeySpec(secret, "DESede")
 
-  def splitAndXor(bytes: Array[Byte]) = {
-    val resultLength = bytes.length / 2
-    val result = new Array[Byte](resultLength)
-    for (i <- 0 to resultLength)
-      result(i) = (bytes(i) ^ bytes(i + resultLength)).asInstanceOf[Byte]
-    result
+  def encrypt(byte: Array[Byte]): Array[Byte] = {
+    cipher.init(Cipher.ENCRYPT_MODE, secretKey, iv)
+    cipher.doFinal(byte)
+  }
+
+  def decrypt(byte: Array[Byte]): Array[Byte] = {
+    cipher.init(Cipher.DECRYPT_MODE, secretKey, iv)
+    cipher.doFinal(byte)
   }
 
 }

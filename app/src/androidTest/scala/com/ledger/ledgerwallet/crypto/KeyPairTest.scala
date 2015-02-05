@@ -48,14 +48,48 @@ class KeyPairTest extends InstrumentationTestCase {
   }
 
   def testShouldPerformECDH(): Unit = {
-    val key = ECKeyPair.generate()
-    val publicKey = "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
-    Logger.d("Public key: " + publicKey)
-    Logger.d("Public key size: " + (publicKey.length / 2))
-    val secret = key.generateAgreementSecret(publicKey)
+    val key = ECKeyPair.create(Hex.decode("dbd39adafe3a007706e61a17e0c56849146cfe95849afef7ede15a43a1984491"))
+    val otherKey = ECKeyPair.generate()
+    Logger.d("My Public key: " + key.publicKeyHexString)
+    Logger.d("My Public key size: " + (key.publicKeyHexString.length / 2))
+    Logger.d("Other Public key: " + otherKey.publicKeyHexString)
+    Logger.d("Other Public key size: " + (otherKey.publicKeyHexString.length / 2))
+    val secret = key.generateAgreementSecret(otherKey.publicKeyHexString)
     Logger.d("Secret: " + Hex.toHexString(secret))
     Logger.d("Secret size: " + secret.length)
-    Assert.assertEquals(32, secret.length)
+    val otherSecret = otherKey.generateAgreementSecret(key.publicKeyHexString)
+    Logger.d("Other Secret: " + Hex.toHexString(secret))
+    Logger.d("Other Secret size: " + secret.length)
+    Assert.assertEquals(Hex.toHexString(secret), Hex.toHexString(otherSecret))
+  }
+
+  def testShouldPerformECDHWithDeterministKey(): Unit = {
+    val key = ECKeyPair.create(Hex.decode("dbd39adafe3a007706e61a17e0c56849146cfe95849afef7ede15a43a1984491"))
+    val otherKey = "04ae218d8080c7b9cd141b06f6b9f63ef3adf7aecdf49bb3916ac7f5d887fc4027bea6fd187b9fa810b6d251e1430f6555edd2d5b19828d51908917c03e3f7c436"
+    Logger.d("My Public key: " + key.publicKeyHexString)
+    Logger.d("My Public key size: " + (key.publicKeyHexString.length / 2))
+    Logger.d("Other Public key: " + otherKey)
+    Logger.d("Other Public key size: " + (otherKey.length / 2))
+    val secret = key.generateAgreementSecret(otherKey)
+    Logger.d("Secret: " + Hex.toHexString(secret))
+    Logger.d("Secret size: " + secret.length)
+    Assert.assertEquals(Hex.toHexString(secret), "ee0eb1f6dc57e36f95a3bc750d3b798c61c79870eefd7989dc27ec5f3f77d2ec")
+  }
+
+  def testShouldPerformECDHWithPrivateKeys(): Unit = {
+    val key = ECKeyPair.create(Hex.decode("E34B1842CD2C8134EB172EAB319F73A41D0CAF4E4FEA33CB0B6DCE05D208ADD1"))
+    val otherKey = ECKeyPair.create(Hex.decode("C6A8046E163EFD1F74144A48BD2016BDE91E53D4B60E9A55691F6D75CC11A10A"))
+    Logger.d("My Public key: " + key.publicKeyHexString)
+    Logger.d("My Public key size: " + (key.publicKeyHexString.length / 2))
+    Logger.d("Other Public key: " + otherKey.publicKeyHexString)
+    Logger.d("Other Public key size: " + (otherKey.publicKeyHexString.length / 2))
+    val secret = key.generateAgreementSecret(otherKey.publicKeyHexString)
+    Logger.d("Secret: " + Hex.toHexString(secret))
+    Logger.d("Secret size: " + secret.length)
+    val otherSecret = otherKey.generateAgreementSecret(key.publicKeyHexString)
+    Logger.d("Other Secret: " + Hex.toHexString(secret))
+    Logger.d("Other Secret size: " + secret.length)
+    Assert.assertEquals(Hex.toHexString(secret), Hex.toHexString(otherSecret))
   }
 
 }

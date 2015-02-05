@@ -31,6 +31,7 @@
 package com.ledger.ledgerwallet.remote.api.m2fa
 
 import android.content.Context
+import com.ledger.ledgerwallet.crypto.{D3ESCBC, ECKeyPair}
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.{StringData, Close, WebSocket, HttpClient}
 import com.ledger.ledgerwallet.utils.logs.Logger
@@ -62,6 +63,8 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
   def onRequireUserInput(f: (RequiredUserInput) => Future[String]): Unit =  {
     _onRequireUserInput = f
   }
+
+  // Protocol management
 
   def startPairingProcess(): Future[PairedDongle] = {
     if (_onRequireUserInput == null) {
@@ -210,6 +213,12 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
     _pendingPackage = Option(pkg)
   }
 
+  // Crypto
+  private[this] val _keyPair = ECKeyPair.generate()
+  def keypair(): ECKeyPair = _keyPair
+
+  // Internal Helper
+
   private[this] def failure(cause: Throwable): Unit = {
     _websocket foreach {_.close()}
     _promise foreach {_.failure(cause)}
@@ -226,6 +235,14 @@ object PairingAPI {
 
   class WrongChallengeAnswerException extends Exception
   class ClientCancelledException extends Exception
+
+
+  class ChallengePackage(val keycardChallege: String, val pairingKey: Array[Byte], val sessionNonce: Array[Byte])
+
+  def computeChallengePackage(d3es: D3ESCBC, blob: Array[Byte]): ChallengePackage = {
+   // val sessionNonce = blob.
+    null
+  }
 
 }
 
