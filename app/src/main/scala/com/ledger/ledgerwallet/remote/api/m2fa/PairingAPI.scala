@@ -39,7 +39,7 @@ import org.json.{JSONException, JSONObject}
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.ledger.ledgerwallet.utils.JsonUtils._
 
-import scala.concurrent.{ExecutionContext, Promise, Future}
+import scala.concurrent.{Promise, Future}
 import scala.util.{Failure, Success}
 
 class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultInstance) {
@@ -214,8 +214,11 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
   }
 
   // Crypto
+
   private[this] val _keyPair = ECKeyPair.generate()
-  def keypair(): ECKeyPair = _keyPair
+  def keypair: ECKeyPair = _keyPair
+
+  private[this] val _sessionKey = keypair.generateAgreementSecret()
 
   // Internal Helper
 
@@ -240,8 +243,11 @@ object PairingAPI {
   class ChallengePackage(val keycardChallege: String, val pairingKey: Array[Byte], val sessionNonce: Array[Byte])
 
   def computeChallengePackage(d3es: D3ESCBC, blob: Array[Byte]): ChallengePackage = {
-   // val sessionNonce = blob.
-    null
+    val sessionNonce = blob.slice(0, 8)
+    val data = d3es.decrypt(blob.slice(8, blob.length))
+    val keycardChallenge = new String(data.slice(0, 4))
+    val pairingKey = data.slice(4, 16)
+    new ChallengePackage(keycardChallenge, pairingKey, sessionNonce)
   }
 
 }
