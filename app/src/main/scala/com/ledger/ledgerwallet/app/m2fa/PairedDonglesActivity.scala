@@ -90,7 +90,7 @@ class PairedDonglesActivity extends BaseActivity {
 
     override def onBindViewHolder(ui: ViewHolder, position: Int): Unit = {
       val dongle = pairedDongles(position)
-      ui.dongleName.setText(dongle.name)
+      ui.dongleName.setText(dongle.name.get)
       ui.pairingDate.setText("Paired on 12/05/2014")
     }
   }

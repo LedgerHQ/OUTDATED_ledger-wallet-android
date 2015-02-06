@@ -208,7 +208,8 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
   }
 
   private[this] def finalizePairing(dongleName: String): Unit = {
-    _promise foreach {_.success(new PairedDongle())}
+    implicit val context = this.context
+    _promise foreach {_.success(PairedDongle.create(_pairingId.get, dongleName, pairingKey))}
   }
 
   private[this] def answerToPackage(socket: WebSocket, pkg: JSONObject): Unit = {

@@ -30,8 +30,76 @@
  */
 package com.ledger.ledgerwallet.models
 
+import java.security.KeyStore
+import java.security.KeyStore.SecretKeyEntry
 import java.util.Date
+import javax.crypto.spec.SecretKeySpec
+import com.ledger.ledgerwallet.crypto.SecretKey
+import org.json.JSONObject
 
-class PairedDongle(var name: String = null, var date: Date = null) {
+import scala.collection.JavaConversions._
+
+import android.content.Context
+import com.ledger.ledgerwallet.base.model.{Collection, BaseModel}
+
+import scala.util.Try
+
+class PairedDongle(_id: String = null, _name: String = null, _date: Date = null) extends BaseModel {
+
+  val id = string("id").set(_id)
+  val name = string("name").set(_name)
+  val createdAt = date("created_at").set(_date)
+
+  def pairingKey(implicit context: Context): Option[SecretKey] = PairedDongle.retrievePairingKey(id.get)
+
+  def this() = {
+    this(null, null, null)
+  }
+
+}
+
+object PairedDongle extends Collection[PairedDongle] {
+
+  def get(id: String)(implicit context: Context): Option[PairedDongle] = {
+    val serializedDongle = context.getSharedPreferences(PreferencesName, Context.MODE_PRIVATE).getString(id, null)
+    if (serializedDongle == null)
+      return None
+    val dongle = Try(inflate(new JSONObject(serializedDongle)))
+    dongle getOrElse None
+  }
+
+  def all(implicit context: Context): Array[PairedDongle] = {
+    val serializedDongles = context.getSharedPreferences(PreferencesName, Context.MODE_PRIVATE).getAll
+    var dongles = Array[PairedDongle]()
+    serializedDongles foreach {case (key, value) =>
+      value match {
+        case json: String =>
+          val dongle = Try(inflate(new JSONObject(json)))
+          if (dongle.isSuccess && dongle.get.isDefined)
+            dongles = dongles :+ dongle.get.get
+        case _ =>
+      }
+    }
+    dongles
+  }
+
+  def create(id: String, name: String, pairingKey: Array[Byte])(implicit context: Context): PairedDongle = {
+    val dongle = new PairedDongle(id, name, new Date())
+    context
+      .getSharedPreferences(PreferencesName, Context.MODE_PRIVATE)
+      .edit()
+      .putString(id, dongle.toJson.toString)
+      .commit()
+    storePairingKey(context, id, pairingKey)
+    dongle
+  }
+
+  def retrievePairingKey(id: String)(implicit context: Context): Option[SecretKey] = SecretKey.get(context, id)
+
+  def storePairingKey(context: Context, id: String, pairingKey: Array[Byte]): Unit = {
+    SecretKey.create(context, id, pairingKey)
+  }
+
+  val PreferencesName = "PairedDonglePreferences"
 
 }

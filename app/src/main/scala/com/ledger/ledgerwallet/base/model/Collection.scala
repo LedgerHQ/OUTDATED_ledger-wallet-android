@@ -30,6 +30,8 @@
  */
 package com.ledger.ledgerwallet.base.model
 
+import java.util.Date
+
 import org.json.{JSONArray, JSONObject}
 
 import scala.reflect.ClassTag
@@ -45,6 +47,8 @@ class Collection[T <: BaseModel](implicit T: ClassTag[T]) {
            case int: obj.IntProperty => int.set(jsonObject.getInt(key))
            case double: obj.DoubleProperty => double.set(jsonObject.getDouble(key))
            case float: obj.BooleanProperty => float.set(jsonObject.getBoolean(key))
+           case date: obj.DateProperty => date.set(new Date(jsonObject.getLong(key)))
+           case long: obj.LongProperty => long.set(jsonObject.getLong(key))
          }
        }
     }
