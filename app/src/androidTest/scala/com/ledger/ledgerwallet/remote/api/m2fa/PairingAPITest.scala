@@ -39,10 +39,12 @@ import com.koushikdutta.async.callback.CompletedCallback
 import com.koushikdutta.async.http._
 import com.koushikdutta.async.http.server.{AsyncHttpServerRequest, AsyncHttpServer}
 import com.koushikdutta.async.http.server.AsyncHttpServer.WebSocketRequestCallback
+import com.ledger.ledgerwallet.crypto.ECKeyPair
 import com.ledger.ledgerwallet.remote.HttpClient
 import com.ledger.ledgerwallet.utils.logs.Logger
 import junit.framework.Assert
 import org.json.{JSONException, JSONObject}
+import org.spongycastle.util.encoders.Hex
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Promise
 
@@ -58,7 +60,11 @@ class PairingAPITest extends InstrumentationTestCase {
     super.setUp()
     server = new PairingApiServer
     server.run()
-    API = new PairingAPI(getInstrumentation.getTargetContext, new HttpClient(Uri.parse("http://localhost:5000")))
+    API = new PairingAPI(getInstrumentation.getTargetContext, new HttpClient(Uri.parse("http://localhost:5000"))) {
+      override def keypair: ECKeyPair = {
+        ECKeyPair.create(Hex.decode("dbd39adafe3a007706e61a17e0c56849146cfe95849afef7ede15a43a1984491"))
+      }
+    }
   }
 
   override def tearDown(): Unit = {
@@ -77,7 +83,10 @@ class PairingAPITest extends InstrumentationTestCase {
 
     API onRequireUserInput {
       case RequirePairingId() => answer("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
-      case RequireChallengeResponse(challenge) => answer("4abf2")
+      case RequireChallengeResponse(challenge) => {
+        //Assert.assertEquals("FyCD", challenge)
+        answer("2C05")
+      }
       case RequireDongleName() => answer("Test Dongle")
     }
 
@@ -90,7 +99,7 @@ class PairingAPITest extends InstrumentationTestCase {
       case Failure(ex) => Assert.fail("Failed to pair device " + ex.getMessage)
     }
 
-    signal.await(555530, TimeUnit.SECONDS)
+    signal.await(10, TimeUnit.SECONDS)
   }
 
 }
@@ -143,13 +152,13 @@ class PairingApiServer(responseDelay: Long = 0) {
                 case "identify" => {
                   val a = new JSONObject()
                   a.put("type", "challenge")
-                  a.put("data", "qdwdqwidwjdioqdjiqwjdqjioq")
+                  a.put("data", "ab5a56a93c1ea8647f8a6982869b2d8a914538525d716b0443248e1cc51c3976")
                   onSendChallenge(a.toString, send)
                 }
                 case "challenge" => {
                   val a = new JSONObject()
                   a.put("type", "pairing")
-                  a.put("is_succesfull", true)
+                  a.put("is_succesfull", r.getString("data").equals("844f0cf804cc7a3b8ac235e0872a2779"))
                   onSendPairing(a.toString, send)
                 }
               }

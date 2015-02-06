@@ -39,7 +39,7 @@ class D3ESCBC(secret: Array[Byte], IV: Option[Array[Byte]] = None) {
     throw new IllegalArgumentException("Initialization Vector must be a 8 bytes array")
   }
   private[this] val iv = new IvParameterSpec(IV.getOrElse(Array[Byte](0, 0, 0, 0, 0, 0, 0, 0)))
-  private[this] val cipher = Cipher.getInstance("DESede/CBC/PKCS5Padding")
+  private[this] val cipher = Cipher.getInstance("DESede/CBC/NoPadding")
   private[this] val secretKey = new SecretKeySpec(secret, "DESede")
 
   def encrypt(byte: Array[Byte]): Array[Byte] = {

@@ -38,7 +38,7 @@ object Crypto {
   def splitAndXor(bytes: Array[Byte]) = {
     val resultLength = bytes.length / 2
     val result = new Array[Byte](resultLength)
-    for (i <- 0 to resultLength)
+    for (i <- 0 until resultLength)
       result(i) = (bytes(i) ^ bytes(i + resultLength)).asInstanceOf[Byte]
     result
   }

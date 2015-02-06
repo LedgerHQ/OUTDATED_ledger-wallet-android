@@ -31,11 +31,13 @@
 package com.ledger.ledgerwallet.remote.api.m2fa
 
 import android.content.Context
-import com.ledger.ledgerwallet.crypto.{D3ESCBC, ECKeyPair}
+import com.ledger.ledgerwallet.app.Config
+import com.ledger.ledgerwallet.crypto.{Crypto, D3ESCBC, ECKeyPair}
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.{StringData, Close, WebSocket, HttpClient}
 import com.ledger.ledgerwallet.utils.logs.Logger
 import org.json.{JSONException, JSONObject}
+import org.spongycastle.util.encoders.Hex
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.ledger.ledgerwallet.utils.JsonUtils._
 
@@ -161,14 +163,29 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
     // Ask the user to answer to the challenge
     //_onRequireUserInput(new Requi)
     Logger.d("Client received a challenge " + pkg.toString)
-
-    _onRequireUserInput(new RequireChallengeResponse("xpgg")) onComplete {
-      case Success(answer) => {
-        prepareChallengePackage(answer = answer)
-        sendPendingPackage(socket)
-      }
-      case Failure(ex) => _promise foreach {_ failure ex}
+    val f = Future {
+      val d3es = new D3ESCBC(sessionKey)
+      val blob = Hex.decode(pkg.getString("data"))
+      PairingAPI.computeChallengePackage(d3es, blob)
     }
+
+    f onComplete {
+      case Success(challenge) => {
+        _pairingKey = challenge.pairingKey
+        _sessionNonce = challenge.sessionNonce
+        _onRequireUserInput(new RequireChallengeResponse(challenge.keycardChallege)) onComplete {
+          case Success(input) => {
+            val answer: Array[Byte] = sessionNonce ++ Hex.decode(input.toCharArray.map("0" + _).mkString("")) ++ Array[Byte](0, 0, 0, 0)
+            val cryptedAnswer = new D3ESCBC(sessionKey).encrypt(answer)
+            prepareChallengePackage(answer = Hex.toHexString(cryptedAnswer))
+            sendPendingPackage(socket)
+          }
+          case Failure(ex) => failure(ex)
+        }
+      }
+      case Failure(ex) => failure(ex)
+    }
+
   }
 
   private[this] def handleNamingStep(socket: WebSocket, pkg: JSONObject): Unit = {
@@ -215,10 +232,16 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
 
   // Crypto
 
-  private[this] val _keyPair = ECKeyPair.generate()
+  private[this] lazy val _keyPair = ECKeyPair.generate()
   def keypair: ECKeyPair = _keyPair
 
-  private[this] val _sessionKey = keypair.generateAgreementSecret()
+  private[this] lazy val _sessionKey = Crypto.splitAndXor(keypair.generateAgreementSecret(Config.LedgerAttestationPublicKey))
+  def sessionKey = _sessionKey
+
+  private[this] var _pairingKey: Array[Byte] = _
+  def pairingKey = _pairingKey
+  private[this] var _sessionNonce: Array[Byte] = _
+  def sessionNonce = _sessionNonce
 
   // Internal Helper
 
@@ -245,8 +268,10 @@ object PairingAPI {
   def computeChallengePackage(d3es: D3ESCBC, blob: Array[Byte]): ChallengePackage = {
     val sessionNonce = blob.slice(0, 8)
     val data = d3es.decrypt(blob.slice(8, blob.length))
-    val keycardChallenge = new String(data.slice(0, 4))
-    val pairingKey = data.slice(4, 16)
+    val keycardChallenge = new String(data.slice(0, 4).map((b) => {
+      (b + '0'.toByte).asInstanceOf[Byte]
+    }))
+    val pairingKey = data.slice(4, data.length)
     new ChallengePackage(keycardChallenge, pairingKey, sessionNonce)
   }
 
