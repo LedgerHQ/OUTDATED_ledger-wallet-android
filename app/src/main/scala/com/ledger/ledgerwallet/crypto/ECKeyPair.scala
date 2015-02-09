@@ -31,7 +31,7 @@
 package com.ledger.ledgerwallet.crypto
 
 import java.math.BigInteger
-import java.security.{Security, SecureRandom}
+import java.security.SecureRandom
 
 import org.spongycastle.asn1.sec.SECNamedCurves
 import org.spongycastle.crypto.AsymmetricCipherKeyPair
@@ -63,7 +63,7 @@ abstract class ECKeyPair {
 }
 
 object ECKeyPair {
-  Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider)
+ Crypto.ensureSpongyIsInserted()
   val Curve = SECNamedCurves.getByName("secp256k1")
   val Domain = new ECDomainParameters(Curve.getCurve, Curve.getG, Curve.getN, Curve.getH)
   val SecureRandom = new SecureRandom

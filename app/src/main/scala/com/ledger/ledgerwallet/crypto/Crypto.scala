@@ -33,7 +33,20 @@ package com.ledger.ledgerwallet.crypto
 import java.security.Security
 
 object Crypto {
-  Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider)
+
+  def ensureSpongyIsInserted(): Unit = {
+    val ProviderName = org.spongycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME
+    if (Security.getProvider(ProviderName) == null) {
+      Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider, 1)
+    }
+  }
+
+  def ensureSpongyIsRemoved(): Unit = {
+    val ProviderName = org.spongycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME
+    if (Security.getProvider(ProviderName) != null) {
+      Security.removeProvider(ProviderName)
+    }
+  }
 
   def splitAndXor(bytes: Array[Byte]) = {
     val resultLength = bytes.length / 2

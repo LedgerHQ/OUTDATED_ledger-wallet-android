@@ -32,6 +32,7 @@ package com.ledger.ledgerwallet.remote.api.m2fa
 
 import java.util.concurrent.{TimeUnit, CountDownLatch}
 
+import android.content.Context
 import android.net.Uri
 import android.os.Handler
 import android.test.InstrumentationTestCase
@@ -60,11 +61,7 @@ class PairingAPITest extends InstrumentationTestCase {
     super.setUp()
     server = new PairingApiServer
     server.run()
-    API = new PairingAPI(getInstrumentation.getTargetContext, new HttpClient(Uri.parse("http://localhost:5000"))) {
-      override def keypair: ECKeyPair = {
-        ECKeyPair.create(Hex.decode("dbd39adafe3a007706e61a17e0c56849146cfe95849afef7ede15a43a1984491"))
-      }
-    }
+    API = new MockPairingApi(getInstrumentation.getTargetContext)
   }
 
   override def tearDown(): Unit = {
@@ -84,7 +81,7 @@ class PairingAPITest extends InstrumentationTestCase {
     API onRequireUserInput {
       case RequirePairingId() => answer("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
       case RequireChallengeResponse(challenge) => {
-        //Assert.assertEquals("FyCD", challenge)
+        Assert.assertEquals("FyCD", challenge)
         answer("2C05")
       }
       case RequireDongleName() => answer("Test Dongle")
@@ -99,7 +96,7 @@ class PairingAPITest extends InstrumentationTestCase {
       case Failure(ex) => Assert.fail("Failed to pair device " + ex.getMessage)
     }
 
-    signal.await(10, TimeUnit.SECONDS)
+    signal.await(10000, TimeUnit.SECONDS)
   }
 
 }
@@ -197,4 +194,10 @@ class PairingApiServer(responseDelay: Long = 0) {
   def onSendDisconnect(s: String, send: (String) => Unit): Unit = send(s)
   def onDisconnect(): Unit = Logger.d("Server: On disconnected")
 
+}
+
+class MockPairingApi(c: Context) extends PairingAPI(c, new HttpClient(Uri.parse("http://localhost:5000"))) {
+  override def keypair: ECKeyPair = {
+    ECKeyPair.create(Hex.decode("dbd39adafe3a007706e61a17e0c56849146cfe95849afef7ede15a43a1984491"))
+  }
 }

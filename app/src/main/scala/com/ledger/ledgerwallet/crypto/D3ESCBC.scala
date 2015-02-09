@@ -32,9 +32,10 @@ package com.ledger.ledgerwallet.crypto
 
 import javax.crypto.Cipher
 import javax.crypto.spec.{SecretKeySpec, IvParameterSpec}
-import Crypto._
 
 class D3ESCBC(secret: Array[Byte], IV: Option[Array[Byte]] = None) {
+  Crypto.ensureSpongyIsInserted()
+
   if (IV.isDefined && IV.get.length != 8) {
     throw new IllegalArgumentException("Initialization Vector must be a 8 bytes array")
   }

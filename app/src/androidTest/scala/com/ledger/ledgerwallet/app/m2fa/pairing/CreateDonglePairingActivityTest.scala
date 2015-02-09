@@ -30,7 +30,7 @@
  */
 package com.ledger.ledgerwallet.app.m2fa.pairing
 
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent.{TimeUnit, CountDownLatch}
 
 import android.app.Instrumentation
 import android.content.Context
@@ -39,8 +39,10 @@ import android.test.ActivityInstrumentationTestCase2
 import android.view.KeyEvent
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.app.{Config, TestConfig}
-import com.ledger.ledgerwallet.remote.api.m2fa.PairingApiServer
+import com.ledger.ledgerwallet.crypto.ECKeyPair
+import com.ledger.ledgerwallet.remote.api.m2fa.{MockPairingApi, PairingApiServer}
 import junit.framework.Assert
+import org.spongycastle.util.encoders.Hex
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -64,15 +66,17 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
     val signal = new CountDownLatch(1)
 
     implicit val delayTime = 500L
-
+    activity.pairingApi.keypair = ECKeyPair.create(Hex.decode("dbd39adafe3a007706e61a17e0c56849146cfe95849afef7ede15a43a1984491"))
     server = new PairingApiServer(500L) {
       override def onSendChallenge(s: String, send: (String) => Unit): Unit = {
         waitForFragment("PairingInProgressFragment_2") {
           super.onSendChallenge(s, send)
           waitForFragment("PairingChallengeFragment") {
+            //activity.getSupportFragmentManager.findFragmentByTag("PairingChallengeFragment").asInstanceOf[PairingChallengeFragment].pinTextView.setText("2C05")
             Future {
               getInstrumentation.waitForIdleSync()
-              getInstrumentation.sendStringSync("aaaa")
+              getInstrumentation.sendStringSync("2C05")
+              getInstrumentation.waitForIdleSync()
             }
           }
         }
@@ -107,7 +111,7 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
       activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
     }
 
-    signal.await()
+    signal.await(10, TimeUnit.SECONDS)
   }
 
   def testShouldEndWithCancel(): Unit = {

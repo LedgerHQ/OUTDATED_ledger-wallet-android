@@ -34,7 +34,6 @@ import android.test.InstrumentationTestCase
 import com.ledger.ledgerwallet.models.PairedDongle
 import junit.framework.Assert
 import org.spongycastle.util.encoders.Hex
-import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 class PairedDongleTest extends InstrumentationTestCase {

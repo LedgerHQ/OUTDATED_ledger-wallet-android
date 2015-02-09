@@ -85,6 +85,7 @@ object SecretKey {
   }
 
   def create(context: Context, alias: String, secret: Array[Byte]): Try[SecretKey] = {
+    Crypto.ensureSpongyIsRemoved()
     val kpg = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore")
     val calendar = Calendar.getInstance()
     val now = calendar.getTime

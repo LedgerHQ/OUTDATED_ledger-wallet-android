@@ -155,7 +155,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
 
     _currentState = State.Challenging
     Logger.d("Sending public key")
-    prepareIdentifyPackage(publicKey = "A superb public key")
+    prepareIdentifyPackage(publicKey = keypair.compressedPublicKeyHexString)
     sendPendingPackage(socket)
   }
 
@@ -175,6 +175,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
         _sessionNonce = challenge.sessionNonce
         _onRequireUserInput(new RequireChallengeResponse(challenge.keycardChallege)) onComplete {
           case Success(input) => {
+            Logger.d("User input: " + input)
             val answer: Array[Byte] = sessionNonce ++ Hex.decode(input.toCharArray.map("0" + _).mkString("")) ++ Array[Byte](0, 0, 0, 0)
             val cryptedAnswer = new D3ESCBC(sessionKey).encrypt(answer)
             prepareChallengePackage(answer = Hex.toHexString(cryptedAnswer))
@@ -233,8 +234,13 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
 
   // Crypto
 
-  private[this] lazy val _keyPair = ECKeyPair.generate()
-  def keypair: ECKeyPair = _keyPair
+  private[this] var _keyPair: ECKeyPair = _
+  def keypair_=(kp: ECKeyPair): Unit = _keyPair = kp
+  def keypair: ECKeyPair = {
+    if (_keyPair == null)
+      _keyPair = ECKeyPair.generate()
+    _keyPair
+  }
 
   private[this] lazy val _sessionKey = Crypto.splitAndXor(keypair.generateAgreementSecret(Config.LedgerAttestationPublicKey))
   def sessionKey = _sessionKey

@@ -47,7 +47,8 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
 
   lazy val stepNumberTextView = TR(R.id.step_number).as[TextView]
   lazy val stepInstructionTextView = TR(R.id.instruction_text).as[TextView]
-  lazy val pairingApi = new PairingAPI(this)
+  private[this] var _pairingApi: PairingAPI = _
+  def pairingApi = _pairingApi
 
   lazy val pairindId = Promise[String]()
   lazy val challengeResponse = Promise[String]()
@@ -59,8 +60,24 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     getSupportActionBar.setHomeButtonEnabled(true)
     getSupportActionBar.setDisplayHomeAsUpEnabled(true)
     gotToStep(1, TR(R.string.create_dongle_instruction_step_1).as[String], new ScanPairingQrCodeFragment())
+    if (pairingApi == null)
+      pairingApi = new PairingAPI(this)
+    pairingApi.startPairingProcess()
+    pairingApi.future.get onComplete {
+      case Success(pairedDongle) => postResult(CreateDonglePairingActivity.ResultOk)
+      case Failure(ex) => {
+        ex match {
+          case disconnect: PairingAPI.ClientCancelledException => postResult(CreateDonglePairingActivity.ResultPairingCancelled)
+          case wrongChallenge: PairingAPI.WrongChallengeAnswerException => postResult(CreateDonglePairingActivity.ResultWrongChallenge)
+          case _ => postResult(CreateDonglePairingActivity.ResultNetworkError)
+        }
+      }
+    }
+  }
 
-    pairingApi onRequireUserInput {
+  def pairingApi_=(api: PairingAPI): Unit = {
+    _pairingApi = api
+    _pairingApi onRequireUserInput {
       case RequirePairingId() => pairindId.future
       case RequireChallengeResponse(challenge) => {
         this runOnUiThread {
@@ -75,19 +92,9 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
         dongleName.future
       }
     }
-    pairingApi.startPairingProcess()
-    pairingApi.future.get onComplete {
-      case Success(pairedDongle) => postResult(CreateDonglePairingActivity.ResultOk)
-      case Failure(ex) => {
-        ex match {
-          case disconnect: PairingAPI.ClientCancelledException => postResult(CreateDonglePairingActivity.ResultPairingCancelled)
-          case wrongChallenge: PairingAPI.WrongChallengeAnswerException => postResult(CreateDonglePairingActivity.ResultWrongChallenge)
-          case _ => postResult(CreateDonglePairingActivity.ResultNetworkError)
-        }
-      }
-    }
   }
 
+  
   override def gotToStep(stepNumber: Int, instructionText: CharSequence, fragment: BaseFragment): Unit = {
     stepNumberTextView.setText(stepNumber.toString + ".")
     stepInstructionTextView.setText(instructionText)
