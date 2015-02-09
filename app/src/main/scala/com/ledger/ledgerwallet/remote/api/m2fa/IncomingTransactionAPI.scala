@@ -98,13 +98,21 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
 
   private def requestFocus(connection: Connection): Boolean = {
     if (_focusedConnection.isEmpty) {
-
+      _focusedConnection = Some(connection)
+      connections.filterNot(_._1 == connection.dongle.id.get) foreach {_._2.disconnect()}
+      connections.clear()
+      connections(connection.dongle.id.get) = connection
+      return true
     }
     false
   }
 
-  private def clearFocus(): Unit ={
-    _focusedConnection = None
+  private def clearFocus(): Unit = {
+    if (_focusedConnection.isDefined) {
+      val focusedConnection = _focusedConnection.get
+      _focusedConnection = None
+      PairedDongle.all(context).filterNot(_.id.get == focusedConnection.dongle.id.get) foreach connect
+    }
   }
 
   class IncomingTransaction(connection: Connection,
@@ -117,10 +125,12 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
 
     def accept(): Unit = connection.sendAcceptPackage()
     def reject(): Unit = connection.sendRejectPackage()
-    def cancel(): Unit = mainThreadHandler.post(_onCancelled foreach {_()})
+    def cancel(): Unit = {
+      mainThreadHandler.post(_onCancelled foreach {_()})
+    }
 
     private[this] var _onCancelled: Option[() => Unit] = None
-    def onCancelled(callback: () => Unit): Unit = Option(callback)
+    def onCancelled(callback: () => Unit): Unit = _onCancelled = Option(callback)
 
   }
 
@@ -128,6 +138,7 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
 
     private[this] var _isDisconnected = false
     private[this] var _websocket: Option[WebSocket] = None
+    private[this] var _incomingTransaction: Option[IncomingTransaction] = None
 
     def connect(): Unit = {
       client.websocket("/2fa/channels") onComplete {
@@ -196,23 +207,36 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
       }
       f.onComplete {
         case Success(incomingTransaction) => {
-          if (requestFocus(this))
+          if (requestFocus(this)) {
+            _incomingTransaction = Some(incomingTransaction)
+            send(Map("type" -> "accept"))
             notifyIncomingTransaction(incomingTransaction)
+          }
         }
-        case Failure(ex) => // Nothing
+        case Failure(ex) => // The transaction cannot be handled
       }
     }
 
     private[this] def handleDisconnectPackage(json: JSONObject): Unit = {
+      if (_incomingTransaction.isDefined) {
+        _incomingTransaction.get.cancel()
+        endFocus()
+      }
+    }
 
+    private[this] def endFocus(): Unit = {
+      _incomingTransaction = None
+      clearFocus()
     }
 
     def sendAcceptPackage(): Unit = {
-
+      send(Map("type" -> "response", "is_accepted" -> true, "pin" -> _incomingTransaction.get.pin))
+      endFocus()
     }
 
     def sendRejectPackage(): Unit = {
-
+      send(Map("type" -> "response", "is_accepted" -> false))
+      endFocus()
     }
 
     private[this] def sendConnectionPackage(): Unit = {
@@ -245,16 +269,3 @@ object IncomingTransactionAPI {
   }
 
 }
-
-/*
-offset = 0;
-alert("PIN " + authData.bytes(offset, 4).toString(ASCII));
-offset += 4;
-alert("Output amount " + authData.bytes(offset, 8).toString(HEX));
-offset += 8;
-alert("Fees " + authData.bytes(offset, 8).toString(HEX));
-offset += 8;
-alert("Change " + authData.bytes(offset, 8).toString(HEX));
-offset += 8;
-alert("Destination " + authData.bytes(offset + 1, authData.byteAt(offset)).toString(ASCII));
- */

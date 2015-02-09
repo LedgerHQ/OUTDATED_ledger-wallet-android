@@ -42,13 +42,13 @@ object Base58 {
 
   val Digits = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
-  @throws(classOf[Exception])
+  @throws(classOf[InvalidBase58FormatException])
   def decode(s: String): Array[Byte] = {
     var intData = BigInteger.ZERO
     for (i <- 0 until s.length) {
       val digit = Digits.indexOf(s(i))
       if (digit < 0)
-        throw new Exception("Invalid character '" + digit + "'")
+        throw new InvalidBase58FormatException("Invalid character '" + digit + "'")
       intData = intData.multiply(BigInteger.valueOf(58)).add(BigInteger.valueOf(digit))
     }
     Array.fill[Byte](s.takeWhile(_ == '1').length)(0) ++ intData.toByteArray.dropWhile(_ == 0)
@@ -98,5 +98,7 @@ object Base58 {
 
   def encodeWitchChecksum(b: Array[Byte]): String = encode(b ++ computeChecksum(b))
   def verify(s: String): Boolean = checkAndDecode(s).isDefined
+
+  class InvalidBase58FormatException(reason: String) extends Exception(reason)
 
 }
