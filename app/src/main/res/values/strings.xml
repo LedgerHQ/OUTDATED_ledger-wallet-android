@@ -2,7 +2,19 @@
 
     <!-- General -->
     <string name="app_name">Ledger Wallet</string>
+    <string name="app_version">Ledger Wallet Android %s</string>
     <string name="btc_acronyme">BTC</string>
+
+    <!-- Home Activity -->
+    <string name="home_p_title">Waiting for transactions…</string>
+    <string name="home_p_subtitle">Transactions will automatically appear when manual validation is required</string>
+    <string name="home_p_action">MANAGE PAIRED DEVICES</string>
+    <string name="home_p_bottom">Need help? Visit our help center.</string>
+
+    <string name="home_np_title">No paired device</string>
+    <string name="home_np_subtitle">To enable second factor validation, pair your Ledger Wallet with this device.</string>
+    <string name="home_np_action">PAIR A NEW DEVICE</string>
+    <string name="home_np_bottom">Need help? Visit our help center.</string>
 
     <!-- Paired Dongle Activity -->
     <string name="paired_dongle_waiting_for_an_operation">WAITING FOR AN OPERATION…</string>

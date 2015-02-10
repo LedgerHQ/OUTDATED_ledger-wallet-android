@@ -30,6 +30,11 @@
     <color name="action_green_darken_15">#1BA68E</color>
     <color name="action_green_darken_20">#0E9981</color>
 
+    <color name="light_grey_darken_8">#B8B8B8</color>
+    <color name="light_grey_darken_20">#999999</color>
+
+    <color name="dark_grey_darken_8">#525252</color>
+
     <!-- Shadow colors -->
 
     <color name="normal_grey_shadow">#50CCCCCC</color>
