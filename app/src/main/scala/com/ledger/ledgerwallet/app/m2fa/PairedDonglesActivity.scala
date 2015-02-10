@@ -136,7 +136,6 @@ class PairedDonglesActivity extends BaseActivity {
     lazy val dongleName = TR(v, R.id.dongle_name).as[TextView]
     lazy val pairingDate = TR(v, R.id.pairing_date).as[TextView]
     lazy val deleteButton = TR(v, R.id.delete_btn).as[View]
-
   }
 
 

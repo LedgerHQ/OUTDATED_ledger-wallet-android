@@ -12,7 +12,7 @@
     <string name="home_p_bottom">Need help? Visit our help center.</string>
 
     <string name="home_np_title">No paired device</string>
-    <string name="home_np_subtitle">To enable second factor validation, pair your Ledger Wallet with this device.</string>
+    <string name="home_np_subtitle">To enable second factor validation,\npair your Ledger Wallet with this device.</string>
     <string name="home_np_action">PAIR A NEW DEVICE</string>
     <string name="home_np_bottom">Need help? Visit our help center.</string>
 

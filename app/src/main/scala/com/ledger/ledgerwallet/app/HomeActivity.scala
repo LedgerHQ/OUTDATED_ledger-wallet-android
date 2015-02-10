@@ -80,6 +80,7 @@ class HomeActivity extends BaseActivity {
         case CreateDonglePairingActivity.ResultNetworkError => showErrorDialog(R.string.pairing_failure_dialog_error_network)
         case CreateDonglePairingActivity.ResultPairingCancelled => showErrorDialog(R.string.pairing_failure_dialog_cancelled)
         case CreateDonglePairingActivity.ResultWrongChallenge => showErrorDialog(R.string.pairing_failure_dialog_wrong_answer)
+        case _ =>
       }
     }
   }
@@ -104,7 +105,7 @@ class HomeActivity extends BaseActivity {
 
 object HomeActivityContentFragment {
   val PairedDeviceFragmentTag = "PairedDeviceFragmentTag"
-  val NoPairedDeviceFragmentTag = PairedDeviceFragmentTag//"NoPairedDeviceFragmentTag"
+  val NoPairedDeviceFragmentTag = "NoPairedDeviceFragmentTag"
 }
 
 class HomeActivityContentFragment extends BaseFragment {
@@ -127,7 +128,7 @@ class HomeActivityContentFragment extends BaseFragment {
         startActivity(intent)
       } else {
         val intent = new Intent(getActivity, classOf[CreateDonglePairingActivity])
-        startActivityForResult(intent, CreateDonglePairingActivity.CreateDonglePairingRequest)
+        getActivity.startActivityForResult(intent, CreateDonglePairingActivity.CreateDonglePairingRequest)
       }
     }
     helpLink onClick {
