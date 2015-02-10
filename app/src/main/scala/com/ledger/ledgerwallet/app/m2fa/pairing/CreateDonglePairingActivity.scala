@@ -105,16 +105,6 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     ft.commit()
   }
 
-  override def onOptionsItemSelected(item: MenuItem): Boolean = {
-    item.getItemId match {
-      case android.R.id.home => {
-        NavUtils.navigateUpFromSameTask(this)
-        true
-      }
-      case _ => super.onOptionsItemSelected(item)
-    }
-  }
-
   override def setPairingId(id: String): Unit = {
     pairindId.success(id)
     gotToStep(2, TR(R.string.create_dongle_instruction_step_2).as[String],
@@ -147,6 +137,11 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     if (postResult == null)
       throw new IllegalArgumentException("Post result cannot be null")
     _postResult = postResult
+  }
+
+  postResult = (result: Int) => {
+    setResult(result)
+    finish()
   }
 
 }

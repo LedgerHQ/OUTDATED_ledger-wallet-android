@@ -56,7 +56,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
   private[this] def websocket_=(websocket: WebSocket): Unit = _websocket = Option(websocket)
 
   private[this] var _websocketConnectionRetry = 0
-  private[this] val NumberOfWebSocketRetry = 3
+  private[this] val NumberOfWebSocketRetry = 0
 
   private[this] var _pendingPackage: Option[JSONObject] = None
 

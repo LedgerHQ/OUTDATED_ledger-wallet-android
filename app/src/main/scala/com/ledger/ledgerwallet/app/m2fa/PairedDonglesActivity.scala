@@ -30,6 +30,10 @@
  */
 package com.ledger.ledgerwallet.app.m2fa
 
+
+import java.text.{SimpleDateFormat, DecimalFormat, NumberFormat}
+import java.util.Locale
+
 import android.content.{Context, Intent}
 import android.os.Bundle
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
@@ -41,7 +45,6 @@ import com.ledger.ledgerwallet.base.{BaseActivity, BigIconAlertDialog}
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 import com.ledger.ledgerwallet.utils.TR
-import com.ledger.ledgerwallet.widget.Toolbar.Style
 import com.ledger.ledgerwallet.widget.{TextView, Toolbar}
 
 class PairedDonglesActivity extends BaseActivity {
@@ -60,17 +63,50 @@ class PairedDonglesActivity extends BaseActivity {
     pairedDevicesList.setHasFixedSize(true)
     pairedDevicesList.setItemAnimator(new DefaultItemAnimator)
 
-    pairedDevicesAdapter.pairedDongles = PairedDongle.all
+    pairedDevicesAdapter.pairedDongles = PairedDongle.all.sortBy(_.createdAt.get.getTime)
 
     addPairingButton setOnClickListener {
       val intent = new Intent(this, classOf[CreateDonglePairingActivity])
       startActivityForResult(intent, CreateDonglePairingActivity.CreateDonglePairingRequest)
     }
-    if (PairedDongle.all.length == 0)
-      finish()
+  }
+
+
+  override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == CreateDonglePairingActivity.CreateDonglePairingRequest) {
+      resultCode match {
+        case CreateDonglePairingActivity.ResultOk => showSuccessDialog(PairedDongle.all.sortBy(- _.createdAt.get.getTime).head.name.get)
+        case CreateDonglePairingActivity.ResultNetworkError => showErrorDialog(R.string.pairing_failure_dialog_error_network)
+        case CreateDonglePairingActivity.ResultPairingCancelled => showErrorDialog(R.string.pairing_failure_dialog_cancelled)
+        case CreateDonglePairingActivity.ResultWrongChallenge => showErrorDialog(R.string.pairing_failure_dialog_wrong_answer)
+        case _ =>
+      }
+    }
+  }
+
+  private[this] def showErrorDialog(contentTextId: Int): Unit = {
+    new BigIconAlertDialog.Builder(this)
+      .setTitle(R.string.pairing_failure_dialog_title)
+      .setContentText(contentTextId)
+      .setIcon(R.drawable.ic_big_red_failure)
+      .create().show(getSupportFragmentManager, "ErrorDialog")
+  }
+
+  private[this] def showSuccessDialog(dongleName: String): Unit = {
+    new BigIconAlertDialog.Builder(this)
+      .setTitle(R.string.pairing_success_dialog_title)
+      .setContentText(TR(R.string.pairing_success_dialog_content).as[String].format(dongleName))
+      .setIcon(R.drawable.ic_big_red_failure)
+      .create().show(getSupportFragmentManager, "SuccessDialog")
   }
 
   class PairedDonglesAdapter(c: Context) extends RecyclerView.Adapter[ViewHolder] {
+
+    private[this] lazy val DateFormat = {
+      val f = android.text.format.DateFormat.getBestDateTimePattern(Locale.getDefault, "dd/MM/yyyy")
+      new SimpleDateFormat(f)
+    }
 
     private var _pairedDongles = Array[PairedDongle]()
     def pairedDongles = _pairedDongles
@@ -91,7 +127,7 @@ class PairedDonglesActivity extends BaseActivity {
     override def onBindViewHolder(ui: ViewHolder, position: Int): Unit = {
       val dongle = pairedDongles(position)
       ui.dongleName.setText(dongle.name.get)
-      ui.pairingDate.setText("Paired on 12/05/2014")
+      ui.pairingDate.setText(String.format(TR(R.string.paired_dongle_paired_on).as[String], DateFormat.format(dongle.createdAt.get)))
     }
   }
 
@@ -100,16 +136,6 @@ class PairedDonglesActivity extends BaseActivity {
     lazy val dongleName = TR(v, R.id.dongle_name).as[TextView]
     lazy val pairingDate = TR(v, R.id.pairing_date).as[TextView]
     lazy val deleteButton = TR(v, R.id.delete_btn).as[View]
-
-
-    v.setOnClickListener((v: View) => {
-      //(new IncomingTransactionDialogFragment).show(getSupportFragmentManager, IncomingTransactionDialogFragment.DefaultTag)
-      new BigIconAlertDialog.Builder(PairedDonglesActivity.this)
-      .setIcon(R.drawable.ic_big_green_success)
-      .setTitle(R.string.pairing_success_dialog_title)
-      .setContentText(R.string.pairing_success_dialog_content)
-      .create().show(getSupportFragmentManager, "Toto")
-    })
 
   }
 

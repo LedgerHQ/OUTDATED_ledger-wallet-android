@@ -17,7 +17,7 @@
     <string name="home_np_bottom">Need help? Visit our help center.</string>
 
     <!-- Paired Dongle Activity -->
-    <string name="paired_dongle_waiting_for_an_operation">WAITING FOR AN OPERATION…</string>
+    <string name="paired_dongle_paired_on">Paired on %s</string>
 
     <!-- Create Dongle Pairing Activity -->
     <string name="create_dongle_title">Pair a new device</string>
@@ -46,8 +46,9 @@
 
     <!-- Pairing Failure Dialog -->
     <string name="pairing_failure_dialog_title">PAIRING FAILED</string>
-    <string name="pairing_failure_dialog_error_network">Your Ledger Wallet \"%s\" is now paired with your mobile device</string>
-    <string name="pairing_failure_dialog_wrong_answer">Your Ledger Wallet \"%s\" is now paired with your mobile device</string>
+    <string name="pairing_failure_dialog_error_network">A network error occurred.\nPlease check your internet connection.</string>
+    <string name="pairing_failure_dialog_wrong_answer">The security card validation code is incorrect. Please try again.</string>
+    <string name="pairing_failure_dialog_cancelled">The Ledger Wallet Chrome application cancelled the pairing process.</string>
 
     <!-- Actions -->
     <string name="action_done">Done</string>

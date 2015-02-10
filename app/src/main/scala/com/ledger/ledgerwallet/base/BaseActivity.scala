@@ -35,7 +35,7 @@ import android.os.Bundle
 import android.support.v7.app.{ActionBar, ActionBarActivity}
 import com.ledger.ledgerwallet.widget.Toolbar
 import android.view.ViewGroup.LayoutParams
-import android.view.{LayoutInflater, View}
+import android.view.{MenuItem, LayoutInflater, View}
 import android.widget.FrameLayout
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.utils.TR
@@ -82,6 +82,19 @@ abstract class BaseActivity extends ActionBarActivity with Loggable {
   override def setContentView(view: View, params: LayoutParams): Unit = {
     content.removeAllViews()
     content.addView(view, params)
+  }
+
+
+  override def onOptionsItemSelected(item: MenuItem): Boolean = {
+    if ((item.getItemId == android.R.id.home && !onClickHome()) || item.getItemId != android.R.id.home)
+      super.onOptionsItemSelected(item)
+    else
+      true
+  }
+
+  def onClickHome(): Boolean = {
+    finish()
+    true
   }
 
   def actionBarStyle: Toolbar.Style = Toolbar.Style.Normal

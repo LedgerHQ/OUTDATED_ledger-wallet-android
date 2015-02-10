@@ -19,6 +19,10 @@
         <item name="android:stateListAnimator">@anim/button_elevation</item>
     </style>
 
+    <style name="Base.FlatButtonStyle">
+        <item name="android:stateListAnimator">@anim/flat_button_elevation</item>
+    </style>
+
     <style name="Base.FloatingActionButton" parent="Base.ButtonStyle">
         <item name="android:layout_width">56dp</item>
         <item name="android:layout_height">56dp</item>

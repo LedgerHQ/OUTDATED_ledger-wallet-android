@@ -36,7 +36,7 @@ import android.view.{View, ViewGroup, LayoutInflater}
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.app.m2fa.PairedDonglesActivity
 import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
-import com.ledger.ledgerwallet.base.{BaseFragment, BaseActivity}
+import com.ledger.ledgerwallet.base.{BigIconAlertDialog, BaseFragment, BaseActivity}
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.TextView
@@ -72,6 +72,34 @@ class HomeActivity extends BaseActivity {
     }
   }
 
+  override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == CreateDonglePairingActivity.CreateDonglePairingRequest) {
+      resultCode match {
+        case CreateDonglePairingActivity.ResultOk => showSuccessDialog(PairedDongle.all.sortBy(- _.createdAt.get.getTime).head.name.get)
+        case CreateDonglePairingActivity.ResultNetworkError => showErrorDialog(R.string.pairing_failure_dialog_error_network)
+        case CreateDonglePairingActivity.ResultPairingCancelled => showErrorDialog(R.string.pairing_failure_dialog_cancelled)
+        case CreateDonglePairingActivity.ResultWrongChallenge => showErrorDialog(R.string.pairing_failure_dialog_wrong_answer)
+      }
+    }
+  }
+
+  private[this] def showErrorDialog(contentTextId: Int): Unit = {
+    new BigIconAlertDialog.Builder(this)
+      .setTitle(R.string.pairing_failure_dialog_title)
+      .setContentText(contentTextId)
+      .setIcon(R.drawable.ic_big_red_failure)
+      .create().show(getSupportFragmentManager, "ErrorDialog")
+  }
+
+  private[this] def showSuccessDialog(dongleName: String): Unit = {
+    new BigIconAlertDialog.Builder(this)
+      .setTitle(R.string.pairing_success_dialog_title)
+      .setContentText(TR(R.string.pairing_success_dialog_content).as[String].format(dongleName))
+      .setIcon(R.drawable.ic_big_red_failure)
+      .create().show(getSupportFragmentManager, "SuccessDialog")
+  }
+
 }
 
 object HomeActivityContentFragment {
@@ -99,7 +127,7 @@ class HomeActivityContentFragment extends BaseFragment {
         startActivity(intent)
       } else {
         val intent = new Intent(getActivity, classOf[CreateDonglePairingActivity])
-        startActivity(intent)
+        startActivityForResult(intent, CreateDonglePairingActivity.CreateDonglePairingRequest)
       }
     }
     helpLink onClick {
