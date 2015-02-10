@@ -30,11 +30,17 @@
  */
 package com.ledger.ledgerwallet.app
 
-import android.os.{PersistableBundle, Bundle}
+import android.content.Intent
+import android.os.Bundle
 import android.view.{View, ViewGroup, LayoutInflater}
 import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.app.m2fa.PairedDonglesActivity
+import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
 import com.ledger.ledgerwallet.base.{BaseFragment, BaseActivity}
 import com.ledger.ledgerwallet.models.PairedDongle
+import com.ledger.ledgerwallet.utils.TR
+import com.ledger.ledgerwallet.widget.TextView
+import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 
 class HomeActivity extends BaseActivity {
 
@@ -75,9 +81,30 @@ object HomeActivityContentFragment {
 
 class HomeActivityContentFragment extends BaseFragment {
 
+  lazy val actionButton = TR(R.id.button).as[TextView]
+  lazy val helpLink = TR(R.id.bottom_text).as[TextView]
+  lazy val isInPairedDeviceMode = if (getTag == HomeActivityContentFragment.PairedDeviceFragmentTag) true else false
+  lazy val isInNoPairedDeviceMode = !isInPairedDeviceMode
+
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
-    val layoutId = if (getTag == HomeActivityContentFragment.PairedDeviceFragmentTag) R.layout.home_activity_paired_device_fragment else R.layout.home_activity_no_paired_device_fragment
+    val layoutId = if (isInPairedDeviceMode) R.layout.home_activity_paired_device_fragment else R.layout.home_activity_no_paired_device_fragment
     inflater.inflate(layoutId, container, false)
   }
 
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+    super.onViewCreated(view, savedInstanceState)
+    actionButton onClick {
+      if (isInPairedDeviceMode) {
+        val intent = new Intent(getActivity, classOf[PairedDonglesActivity])
+        startActivity(intent)
+      } else {
+        val intent = new Intent(getActivity, classOf[CreateDonglePairingActivity])
+        startActivity(intent)
+      }
+    }
+    helpLink onClick {
+      val intent = new Intent(Intent.ACTION_VIEW, Config.HelpCenterUri)
+      startActivity(intent)
+    }
+  }
 }

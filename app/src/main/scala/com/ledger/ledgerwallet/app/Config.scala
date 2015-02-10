@@ -42,11 +42,13 @@ object Config extends Config{
   def ApiBaseUri = _impl.ApiBaseUri
   def WebSocketBaseUri = _impl.WebSocketBaseUri
   def LedgerAttestationPublicKey = _impl.LedgerAttestationPublicKey
+  def HelpCenterUri = _impl.HelpCenterUri
 
   private class ConfigImpl extends Config {
     def ApiBaseUri = Uri.parse("https://google.fr")
     def WebSocketBaseUri = Uri.parse("https://google.fr")
     def LedgerAttestationPublicKey = "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
+    def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
   }
 
 
@@ -57,7 +59,7 @@ trait Config {
 
   def ApiBaseUri: Uri
   def WebSocketBaseUri: Uri
-
+  def HelpCenterUri: Uri
   def LedgerAttestationPublicKey: String
 
 }

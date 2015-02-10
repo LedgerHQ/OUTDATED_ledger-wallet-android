@@ -70,9 +70,10 @@
         android:layout_height="wrap_content"
         android:text="@string/home_np_bottom"
         android:textColor="@color/clickable_dark_grey"
-        android:id="@+id/textView3"
+        android:id="@+id/bottom_text"
         android:textSize="@dimen/small_font_size"
-        android:layout_marginBottom="@dimen/large_margin"
+        android:paddingTop="@dimen/large_margin"
+        android:paddingBottom="@dimen/large_margin"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"/>
 </RelativeLayout>

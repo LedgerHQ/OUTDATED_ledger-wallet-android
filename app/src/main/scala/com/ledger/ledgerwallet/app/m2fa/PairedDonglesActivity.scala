@@ -53,22 +53,22 @@ class PairedDonglesActivity extends BaseActivity {
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.paired_dongles_activity)
-    toolbar.setSubtitle(R.string.paired_dongle_waiting_for_an_operation)
+    getSupportActionBar.setHomeButtonEnabled(true)
+    getSupportActionBar.setDisplayHomeAsUpEnabled(true)
     pairedDevicesList.setLayoutManager(new LinearLayoutManager(this))
     pairedDevicesList.setAdapter(pairedDevicesAdapter)
     pairedDevicesList.setHasFixedSize(true)
     pairedDevicesList.setItemAnimator(new DefaultItemAnimator)
 
-    val l = Array(new PairedDongle("My Ledger Wallet"), new PairedDongle("Sophie's Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"), new PairedDongle("Office Wallet"))
-    pairedDevicesAdapter.pairedDongles = l
+    pairedDevicesAdapter.pairedDongles = PairedDongle.all
 
     addPairingButton setOnClickListener {
       val intent = new Intent(this, classOf[CreateDonglePairingActivity])
       startActivityForResult(intent, CreateDonglePairingActivity.CreateDonglePairingRequest)
     }
+    if (PairedDongle.all.length == 0)
+      finish()
   }
-
-  override def actionBarStyle: Style = Toolbar.Style.Expanded
 
   class PairedDonglesAdapter(c: Context) extends RecyclerView.Adapter[ViewHolder] {
 

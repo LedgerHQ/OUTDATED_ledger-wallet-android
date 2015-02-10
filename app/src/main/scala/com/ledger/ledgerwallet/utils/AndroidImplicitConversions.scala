@@ -30,6 +30,7 @@
  */
 package com.ledger.ledgerwallet.utils
 
+import android.view.View.OnClickListener
 import android.view.{KeyEvent, View}
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
@@ -58,6 +59,16 @@ object AndroidImplicitConversions {
     new OnEditorActionListener {
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = f(actionId, event)
     }
+  }
+
+  implicit class RichView(v: View) {
+
+    def onClick(c: => Unit): Unit = {
+      v.setOnClickListener(new OnClickListener {
+        override def onClick(v: View): Unit = c
+      })
+    }
+
   }
 
 }
