@@ -1,9 +1,9 @@
 /**
  *
- * Config
+ * Preferenceable
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 27/01/15.
+ * Created by Pierre Pollastri on 11/02/15.
  *
  * The MIT License (MIT)
  *
@@ -28,42 +28,14 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.app
+package com.ledger.ledgerwallet.utils
 
-import android.net.Uri
-import com.ledger.ledgerwallet.BuildConfig
+import android.content.Context
 
-object Config extends Config{
+trait Preferenceable {
 
-  private var _impl: Config = new ConfigImpl
-
-  def apply(): Config = _impl
-  def setImplementation(impl: Config): Unit = _impl = impl
-
-  def ApiBaseUri = _impl.ApiBaseUri
-  def WebSocketBaseUri = _impl.WebSocketBaseUri
-  def LedgerAttestationPublicKey = _impl.LedgerAttestationPublicKey
-  def HelpCenterUri = _impl.HelpCenterUri
-  def Env = _impl.Env
-
-  private class ConfigImpl extends Config {
-    def ApiBaseUri = Uri.parse("https://google.fr")
-    def WebSocketBaseUri = Uri.parse("https://google.fr")
-    def LedgerAttestationPublicKey = "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
-    def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
-    def Env = if (BuildConfig.DEBUG) "dev" else "prod"
-  }
-
-
-
-}
-
-trait Config {
-
-  def ApiBaseUri: Uri
-  def WebSocketBaseUri: Uri
-  def HelpCenterUri: Uri
-  def LedgerAttestationPublicKey: String
-  def Env: String
+  protected[this] def preferences(implicit context: Context) = context.getSharedPreferences(PreferencesName, Context.MODE_PRIVATE)
+  protected[this] def edit()(implicit context: Context) = preferences.edit()
+  def PreferencesName = "Preferenceable"
 
 }

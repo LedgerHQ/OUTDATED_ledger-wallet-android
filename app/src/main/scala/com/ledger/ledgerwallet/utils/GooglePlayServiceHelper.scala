@@ -33,10 +33,16 @@ package com.ledger.ledgerwallet.utils
 import android.app.Activity
 import android.content.Context
 import com.google.android.gms.common.{ConnectionResult, GooglePlayServicesUtil}
+import com.google.android.gms.gcm.GoogleCloudMessaging
+
+import scala.concurrent.{Promise, Future}
 
 object GooglePlayServiceHelper {
 
   val PlayServicesResolutionRequest = 9000
+  val GooglePlayServicePreferences = "GooglePlayServicePreferences"
+  val GcmRegistrationIdPreferenceKey = "GcmRegistrationIdPreference"
+  val GcmRegistrationVersionPreferenceKey = "GcmRegistrationVersionPreference"
 
   def isGooglePlayServicesAvailable(implicit context: Context): Boolean = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS
   def checkPlayServices(implicit context: Context): Boolean = {
@@ -51,4 +57,43 @@ object GooglePlayServiceHelper {
     }
   }
 
+  def getGcmInstance(implicit context: Context): Option[GoogleCloudMessaging] = {
+    if (checkPlayServices)
+      Some(GoogleCloudMessaging.getInstance(context))
+    else
+      None
+  }
+
+  def getGcmRegistrationId(implicit context: Context): Future[RegistrationId] = {
+    val registrationVersion = context
+      .getSharedPreferences(GooglePlayServicePreferences, Context.MODE_PRIVATE)
+      .getInt(GcmRegistrationVersionPreferenceKey, -1)
+    if (registrationVersion != AndroidUtils.getAppVersion.getOrElse(-2)) {
+      Future {
+        val gcm = getGcmInstance.get
+        val regId = gcm.register("1043077126300")
+        context
+          .getSharedPreferences(GooglePlayServicePreferences, Context.MODE_PRIVATE)
+          .edit()
+          .putString(GcmRegistrationIdPreferenceKey, regId)
+          .putInt(GcmRegistrationVersionPreferenceKey, AndroidUtils.getAppVersion.getOrElse(0))
+          .commit()
+        inflateRegistrationId(isNew = true, context)
+      }
+    } else {
+      val p = Promise[RegistrationId]()
+      p.success(inflateRegistrationId(isNew = false, context))
+      p.future
+    }
+  }
+
+  private[this] def inflateRegistrationId(isNew: Boolean, context: Context): RegistrationId = {
+    val preferences = context.getSharedPreferences(GooglePlayServicePreferences, Context.MODE_PRIVATE)
+    val value = preferences.getString(GcmRegistrationIdPreferenceKey, null)
+    new RegistrationId(value, isNew)
+  }
+
+ case class RegistrationId(value: String, isNew: Boolean)
+
 }
+

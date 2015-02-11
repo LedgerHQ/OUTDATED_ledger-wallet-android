@@ -38,4 +38,5 @@ object TestConfig extends Config {
   override def WebSocketBaseUri: Uri = Uri.parse("http://localhost:5000")
   override def LedgerAttestationPublicKey = "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
   override def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
+  override def Env: String = "test"
 }

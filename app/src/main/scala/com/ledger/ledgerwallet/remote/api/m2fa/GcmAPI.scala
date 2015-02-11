@@ -1,9 +1,9 @@
 /**
  *
- * Config
+ * GcmAPI
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 27/01/15.
+ * Created by Pierre Pollastri on 11/02/15.
  *
  * The MIT License (MIT)
  *
@@ -28,42 +28,40 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.app
+package com.ledger.ledgerwallet.remote.api.m2fa
 
-import android.net.Uri
-import com.ledger.ledgerwallet.BuildConfig
+import android.content.Context
+import com.ledger.ledgerwallet.models.PairedDongle
+import com.ledger.ledgerwallet.remote.HttpClient
+import com.ledger.ledgerwallet.utils.GooglePlayServiceHelper.RegistrationId
+import com.ledger.ledgerwallet.utils.Preferenceable
 
-object Config extends Config{
+class GcmAPI(c: Context, client: HttpClient = HttpClient.defaultInstance) extends Preferenceable {
+  override def PreferencesName = "GcmAPI"
+  implicit val context = c
 
-  private var _impl: Config = new ConfigImpl
-
-  def apply(): Config = _impl
-  def setImplementation(impl: Config): Unit = _impl = impl
-
-  def ApiBaseUri = _impl.ApiBaseUri
-  def WebSocketBaseUri = _impl.WebSocketBaseUri
-  def LedgerAttestationPublicKey = _impl.LedgerAttestationPublicKey
-  def HelpCenterUri = _impl.HelpCenterUri
-  def Env = _impl.Env
-
-  private class ConfigImpl extends Config {
-    def ApiBaseUri = Uri.parse("https://google.fr")
-    def WebSocketBaseUri = Uri.parse("https://google.fr")
-    def LedgerAttestationPublicKey = "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
-    def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
-    def Env = if (BuildConfig.DEBUG) "dev" else "prod"
+  def updateDongleToken(dongle: PairedDongle, regId: RegistrationId): Unit = {
+    if (preferences.getString(dongle.id.get, null) != regId.value) {
+      client.post("/2fa/pairings/push_token")
+    }
   }
 
+  def removeDongleToken(dongle: PairedDongle): Unit = {
 
+  }
+
+  def updateDonglesToken(regId: RegistrationId): Unit = PairedDongle.all.foreach(updateDongleToken(_, regId))
 
 }
 
-trait Config {
+object GcmAPI {
 
-  def ApiBaseUri: Uri
-  def WebSocketBaseUri: Uri
-  def HelpCenterUri: Uri
-  def LedgerAttestationPublicKey: String
-  def Env: String
+  private[thid] var _instance: GcmAPI = _
+
+  def defaultInstance(implicit context: Context): GcmAPI = {
+    if (_instance == null)
+      _instance = new GcmAPI(context)
+    _instance
+  }
 
 }

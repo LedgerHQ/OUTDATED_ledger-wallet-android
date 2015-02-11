@@ -30,6 +30,8 @@
  */
 package com.ledger.ledgerwallet.remote
 
+import java.util.Locale
+
 import android.net.Uri
 import com.koushikdutta.async.future.FutureCallback
 import com.koushikdutta.async.http
@@ -229,7 +231,18 @@ class HttpClient(baseUrl: Uri) {
 
 object HttpClient {
 
-  lazy val defaultInstance = new HttpClient(Config.ApiBaseUri)
-  lazy val websocketInstance = new HttpClient(Config.ApiBaseUri)
+  private[this] lazy val _defaultInstance = new HttpClient(Config.ApiBaseUri)
+  private[this] lazy val _websocketInstance = new HttpClient(Config.WebSocketBaseUri)
+
+  def defaultInstance = configure(_defaultInstance)
+
+  def websocketInstance = configure(_websocketInstance)
+
+  private[this] def configure(client: HttpClient): HttpClient = {
+    client.headers("X-Ledger-Locale") = Locale.getDefault.toString
+    client.headers("X-Ledger-Platform") = "android"
+    client.headers("X-Ledger-Environment") = Config.Env
+    client
+  }
 
 }
