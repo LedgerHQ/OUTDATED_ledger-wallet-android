@@ -36,13 +36,25 @@ import com.ledger.ledgerwallet.remote.HttpClient
 import com.ledger.ledgerwallet.utils.GooglePlayServiceHelper.RegistrationId
 import com.ledger.ledgerwallet.utils.Preferenceable
 
+import scala.util.{Failure, Success}
+
 class GcmAPI(c: Context, client: HttpClient = HttpClient.defaultInstance) extends Preferenceable {
   override def PreferencesName = "GcmAPI"
   implicit val context = c
 
   def updateDongleToken(dongle: PairedDongle, regId: RegistrationId): Unit = {
     if (preferences.getString(dongle.id.get, null) != regId.value) {
-      client.post("/2fa/pairings/push_token")
+      client.post(
+        "/2fa/pairings/push_token",
+        Some(Map("pairing_id" -> dongle.id.get, "push_token" -> regId.value))
+      ).future onComplete {
+        case Success() => {
+          edit()
+          .putString(dongle.id.get, regId.value)
+          .commit()
+        }
+        case Failure(ex) =>
+      }
     }
   }
 

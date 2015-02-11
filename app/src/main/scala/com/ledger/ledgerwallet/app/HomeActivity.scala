@@ -38,7 +38,7 @@ import com.ledger.ledgerwallet.app.m2fa.PairedDonglesActivity
 import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
 import com.ledger.ledgerwallet.base.{BigIconAlertDialog, BaseFragment, BaseActivity}
 import com.ledger.ledgerwallet.models.PairedDongle
-import com.ledger.ledgerwallet.remote.api.m2fa.IncomingTransactionAPI
+import com.ledger.ledgerwallet.remote.api.m2fa.{GcmAPI, IncomingTransactionAPI}
 import com.ledger.ledgerwallet.utils.{GooglePlayServiceHelper, TR}
 import com.ledger.ledgerwallet.widget.TextView
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
@@ -60,7 +60,7 @@ class HomeActivity extends BaseActivity {
     ensureFragmentIsSetup()
     api onIncomingTransaction openIncomingTransactionDialog
     GooglePlayServiceHelper.getGcmRegistrationId onComplete {
-      case Success(regId) =>
+      case Success(regId) => GcmAPI.defaultInstance.updateDonglesToken(regId)
       case Failure(ex) =>
     }
   }
