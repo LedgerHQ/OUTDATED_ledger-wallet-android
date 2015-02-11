@@ -42,14 +42,15 @@ dependencies {
     compile 'com.android.support:appcompat-v7:21.0.3'
     compile "org.scala-lang:scala-library:2.11.2"
     compile 'me.dm7.barcodescanner:zbar:1.6'
-    compile "com.android.support:support-v4:21.0.+"
-    compile "com.android.support:recyclerview-v7:21.0.+"
+    compile 'com.android.support:support-v4:21.0.+'
+    compile 'com.android.support:recyclerview-v7:21.0.+'
     compile 'com.koushikdutta.async:androidasync:2.0.5'
     compile 'com.android.support:multidex:1.0.0'
     compile 'com.madgag.spongycastle:core:1.51.0.0'
     compile 'com.madgag.spongycastle:prov:1.51.0.0'
     compile 'com.madgag.spongycastle:pkix:1.51.0.0'
     compile 'com.madgag.spongycastle:pg:1.51.0.0'
+    compile 'com.google.android.gms:play-services:3.1.+'
 
     androidTestCompile 'com.android.support:multidex-instrumentation:1.0.1'
 }
