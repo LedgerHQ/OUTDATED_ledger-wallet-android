@@ -8,3 +8,4 @@ local.properties
 .DS_Store
 /build
 *.iml
+local.gradle

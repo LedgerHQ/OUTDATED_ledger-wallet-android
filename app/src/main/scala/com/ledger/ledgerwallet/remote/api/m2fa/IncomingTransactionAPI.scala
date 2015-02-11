@@ -128,6 +128,7 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
       _done = true
       connection.sendAcceptPackage()
     }
+
     def reject(): Unit = {
       _done = true
       connection.sendRejectPackage()
