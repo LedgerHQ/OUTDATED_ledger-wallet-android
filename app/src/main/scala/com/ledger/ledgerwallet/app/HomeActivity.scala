@@ -38,13 +38,14 @@ import com.ledger.ledgerwallet.app.m2fa.PairedDonglesActivity
 import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
 import com.ledger.ledgerwallet.base.{BigIconAlertDialog, BaseFragment, BaseActivity}
 import com.ledger.ledgerwallet.models.PairedDongle
+import com.ledger.ledgerwallet.remote.api.m2fa.IncomingTransactionAPI
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.TextView
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 
 class HomeActivity extends BaseActivity {
 
-
+  lazy val api = IncomingTransactionAPI.defaultInstance(context)
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -55,6 +56,17 @@ class HomeActivity extends BaseActivity {
   override def onResume(): Unit = {
     super.onResume()
     ensureFragmentIsSetup()
+    api onIncomingTransaction openIncomingTransactionDialog
+  }
+
+
+  override def onPause(): Unit = {
+    super.onPause()
+    api.stop()
+  }
+
+  private[this] def openIncomingTransactionDialog(tx: IncomingTransactionAPI#IncomingTransaction): Unit = {
+
   }
 
   private[this] def ensureFragmentIsSetup(): Unit = {

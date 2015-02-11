@@ -34,23 +34,49 @@ import android.os.Bundle
 import android.view.{View, ViewGroup, LayoutInflater}
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.BaseDialogFragment
+import com.ledger.ledgerwallet.remote.api.m2fa.IncomingTransactionAPI
 import com.ledger.ledgerwallet.view.DialogActionBarController
 
 class IncomingTransactionDialogFragment extends BaseDialogFragment {
 
   lazy val actions = DialogActionBarController(R.id.dialog_action_bar).noNeutralButton
+  private[this] var _transaction: Option[IncomingTransactionAPI#IncomingTransaction] = None
+
+  def this(tx: IncomingTransactionAPI#IncomingTransaction) {
+    this()
+    _transaction = Option(tx)
+  }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     inflater.inflate(R.layout.incoming_transaction_dialog_fragment, container, false)
   }
 
+  override def onResume(): Unit = {
+    super.onResume()
+    if (_transaction.isEmpty || _transaction.get.isDone)
+      dismiss()
+    _transaction.foreach(_.onCancelled(dismiss))
+  }
+
+  override def onPause(): Unit = {
+    super.onPause()
+    _transaction.foreach(_.onCancelled(null))
+  }
+
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     super.onViewCreated(view, savedInstanceState)
-    actions onPositiveClick dismiss
-    actions onNegativeClick dismiss
+    actions onPositiveClick {
+      _transaction.foreach(_.accept())
+      dismiss()
+    }
+    actions onNegativeClick {
+      _transaction.foreach(_.reject())
+      dismiss()
+    }
   }
 }
 
 object IncomingTransactionDialogFragment {
   val DefaultTag = "IncomingTransactionDialogFragment"
+
 }

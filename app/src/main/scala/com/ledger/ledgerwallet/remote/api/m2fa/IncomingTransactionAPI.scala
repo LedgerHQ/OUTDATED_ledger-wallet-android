@@ -122,12 +122,23 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
                             val fees: String,
                             val change: String,
                             val address: String) {
+    private[this] var _done = false
 
-    def accept(): Unit = connection.sendAcceptPackage()
-    def reject(): Unit = connection.sendRejectPackage()
+    def accept(): Unit = {
+      _done = true
+      connection.sendAcceptPackage()
+    }
+    def reject(): Unit = {
+      _done = true
+      connection.sendRejectPackage()
+    }
+
     def cancel(): Unit = {
+      _done = true
       mainThreadHandler.post(_onCancelled foreach {_()})
     }
+
+    def isDone = _done
 
     private[this] var _onCancelled: Option[() => Unit] = None
     def onCancelled(callback: () => Unit): Unit = _onCancelled = Option(callback)
