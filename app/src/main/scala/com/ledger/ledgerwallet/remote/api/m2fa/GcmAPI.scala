@@ -35,6 +35,7 @@ import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.HttpClient
 import com.ledger.ledgerwallet.utils.GooglePlayServiceHelper.RegistrationId
 import com.ledger.ledgerwallet.utils.Preferenceable
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.util.{Failure, Success}
 
@@ -48,7 +49,7 @@ class GcmAPI(c: Context, client: HttpClient = HttpClient.defaultInstance) extend
         "/2fa/pairings/push_token",
         Some(Map("pairing_id" -> dongle.id.get, "push_token" -> regId.value))
       ).future onComplete {
-        case Success() => {
+        case Success(_) => {
           edit()
           .putString(dongle.id.get, regId.value)
           .commit()
@@ -68,7 +69,7 @@ class GcmAPI(c: Context, client: HttpClient = HttpClient.defaultInstance) extend
 
 object GcmAPI {
 
-  private[thid] var _instance: GcmAPI = _
+  private[this] var _instance: GcmAPI = _
 
   def defaultInstance(implicit context: Context): GcmAPI = {
     if (_instance == null)

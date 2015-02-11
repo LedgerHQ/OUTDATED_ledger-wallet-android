@@ -34,6 +34,7 @@ import android.app.Activity
 import android.content.Context
 import com.google.android.gms.common.{ConnectionResult, GooglePlayServicesUtil}
 import com.google.android.gms.gcm.GoogleCloudMessaging
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.{Promise, Future}
 
