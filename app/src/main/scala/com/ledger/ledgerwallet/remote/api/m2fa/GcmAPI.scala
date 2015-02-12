@@ -60,12 +60,8 @@ class GcmAPI(c: Context, client: HttpClient = HttpClient.defaultInstance) extend
     }
   }
 
-  def removeDongleToken(dongle: PairedDongle): Unit = {
-
-  }
-
+  def removeDongleToken(dongle: PairedDongle): Unit = client.delete("/2fa/pairings/" + dongle.id.get + "/push_token")
   def updateDonglesToken(regId: RegistrationId): Unit = PairedDongle.all.foreach(updateDongleToken(_, regId))
-
 }
 
 object GcmAPI {

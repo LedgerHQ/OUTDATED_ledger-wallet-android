@@ -103,4 +103,15 @@ class HttpClientTest extends InstrumentationTestCase {
     signal.await()
   }
 
+  def testDelete(): Unit = {
+    val request = client.delete("/delete")
+    request.future onComplete {
+      case Success(_) => {
+        signal.countDown()
+      }
+      case Failure(e) => Assert.fail("HTTP failed " + e.getMessage)
+    }
+    signal.await()
+  }
+
 }

@@ -38,11 +38,12 @@ import com.koushikdutta.async.http
 import com.koushikdutta.async.http.AsyncHttpClient.WebSocketConnectCallback
 import com.koushikdutta.async.http._
 import com.koushikdutta.async.http.body.{JSONObjectBody, AsyncHttpRequestBody}
+import com.koushikdutta.async.http.callback.HttpConnectCallback
 import com.ledger.ledgerwallet.app.Config
 import com.ledger.ledgerwallet.utils.logs.Logger
 import org.apache.http.impl.DefaultHttpRequestFactory
 import org.apache.http.HttpRequest
-import org.apache.http.client.methods.{HttpPost, HttpGet}
+import org.apache.http.client.methods.{HttpDelete, HttpPost, HttpGet}
 import org.json.{JSONArray, JSONObject}
 
 import scala.collection.mutable
@@ -83,6 +84,12 @@ class HttpClient(baseUrl: Uri) {
                      headers: Option[HeadersMap] = None)
   : Request[JSONObject] = Request.post(url, params, body.map(new JSONObjectBody(_)), headers)
 
+  def delete(url: String,
+             params: Option[ParametersMap] = None,
+             body: Option[AsyncHttpRequestBody[_]] = None,
+             header: Option[HeadersMap] = None)
+  : Request[Unit] = Request.delete(url, params, body, header)
+
   def websocket(url: String,
                 protocol: Option[String] = None,
                 params: Option[ParametersMap] = None,
@@ -121,6 +128,20 @@ class HttpClient(baseUrl: Uri) {
 
     def post(url: String, params: Option[ParametersMap], body: Option[AsyncHttpRequestBody[_]], headers: Option[HeadersMap])
     : Request[JSONObject] = executeJsonObject(new HttpPost(url), params, body, headers)
+
+    def delete(url: String, params: Option[ParametersMap], body: Option[AsyncHttpRequestBody[_]], headers: Option[HeadersMap])
+    : Request[Unit] = execute(new HttpDelete(url), params, body, headers)
+
+    private[this] def execute(httpRequest: HttpRequest,
+                              params: Option[ParametersMap],
+                              body: Option[AsyncHttpRequestBody[_]],
+                              headers: Option[HeadersMap])
+    : Request[Unit] = {
+      val httpAsyncRequest = configureRequest(httpRequest, params, body, headers)
+      val request = new RequestImpl[Unit](httpAsyncRequest)
+      request.httpFuture = _client.execute(httpAsyncRequest, new VoidCallback(request)).asInstanceOf[HttpFuture[Unit]]
+      request
+    }
 
     private[this] def executeJsonObject(httpRequest: HttpRequest,
                                         params: Option[ParametersMap],
@@ -206,6 +227,18 @@ class HttpClient(baseUrl: Uri) {
         } else {
           request.responsePromise.success(source)
           request.resultPromise.success(result)
+        }
+      }
+    }
+
+    private class VoidCallback(request: RequestImpl[Unit]) extends HttpConnectCallback {
+      override def onConnectCompleted(ex: Exception, response: AsyncHttpResponse): Unit = {
+        if (response == null) {
+          request.responsePromise.failure(ex)
+          request.resultPromise.failure(ex)
+        } else {
+          request.responsePromise.success(response)
+          request.resultPromise.success(Unit)
         }
       }
     }
