@@ -30,6 +30,9 @@
  */
 package com.ledger.ledgerwallet.remote.api.m2fa
 
+import java.math.BigInteger
+import java.util.Date
+
 import android.content.Context
 import android.os.{Looper, Handler}
 import com.ledger.ledgerwallet.bitcoin.BitcoinUtils
@@ -118,10 +121,11 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
   class IncomingTransaction(connection: Connection,
                             val dongle: PairedDongle,
                             val pin: String,
-                            val amount: String,
-                            val fees: String,
-                            val change: String,
+                            val amount: BigInteger,
+                            val fees: BigInteger,
+                            val change: BigInteger,
                             val address: String) {
+    val date = new Date()
     private[this] var _done = false
 
     def accept(): Unit = {
@@ -206,11 +210,11 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
         var offset = 0
         val pin = new String(decrypted.slice(offset, 4))
         offset += 4
-        val amount = Hex.toHexString(decrypted.slice(offset, 8))
+        val amount = new BigInteger(1, decrypted.slice(offset, 8))
         offset += 8
-        val fees = Hex.toHexString(decrypted.slice(offset, 8))
+        val fees = new BigInteger(1, decrypted.slice(offset, 8))
         offset += 8
-        val change = Hex.toHexString(decrypted.slice(offset, 8))
+        val change = new BigInteger(1, decrypted.slice(offset, 8))
         offset += 8
         val address = new String(decrypted.slice(offset + 1, decrypted.apply(offset).asInstanceOf[Int]))
         if (!BitcoinUtils.isAddressValid(address))

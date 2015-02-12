@@ -34,12 +34,19 @@ import android.os.Bundle
 import android.view.{View, ViewGroup, LayoutInflater}
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.BaseDialogFragment
+import com.ledger.ledgerwallet.bitcoin.AmountFormatter
 import com.ledger.ledgerwallet.remote.api.m2fa.IncomingTransactionAPI
+import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.view.DialogActionBarController
+import com.ledger.ledgerwallet.widget.TextView
 
 class IncomingTransactionDialogFragment extends BaseDialogFragment {
 
   lazy val actions = DialogActionBarController(R.id.dialog_action_bar).noNeutralButton
+  lazy val amount = TR(R.id.amount).as[TextView]
+  lazy val address = TR(R.id.address).as[TextView]
+  lazy val date = TR(R.id.date).as[TextView]
+
   private[this] var _transaction: Option[IncomingTransactionAPI#IncomingTransaction] = None
 
   def this(tx: IncomingTransactionAPI#IncomingTransaction) {
@@ -72,6 +79,12 @@ class IncomingTransactionDialogFragment extends BaseDialogFragment {
     actions onNegativeClick {
       _transaction.foreach(_.reject())
       dismiss()
+    }
+    _transaction match {
+      case Some(transaction) =>
+        amount.setText(AmountFormatter.Bitcoin.format(transaction.amount))
+        address.setText(transaction.address)
+      case _ =>
     }
   }
 }
