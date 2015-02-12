@@ -34,6 +34,8 @@ package com.ledger.ledgerwallet.app.m2fa
 import java.text.{SimpleDateFormat, DecimalFormat, NumberFormat}
 import java.util.Locale
 
+import android.app.AlertDialog.Builder
+import android.app.{AlertDialog, Dialog}
 import android.content.{Context, Intent}
 import android.os.Bundle
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
@@ -103,6 +105,8 @@ class PairedDonglesActivity extends BaseActivity {
 
   class PairedDonglesAdapter(c: Context) extends RecyclerView.Adapter[ViewHolder] {
 
+    implicit val context = c
+
     private[this] lazy val DateFormat = {
       val f = android.text.format.DateFormat.getBestDateTimePattern(Locale.getDefault, "dd/MM/yyyy")
       new SimpleDateFormat(f)
@@ -128,6 +132,10 @@ class PairedDonglesActivity extends BaseActivity {
       val dongle = pairedDongles(position)
       ui.dongleName.setText(dongle.name.get)
       ui.pairingDate.setText(String.format(TR(R.string.paired_dongle_paired_on).as[String], DateFormat.format(dongle.createdAt.get)))
+      ui.deleteButton onClick {
+        dongle.delete()
+      }
+      ui.deleteButton.setVisibility(View.GONE)
     }
   }
 

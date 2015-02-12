@@ -55,6 +55,11 @@ class PairedDongle(_id: String = null, _name: String = null, _date: Date = null)
 
   def pairingKey(implicit context: Context): Option[SecretKey] = PairedDongle.retrievePairingKey(id.get)
 
+  def delete()(implicit context: Context): Unit = {
+    PairedDongle.deletePairingKey(context, id.get)
+    GcmAPI.defaultInstance.removeDongleToken(this)
+  }
+
   def this() = {
     this(null, null, null)
   }
@@ -106,6 +111,8 @@ object PairedDongle extends Collection[PairedDongle] {
   def storePairingKey(context: Context, id: String, pairingKey: Array[Byte]): Unit = {
     SecretKey.create(context, id, pairingKey)
   }
+
+  def deletePairingKey(context: Context, id: String): Unit = SecretKey.delete(context, id)
 
   val PreferencesName = "PairedDonglePreferences"
 

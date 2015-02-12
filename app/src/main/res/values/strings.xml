@@ -35,6 +35,8 @@
     <string name="create_dongle_instruction_step_5_name_hint">Ledger Wallet name</string>
     <string name="create_dongle_instruction_step_5_bottom">Enter a name to assign to this Ledger Wallet</string>
 
+    <!-- Delete Pairing Dialog -->
+
 
     <!-- Incoming Transaction Dialog -->
     <string name="incoming_tx_title">NEW OPERATION</string>

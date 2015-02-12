@@ -117,6 +117,14 @@ object SecretKey {
     }
   }
 
+  def delete(context: Context, alias: String): Unit = {
+    keystore().deleteEntry(alias)
+    context.getSharedPreferences(PreferenceName, Context.MODE_PRIVATE)
+      .edit()
+      .remove(alias)
+      .commit()
+  }
+
   private class SecretKeyImpl(_alias: String, _raw: Array[Byte], keyPair: KeyPair) extends SecretKey {
     private[this] val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
 
