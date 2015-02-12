@@ -30,13 +30,16 @@
  */
 package com.ledger.ledgerwallet.app
 
-import android.content.{Intent, Context}
+import android.app.Activity
+import android.content.{ComponentName, Intent, Context}
 import android.support.v4.content.WakefulBroadcastReceiver
 
 class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
 
   override def onReceive(context: Context, intent: Intent): Unit = {
-
+    val comp = new ComponentName(context.getPackageName, classOf[GcmIntentService].getName)
+    WakefulBroadcastReceiver.startWakefulService(context, intent.setComponent(comp))
+    setResultCode(Activity.RESULT_OK)
   }
 
 }

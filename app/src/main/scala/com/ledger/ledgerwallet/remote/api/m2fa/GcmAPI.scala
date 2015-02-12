@@ -35,6 +35,7 @@ import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.HttpClient
 import com.ledger.ledgerwallet.utils.GooglePlayServiceHelper.RegistrationId
 import com.ledger.ledgerwallet.utils.Preferenceable
+import com.ledger.ledgerwallet.utils.logs.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.util.{Failure, Success}

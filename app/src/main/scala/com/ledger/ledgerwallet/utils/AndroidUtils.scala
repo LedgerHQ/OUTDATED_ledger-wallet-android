@@ -36,7 +36,13 @@ import scala.util.Try
 
 object AndroidUtils {
 
+  private[this] var _isApplicationInForeground = 0
+
   def getAppVersion(implicit context: Context)
   : Try[Int] = Try(context.getPackageManager.getPackageInfo(context.getPackageName, 0).versionCode)
+
+  def notifyActivityOnResume(): Unit = _isApplicationInForeground += 1
+  def notifyActivityOnPause(): Unit = _isApplicationInForeground -= 1
+  def isApplicationInForeground = _isApplicationInForeground > 0
 
 }

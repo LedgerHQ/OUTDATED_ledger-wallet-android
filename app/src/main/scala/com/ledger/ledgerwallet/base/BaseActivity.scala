@@ -31,6 +31,7 @@
 
 package com.ledger.ledgerwallet.base
 
+import android.app.NotificationManager
 import android.os.Bundle
 import android.support.v7.app.{ActionBar, ActionBarActivity}
 import com.ledger.ledgerwallet.widget.Toolbar
@@ -38,8 +39,10 @@ import android.view.ViewGroup.LayoutParams
 import android.view.{MenuItem, LayoutInflater, View}
 import android.widget.FrameLayout
 import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.utils.TR
+import com.ledger.ledgerwallet.utils.{AndroidUtils, TR}
 import com.ledger.ledgerwallet.utils.logs.Loggable
+import com.ledger.ledgerwallet.app.GcmIntentService
+import android.content.Context
 
 import scala.concurrent.ExecutionContext
 
@@ -61,6 +64,18 @@ abstract class BaseActivity extends ActionBarActivity with Loggable {
       getSupportActionBar.setCustomView(toolbar.titleView)
     }
     toolbar.setTitle(getTitle)
+  }
+
+  override def onResume(): Unit = {
+    super.onResume()
+    AndroidUtils.notifyActivityOnResume()
+    getSystemService(Context.NOTIFICATION_SERVICE).asInstanceOf[NotificationManager]
+      .cancel(GcmIntentService.IncomingTransactionNotificationId)
+  }
+
+  override def onPause(): Unit = {
+    super.onPause()
+    AndroidUtils.notifyActivityOnPause()
   }
 
   override def setContentView(layoutResID: Int): Unit = {

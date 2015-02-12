@@ -35,14 +35,17 @@ import java.security.KeyStore.SecretKeyEntry
 import java.util.Date
 import javax.crypto.spec.SecretKeySpec
 import com.ledger.ledgerwallet.crypto.SecretKey
+import com.ledger.ledgerwallet.remote.api.m2fa.GcmAPI
+import com.ledger.ledgerwallet.utils.GooglePlayServiceHelper
 import org.json.JSONObject
 
+import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.ui
 import scala.collection.JavaConversions._
 
 import android.content.Context
 import com.ledger.ledgerwallet.base.model.{Collection, BaseModel}
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 class PairedDongle(_id: String = null, _name: String = null, _date: Date = null) extends BaseModel {
 
@@ -91,6 +94,10 @@ object PairedDongle extends Collection[PairedDongle] {
       .putString(id, dongle.toJson.toString)
       .commit()
     storePairingKey(context, id, pairingKey)
+    GooglePlayServiceHelper.getGcmRegistrationId onComplete {
+      case Success(regId) => GcmAPI.defaultInstance.updateDonglesToken(regId)
+      case _ =>
+    }
     dongle
   }
 

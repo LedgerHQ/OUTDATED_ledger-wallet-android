@@ -62,7 +62,9 @@ class HomeActivity extends BaseActivity {
     ensureFragmentIsSetup()
     api onIncomingTransaction openIncomingTransactionDialog
     GooglePlayServiceHelper.getGcmRegistrationId onComplete {
-      case Success(regId) => GcmAPI.defaultInstance.updateDonglesToken(regId)
+      case Success(regId) =>
+        Logger.d("REG ID = " + regId.value)
+        GcmAPI.defaultInstance.updateDonglesToken(regId)
       case Failure(ex) =>
     }
   }

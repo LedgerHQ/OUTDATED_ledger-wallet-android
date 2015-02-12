@@ -30,13 +30,57 @@
  */
 package com.ledger.ledgerwallet.app
 
-import android.app.IntentService
-import android.content.Intent
+import android.app.{PendingIntent, NotificationManager, IntentService}
+import android.content.{Context, Intent}
+import android.os.Bundle
+import android.support.v4.app.NotificationCompat
+import android.support.v4.content.WakefulBroadcastReceiver
+import com.google.android.gms.gcm.GoogleCloudMessaging
+import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.utils.{AndroidUtils, TR}
 
 class GcmIntentService extends IntentService("Ledger Wallet GCM Service") {
 
-  override def onHandleIntent(intent: Intent): Unit = {
+  implicit val context = this
 
+
+  override def onHandleIntent(intent: Intent): Unit = {
+    val extras = intent.getExtras
+    val gcm = GoogleCloudMessaging.getInstance(this)
+    if (!extras.isEmpty) {
+      gcm.getMessageType(intent) match {
+        case GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE =>
+          extras.getString("type") match {
+            case "remote2fa" => postIncomingTransactionNotification(extras)
+            case _ =>
+          }
+        case _ =>
+      }
+    }
+    WakefulBroadcastReceiver.completeWakefulIntent(intent)
   }
+
+  private[this] def postIncomingTransactionNotification(extras: Bundle): Unit = {
+    if (AndroidUtils.isApplicationInForeground)
+      return
+    val manager = getSystemService(Context.NOTIFICATION_SERVICE).asInstanceOf[NotificationManager]
+    val launchIntent = new Intent(this, classOf[HomeActivity])
+    val intent = PendingIntent.getActivity(this, 0, launchIntent, 0)
+    val notification = new NotificationCompat.Builder(this)
+      .setSmallIcon(R.drawable.ic_launcher)
+      .setContentTitle(TR(R.string.app_name).as[String])
+      .setContentText(extras.getString("message"))
+      .setContentIntent(intent)
+      .setAutoCancel(true)
+      .setVibrate(Array[Long](0, 500, 100, 500))
+      .build()
+    manager.notify(GcmIntentService.IncomingTransactionNotificationId, notification)
+  }
+
+}
+
+object GcmIntentService {
+
+  val IncomingTransactionNotificationId = 1
 
 }
