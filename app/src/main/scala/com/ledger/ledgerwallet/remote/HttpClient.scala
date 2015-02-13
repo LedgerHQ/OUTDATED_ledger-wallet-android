@@ -30,7 +30,9 @@
  */
 package com.ledger.ledgerwallet.remote
 
+import java.security.cert.X509Certificate
 import java.util.Locale
+import javax.net.ssl.X509TrustManager
 
 import android.net.Uri
 import com.koushikdutta.async.future.FutureCallback
