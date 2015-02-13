@@ -219,6 +219,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
       case "pairing" => handleNamingStep(socket, pkg)
       case "repeat" => sendPendingPackage(socket)
       case "disconnect" => failure(new PairingAPI.ClientCancelledException)
+      case _ => Logger.d("Ignore package " + pkg.toString)
     }
   }
 
@@ -254,7 +255,10 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
 
   private[this] def failure(cause: Throwable): Unit = {
     _websocket foreach {_.close()}
-    _promise foreach {_.failure(cause)}
+    val p = _promise
+    _promise = None
+    p foreach {_.failure(cause)}
+    abortPairingProcess()
   }
 
   private object State extends Enumeration {
@@ -278,7 +282,7 @@ object PairingAPI {
     val keycardChallenge = new String(data.slice(0, 4).map((b) => {
       (b + '0'.toByte).asInstanceOf[Byte]
     }))
-    val pairingKey = data.slice(4, data.length)
+    val pairingKey = data.slice(4, 20)
     new ChallengePackage(keycardChallenge, pairingKey, sessionNonce)
   }
 

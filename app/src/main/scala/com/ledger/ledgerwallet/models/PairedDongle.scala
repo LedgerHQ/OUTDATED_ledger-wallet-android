@@ -58,6 +58,7 @@ class PairedDongle(_id: String = null, _name: String = null, _date: Date = null)
   def delete()(implicit context: Context): Unit = {
     PairedDongle.deletePairingKey(context, id.get)
     GcmAPI.defaultInstance.removeDongleToken(this)
+    PairedDongle.delete(this)
   }
 
   def this() = {
@@ -104,6 +105,14 @@ object PairedDongle extends Collection[PairedDongle] {
       case _ =>
     }
     dongle
+  }
+
+  def delete(dongle: PairedDongle)(implicit context: Context): Unit = {
+    context
+      .getSharedPreferences(PreferencesName, Context.MODE_PRIVATE)
+      .edit()
+      .remove(dongle.id.get)
+      .commit()
   }
 
   def retrievePairingKey(id: String)(implicit context: Context): Option[SecretKey] = SecretKey.get(context, id)

@@ -32,6 +32,7 @@ package com.ledger.ledgerwallet.model
 
 import android.test.InstrumentationTestCase
 import com.ledger.ledgerwallet.models.PairedDongle
+import com.ledger.ledgerwallet.utils.logs.Logger
 import junit.framework.Assert
 import org.spongycastle.util.encoders.Hex
 import scala.collection.mutable
@@ -42,7 +43,7 @@ class PairedDongleTest extends InstrumentationTestCase {
     implicit val context = getInstrumentation.getTargetContext
     val pairingId = "a test pairing id"
     val name = "A super name for an amazing dongle"
-    val pairingKey = Hex.decode("6032d5032c905f39447bc3f28a043a994ccddb8f")
+    val pairingKey = Hex.decode("6032d5032c905f39447bc3f28a043a99")
     val dongle = PairedDongle.create(pairingId, name, pairingKey)
     Assert.assertEquals(pairingId, dongle.id.get)
     Assert.assertEquals(name, dongle.name.get)
@@ -53,13 +54,14 @@ class PairedDongleTest extends InstrumentationTestCase {
     implicit val context = getInstrumentation.getTargetContext
     val pairingId = "a test pairing id"
     val name = "A super name for an amazing dongle"
-    val pairingKey = Hex.decode("6032d5032c905f39447bc3f28a043a994ccddb8f")
+    val pairingKey = Hex.decode("6032d5032c905f39447bc3f28a043a99")
     PairedDongle.create(pairingId, name, pairingKey)
     val dongle = PairedDongle.get(pairingId)
     Assert.assertTrue(dongle.isDefined)
     Assert.assertEquals(pairingId, dongle.get.id.get)
     Assert.assertEquals(name, dongle.get.name.get)
     Assert.assertEquals(Hex.toHexString(pairingKey), Hex.toHexString(dongle.get.pairingKey.get.secret))
+    Logger.d(Hex.toHexString(pairingKey) + " <> " + Hex.toHexString(dongle.get.pairingKey.get.secret))
   }
 
   def testShouldCreateAndGetFromPreferencesMuktipleDongle(): Unit = {
@@ -67,7 +69,7 @@ class PairedDongleTest extends InstrumentationTestCase {
 
     val testSet = mutable.Map[String, (String, String)]()
 
-    testSet("a test pairing id") = ("A super name for an amazing dongle", "6032d5032c905f39447bc3f28a043a994ccddb8f")
+    testSet("a test pairing id") = ("A super name for an amazing dongle", "6032d5032c905f39447bc3f28a043a99")
     testSet("pairing_1") = ("A first name", "aa32d5032c905f39447bc3f28a043a994ccddb8f")
     testSet("pairing_2") = ("A second name", "bb32d5032c905f39447bc3f28a043a994ccddb8f")
     testSet("pairing_3") = ("A third name", "cc32d5032c905f39447bc3f28a043a994ccddb8f")

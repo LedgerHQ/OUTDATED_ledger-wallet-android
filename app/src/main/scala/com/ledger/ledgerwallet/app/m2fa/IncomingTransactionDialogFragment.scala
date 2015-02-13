@@ -30,6 +30,10 @@
  */
 package com.ledger.ledgerwallet.app.m2fa
 
+import java.text.SimpleDateFormat
+import java.util.Locale
+
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.{View, ViewGroup, LayoutInflater}
 import com.ledger.ledgerwallet.R
@@ -46,6 +50,7 @@ class IncomingTransactionDialogFragment extends BaseDialogFragment {
   lazy val amount = TR(R.id.amount).as[TextView]
   lazy val address = TR(R.id.address).as[TextView]
   lazy val date = TR(R.id.date).as[TextView]
+  lazy val name = TR(R.id.dongle_name).as[TextView]
 
   private[this] var _transaction: Option[IncomingTransactionAPI#IncomingTransaction] = None
 
@@ -74,18 +79,30 @@ class IncomingTransactionDialogFragment extends BaseDialogFragment {
     super.onViewCreated(view, savedInstanceState)
     actions onPositiveClick {
       _transaction.foreach(_.accept())
+      _transaction = None
       dismiss()
     }
     actions onNegativeClick {
       _transaction.foreach(_.reject())
+      _transaction = None
       dismiss()
     }
     _transaction match {
       case Some(transaction) =>
         amount.setText(AmountFormatter.Bitcoin.format(transaction.amount))
         address.setText(transaction.address)
+        name.setText(transaction.dongle.name.get)
+        android.text.format.DateFormat.getBestDateTimePattern(Locale.getDefault, "dd/MM/yyyy")
+        val df = new SimpleDateFormat(android.text.format.DateFormat.getBestDateTimePattern(Locale.getDefault, "dd/MM/yyyy"))
+        val hf = android.text.format.DateFormat.getTimeFormat(getActivity)
+        date.setText(TR(R.string.incoming_tx_date).as[String].format(df.format(transaction.date), hf.format(transaction.date)))
       case _ =>
     }
+  }
+
+  override def onDismiss(dialog: DialogInterface): Unit = {
+    super.onDismiss(dialog)
+    _transaction.foreach(_.cancel())
   }
 }
 

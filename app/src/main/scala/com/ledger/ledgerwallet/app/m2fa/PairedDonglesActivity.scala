@@ -36,7 +36,8 @@ import java.util.Locale
 
 import android.app.AlertDialog.Builder
 import android.app.{AlertDialog, Dialog}
-import android.content.{Context, Intent}
+import android.content.DialogInterface.OnClickListener
+import android.content.{DialogInterface, Context, Intent}
 import android.os.Bundle
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
@@ -73,12 +74,13 @@ class PairedDonglesActivity extends BaseActivity {
     }
   }
 
-
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
     super.onActivityResult(requestCode, resultCode, data)
     if (requestCode == CreateDonglePairingActivity.CreateDonglePairingRequest) {
       resultCode match {
-        case CreateDonglePairingActivity.ResultOk => showSuccessDialog(PairedDongle.all.sortBy(- _.createdAt.get.getTime).head.name.get)
+        case CreateDonglePairingActivity.ResultOk =>
+          showSuccessDialog(PairedDongle.all.sortBy(- _.createdAt.get.getTime).head.name.get)
+          pairedDevicesAdapter.pairedDongles = PairedDongle.all.sortBy(_.createdAt.get.getTime)
         case CreateDonglePairingActivity.ResultNetworkError => showErrorDialog(R.string.pairing_failure_dialog_error_network)
         case CreateDonglePairingActivity.ResultPairingCancelled => showErrorDialog(R.string.pairing_failure_dialog_cancelled)
         case CreateDonglePairingActivity.ResultWrongChallenge => showErrorDialog(R.string.pairing_failure_dialog_wrong_answer)
@@ -99,7 +101,7 @@ class PairedDonglesActivity extends BaseActivity {
     new BigIconAlertDialog.Builder(this)
       .setTitle(R.string.pairing_success_dialog_title)
       .setContentText(TR(R.string.pairing_success_dialog_content).as[String].format(dongleName))
-      .setIcon(R.drawable.ic_big_red_failure)
+      .setIcon(R.drawable.ic_big_green_success)
       .create().show(getSupportFragmentManager, "SuccessDialog")
   }
 
@@ -133,9 +135,22 @@ class PairedDonglesActivity extends BaseActivity {
       ui.dongleName.setText(dongle.name.get)
       ui.pairingDate.setText(String.format(TR(R.string.paired_dongle_paired_on).as[String], DateFormat.format(dongle.createdAt.get)))
       ui.deleteButton onClick {
-        dongle.delete()
+        new Builder(PairedDonglesActivity.this)
+        .setMessage(R.string.delete_pairing_dialog_message)
+        .setPositiveButton(android.R.string.yes, new OnClickListener {
+          override def onClick(dialog: DialogInterface, which: Int): Unit = {
+            dongle.delete()
+            dialog.dismiss()
+            pairedDevicesAdapter.pairedDongles = PairedDongle.all.sortBy(_.createdAt.get.getTime)
+            if (pairedDevicesAdapter.pairedDongles.length == 0)
+              finish()
+          }
+        })
+        .setNeutralButton(android.R.string.no, new OnClickListener {
+          override def onClick(dialog: DialogInterface, which: Int): Unit = dialog.dismiss()
+        })
+        .create().show()
       }
-      ui.deleteButton.setVisibility(View.GONE)
     }
   }
 

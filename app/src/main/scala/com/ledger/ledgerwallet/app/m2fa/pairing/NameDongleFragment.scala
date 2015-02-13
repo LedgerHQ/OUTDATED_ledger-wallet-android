@@ -36,6 +36,7 @@ import android.view._
 import android.view.inputmethod.EditorInfo
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{ContractFragment, BaseFragment}
+import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.utils.{Convert, TR}
 import com.ledger.ledgerwallet.widget.{TextView, EditText}
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._

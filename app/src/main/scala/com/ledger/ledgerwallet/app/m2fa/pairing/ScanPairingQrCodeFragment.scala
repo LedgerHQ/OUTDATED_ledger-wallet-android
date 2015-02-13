@@ -42,6 +42,8 @@ import com.ledger.ledgerwallet.utils.logs.Logger
 import com.ledger.ledgerwallet.widget.ScannerFrame
 import me.dm7.barcodescanner.zbar.{BarcodeFormat, Result, ZBarScannerView}
 import me.dm7.barcodescanner.zbar.ZBarScannerView.ResultHandler
+import org.spongycastle.crypto.digests.SHA256Digest
+import org.spongycastle.util.encoders.Hex
 
 class ScanPairingQrCodeFragment extends BaseFragment with ContractFragment[CreateDonglePairingActivity.CreateDonglePairingProccessContract] with ResultHandler {
 
@@ -72,7 +74,22 @@ class ScanPairingQrCodeFragment extends BaseFragment with ContractFragment[Creat
 
   override def handleResult(result: Result): Unit = {
     val content = result.getContents
-    contract.setPairingId(content)
+    try {
+      val bytes = Hex.decode(content)
+      if (bytes.length != 17) return
+      val data = bytes.slice(0, 16)
+      val chks = bytes(16).toInt
+      val validChecksum = new Array[Byte](32)
+      val sha256 = new SHA256Digest()
+      sha256.update(data, 0, data.length)
+      sha256.doFinal(validChecksum, 0)
+      if (chks != validChecksum(0).toInt) {
+       Logger.d("Invalid checksum")
+      }
+      contract.setPairingId(content)
+    } catch {
+      case ex: Throwable => ex.printStackTrace()
+    }
   }
 
   override def tag: String = "ScanPairingQrCodeFragment"

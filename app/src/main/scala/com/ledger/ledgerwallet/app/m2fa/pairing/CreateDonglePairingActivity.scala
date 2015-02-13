@@ -30,12 +30,16 @@
  */
 package com.ledger.ledgerwallet.app.m2fa.pairing
 
-import android.app.Activity
+import android.app.AlertDialog.Builder
+import android.app.{AlertDialog, Activity}
+import android.content.DialogInterface
+import android.content.DialogInterface.OnClickListener
 import android.os.Bundle
 import android.support.v4.app.NavUtils
 import android.view.MenuItem
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{BaseFragment, BaseActivity}
+import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.api.m2fa.{RequireDongleName, RequireChallengeResponse, RequirePairingId, PairingAPI}
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.TextView
@@ -63,17 +67,28 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     if (pairingApi == null)
       pairingApi = new PairingAPI(this)
     pairingApi.startPairingProcess()
+
+  }
+
+
+  override def onResume(): Unit = {
+    super.onResume()
     pairingApi.future.get onComplete {
       case Success(pairedDongle) => postResult(CreateDonglePairingActivity.ResultOk)
       case Failure(ex) => {
         ex match {
           case disconnect: PairingAPI.ClientCancelledException => postResult(CreateDonglePairingActivity.ResultPairingCancelled)
           case wrongChallenge: PairingAPI.WrongChallengeAnswerException => postResult(CreateDonglePairingActivity.ResultWrongChallenge)
-          case _ => postResult(CreateDonglePairingActivity.ResultNetworkError)
           case e: InterruptedException =>
+          case _ => postResult(CreateDonglePairingActivity.ResultNetworkError)
         }
       }
     }
+  }
+
+  override def onPause(): Unit = {
+    super.onPause()
+    pairingApi.future.get onComplete((_) => {})
   }
 
   def pairingApi_=(api: PairingAPI): Unit = {
@@ -117,7 +132,21 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
       )
     )
   }
-  override def setDongleName(name: String): Unit = if (!dongleName.isCompleted) dongleName.complete(Try(name))
+  override def setDongleName(name: String): Unit = {
+    val cleanName = name.trim
+    if (!dongleName.isCompleted) {
+      if (PairedDongle.all.exists(_.name.get == cleanName)) {
+        new Builder(this)
+          .setTitle(R.string.create_dongle_instruction_step_5_error_title)
+          .setMessage(R.string.create_dongle_instruction_step_5_error_message)
+          .setNegativeButton(android.R.string.ok, new OnClickListener {
+          override def onClick(dialog: DialogInterface, which: Int): Unit = dialog.dismiss()
+        }).create().show()
+        return
+      }
+      dongleName.complete(Try(cleanName))
+    }
+  }
 
   override def setChallengeAnswer(answer: String): Unit = {
     if (challengeResponse.isCompleted) return

@@ -41,6 +41,7 @@ import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.{StringData, Close, WebSocket, HttpClient}
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 import com.ledger.ledgerwallet.utils.JsonUtils._
+import com.ledger.ledgerwallet.utils.logs.Logger
 import org.json.{JSONException, JSONObject}
 import org.spongycastle.util.encoders.Hex
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -82,6 +83,7 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
     if (!_isRunning) {
       _isRunning = true
       PairedDongle.all(context) foreach connect
+      Logger.d("Waiting for transaction [Listen]")
     }
   }
 
@@ -101,10 +103,11 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
 
   private def requestFocus(connection: Connection): Boolean = {
     if (_focusedConnection.isEmpty) {
-      _focusedConnection = Some(connection)
+      _focusedConnection = Option(connection)
       connections.filterNot(_._1 == connection.dongle.id.get) foreach {_._2.disconnect()}
       connections.clear()
       connections(connection.dongle.id.get) = connection
+      Logger.d("Locked in transaction")
       return true
     }
     false
@@ -115,6 +118,7 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
       val focusedConnection = _focusedConnection.get
       _focusedConnection = None
       PairedDongle.all(context).filterNot(_.id.get == focusedConnection.dongle.id.get) foreach connect
+      Logger.d("Waiting for transaction")
     }
   }
 
@@ -125,6 +129,13 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
                             val fees: BigInteger,
                             val change: BigInteger,
                             val address: String) {
+    Logger.d("Incoming Transaction")
+    Logger.d("Address " + address)
+    Logger.d("Amount " + amount.toString)
+    Logger.d("Change " + change.toString)
+    Logger.d("Fees " + fees.toString)
+
+    val api = IncomingTransaction.this
     val date = new Date()
     private[this] var _done = false
 
@@ -140,6 +151,7 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
 
     def cancel(): Unit = {
       _done = true
+      connection.endFocus()
       mainThreadHandler.post(_onCancelled foreach {_()})
     }
 
@@ -151,12 +163,13 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
   }
 
   private class Connection(val dongle: PairedDongle) {
-
+    Logger.d("Connect to room " + dongle.id.get)
     private[this] var _isDisconnected = false
     private[this] var _websocket: Option[WebSocket] = None
     private[this] var _incomingTransaction: Option[IncomingTransaction] = None
 
     def connect(): Unit = {
+      Logger.d("Connecting to " + dongle.id.get)
       client.websocket("/2fa/channels") onComplete {
         case Success(websocket) => onConnect(websocket)
         case Failure(ex) => {
@@ -168,6 +181,7 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
     }
 
     def disconnect(): Unit = {
+      Logger.d("Disconnecting from " + dongle.id.get)
       _isDisconnected = true
       _websocket foreach {_.close()}
     }
@@ -195,6 +209,7 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
       json.getString("type") match {
         case "request" => handleRequestPackage(json)
         case "disconnect" => handleDisconnectPackage(json)
+        case _ => Logger.d("Received unknown package " + json.toString)
       }
     }
 
@@ -206,17 +221,18 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
           throw new Exception("No pairing key")
         val d3es = new D3ESCBC(pairingKey.get.secret)
         val decrypted = d3es.decrypt(Hex.decode(data))
-
+        Logger.d("Package -> " + json.toString)
+        Logger.d("Decrypted -> " + Hex.toHexString(decrypted))
         var offset = 0
-        val pin = new String(decrypted.slice(offset, 4))
+        val pin = new String(decrypted.slice(offset, offset + 4))
         offset += 4
-        val amount = new BigInteger(1, decrypted.slice(offset, 8))
+        val amount = new BigInteger(1, decrypted.slice(offset, offset + 8))
         offset += 8
-        val fees = new BigInteger(1, decrypted.slice(offset, 8))
+        val fees = new BigInteger(1, decrypted.slice(offset, offset + 8))
         offset += 8
-        val change = new BigInteger(1, decrypted.slice(offset, 8))
+        val change = new BigInteger(1, decrypted.slice(offset, offset + 8))
         offset += 8
-        val address = new String(decrypted.slice(offset + 1, decrypted.apply(offset).asInstanceOf[Int]))
+        val address = new String(decrypted.slice(offset + 1, offset + 1 + decrypted.apply(offset).toInt))
         if (!BitcoinUtils.isAddressValid(address))
           throw new Exception("Invalid address")
         new IncomingTransaction(this, dongle, pin, amount, fees, change, address)
@@ -229,7 +245,7 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
             notifyIncomingTransaction(incomingTransaction)
           }
         }
-        case Failure(ex) => // The transaction cannot be handled
+        case Failure(ex) => ex.printStackTrace()// The transaction cannot be handled
       }
     }
 
@@ -240,9 +256,10 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
       }
     }
 
-    private[this] def endFocus(): Unit = {
+    def endFocus(): Unit = {
       _incomingTransaction = None
       clearFocus()
+      _isDisconnected = false
     }
 
     def sendAcceptPackage(): Unit = {

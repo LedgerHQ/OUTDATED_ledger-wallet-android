@@ -33,10 +33,12 @@
     <string name="create_dongle_instruction_step_5">Finally, give a name to this Ledger Wallet to access it easily.</string>
     <string name="create_dongle_instruction_step_5_default_name">My Ledger Wallet</string>
     <string name="create_dongle_instruction_step_5_name_hint">Ledger Wallet name</string>
+    <string name="create_dongle_instruction_step_5_error_title">Error</string>
+    <string name="create_dongle_instruction_step_5_error_message">This name is already taken by another Ledger Wallet</string>
     <string name="create_dongle_instruction_step_5_bottom">Enter a name to assign to this Ledger Wallet</string>
 
     <!-- Delete Pairing Dialog -->
-
+    <string name="delete_pairing_dialog_message">Are you sure?</string>
 
     <!-- Incoming Transaction Dialog -->
     <string name="incoming_tx_title">NEW OPERATION</string>

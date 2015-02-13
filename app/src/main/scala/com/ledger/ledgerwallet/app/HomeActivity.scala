@@ -30,7 +30,7 @@
  */
 package com.ledger.ledgerwallet.app
 
-import android.content.Intent
+import android.content.{DialogInterface, Intent}
 import android.os.Bundle
 import android.view.{View, ViewGroup, LayoutInflater}
 import com.ledger.ledgerwallet.R
@@ -60,6 +60,7 @@ class HomeActivity extends BaseActivity {
   override def onResume(): Unit = {
     super.onResume()
     ensureFragmentIsSetup()
+    api.listen()
     api onIncomingTransaction openIncomingTransactionDialog
     GooglePlayServiceHelper.getGcmRegistrationId onComplete {
       case Success(regId) =>
@@ -68,7 +69,6 @@ class HomeActivity extends BaseActivity {
       case Failure(ex) =>
     }
   }
-
 
   override def onPause(): Unit = {
     super.onPause()
@@ -119,7 +119,7 @@ class HomeActivity extends BaseActivity {
     new BigIconAlertDialog.Builder(this)
       .setTitle(R.string.pairing_success_dialog_title)
       .setContentText(TR(R.string.pairing_success_dialog_content).as[String].format(dongleName))
-      .setIcon(R.drawable.ic_big_red_failure)
+      .setIcon(R.drawable.ic_big_green_success)
       .create().show(getSupportFragmentManager, "SuccessDialog")
   }
 
