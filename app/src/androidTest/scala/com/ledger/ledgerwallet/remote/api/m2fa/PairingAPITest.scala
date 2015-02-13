@@ -155,7 +155,7 @@ class PairingApiServer(responseDelay: Long = 0) {
                 case "challenge" => {
                   val a = new JSONObject()
                   a.put("type", "pairing")
-                  a.put("is_succesfull", r.getString("data").equals("844f0cf804cc7a3b8ac235e0872a2779"))
+                  a.put("is_successful", r.getString("data").equals("844f0cf804cc7a3b8ac235e0872a2779"))
                   onSendPairing(a.toString, send)
                 }
               }

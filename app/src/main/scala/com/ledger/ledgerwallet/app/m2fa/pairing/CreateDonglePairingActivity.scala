@@ -70,6 +70,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
           case disconnect: PairingAPI.ClientCancelledException => postResult(CreateDonglePairingActivity.ResultPairingCancelled)
           case wrongChallenge: PairingAPI.WrongChallengeAnswerException => postResult(CreateDonglePairingActivity.ResultWrongChallenge)
           case _ => postResult(CreateDonglePairingActivity.ResultNetworkError)
+          case e: InterruptedException =>
         }
       }
     }
@@ -106,6 +107,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
   }
 
   override def setPairingId(id: String): Unit = {
+    if (pairindId.isCompleted) return
     pairindId.success(id)
     gotToStep(2, TR(R.string.create_dongle_instruction_step_2).as[String],
       new PairingInProgressFragment(
@@ -115,8 +117,10 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
       )
     )
   }
-  override def setDongleName(name: String): Unit = dongleName.complete(Try(name))
+  override def setDongleName(name: String): Unit = if (!dongleName.isCompleted) dongleName.complete(Try(name))
+
   override def setChallengeAnswer(answer: String): Unit = {
+    if (challengeResponse.isCompleted) return
     challengeResponse.complete(Try(answer))
     gotToStep(4, TR(R.string.create_dongle_instruction_step_4).as[String],
       new PairingInProgressFragment(

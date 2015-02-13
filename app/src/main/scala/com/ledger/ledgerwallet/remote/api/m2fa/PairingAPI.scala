@@ -44,7 +44,7 @@ import com.ledger.ledgerwallet.utils.JsonUtils._
 import scala.concurrent.{Promise, Future}
 import scala.util.{Failure, Success}
 
-class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultInstance) {
+class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocketInstance) {
 
   private[this] var _promise: Option[Promise[PairedDongle]] = None
   def future = _promise.map(_.future)
@@ -154,8 +154,8 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
     // ECDH Key agreement
 
     _currentState = State.Challenging
-    Logger.d("Sending public key")
-    prepareIdentifyPackage(publicKey = keypair.compressedPublicKeyHexString)
+    Logger.d("Sending public key " + keypair.publicKeyHexString)
+    prepareIdentifyPackage(publicKey = keypair.publicKeyHexString)
     sendPendingPackage(socket)
   }
 
@@ -194,7 +194,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.defaultIn
     // Success the promise
     // Close the connection
     Logger.d("Client must give a name " + pkg.toString)
-    if (!pkg.optBoolean("is_succesfull", false))
+    if (!pkg.optBoolean("is_successful", false))
     {
       failure(new PairingAPI.WrongChallengeAnswerException)
       return

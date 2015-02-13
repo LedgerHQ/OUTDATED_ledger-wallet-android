@@ -218,6 +218,7 @@ class HttpClient(baseUrl: Uri) {
 
     private class JSONObjectCallback(request: RequestImpl[JSONObject]) extends com.koushikdutta.async.http.AsyncHttpClient.JSONObjectCallback {
       override def onCompleted(e: Exception, source: AsyncHttpResponse, result: JSONObject): Unit = {
+        if (request.responsePromise.isCompleted) return
         if (source == null) {
           request.responsePromise.failure(e)
           request.resultPromise.failure(e)
@@ -233,6 +234,7 @@ class HttpClient(baseUrl: Uri) {
 
     private class VoidCallback(request: RequestImpl[Unit]) extends HttpConnectCallback {
       override def onConnectCompleted(ex: Exception, response: AsyncHttpResponse): Unit = {
+        if (request.responsePromise.isCompleted) return
         if (response == null) {
           request.responsePromise.failure(ex)
           request.resultPromise.failure(ex)
@@ -245,6 +247,7 @@ class HttpClient(baseUrl: Uri) {
 
     private class JSONArrayCallback(request: RequestImpl[JSONArray]) extends com.koushikdutta.async.http.AsyncHttpClient.JSONArrayCallback {
       override def onCompleted(e: Exception, source: AsyncHttpResponse, result: JSONArray): Unit = {
+        if (request.responsePromise.isCompleted) return
         if (source == null) {
           request.responsePromise.failure(e)
           request.resultPromise.failure(e)
