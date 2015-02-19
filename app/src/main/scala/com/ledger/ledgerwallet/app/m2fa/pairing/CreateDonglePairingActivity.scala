@@ -35,8 +35,6 @@ import android.app.{AlertDialog, Activity}
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
 import android.os.Bundle
-import android.support.v4.app.NavUtils
-import android.view.MenuItem
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{BaseFragment, BaseActivity}
 import com.ledger.ledgerwallet.models.PairedDongle
@@ -64,15 +62,18 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     getSupportActionBar.setHomeButtonEnabled(true)
     getSupportActionBar.setDisplayHomeAsUpEnabled(true)
     gotToStep(1, TR(R.string.create_dongle_instruction_step_1).as[String], new ScanPairingQrCodeFragment())
-    if (pairingApi == null)
-      pairingApi = new PairingAPI(this)
-    pairingApi.startPairingProcess()
-
   }
-
 
   override def onResume(): Unit = {
     super.onResume()
+    if (pairingApi == null)
+      pairingApi = new PairingAPI(this)
+    if (pairingApi.future.isEmpty) {
+      pairingApi.startPairingProcess()
+      if (!getSupportFragmentManager.findFragmentById(R.id.fragment_container).isInstanceOf[ScanPairingQrCodeFragment]) {
+        gotToStep(1, TR(R.string.create_dongle_instruction_step_1).as[String], new ScanPairingQrCodeFragment())
+      }
+    }
     pairingApi.future.get onComplete {
       case Success(pairedDongle) => postResult(CreateDonglePairingActivity.ResultOk)
       case Failure(ex) => {
@@ -119,7 +120,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     if (stepNumber > 1)
       ft.setCustomAnimations(R.anim.slide_from_right, R.anim.slide_to_left, R.anim.slide_from_left, R.anim.slide_to_right)
     ft.replace(R.id.fragment_container, fragment, fragment.tag)
-    ft.commit()
+    ft.commitAllowingStateLoss()
   }
 
   override def setPairingId(id: String): Unit = {

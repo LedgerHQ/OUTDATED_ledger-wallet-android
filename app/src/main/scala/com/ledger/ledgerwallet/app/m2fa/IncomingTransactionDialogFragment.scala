@@ -57,6 +57,7 @@ class IncomingTransactionDialogFragment extends BaseDialogFragment {
   def this(tx: IncomingTransactionAPI#IncomingTransaction) {
     this()
     _transaction = Option(tx)
+    setCancelable(false)
   }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {

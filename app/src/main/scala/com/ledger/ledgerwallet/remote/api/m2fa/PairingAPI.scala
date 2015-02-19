@@ -46,6 +46,8 @@ import scala.util.{Failure, Success}
 
 class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocketInstance) {
 
+  implicit val LogTag = "PairingApi"
+
   private[this] var _promise: Option[Promise[PairedDongle]] = None
   def future = _promise.map(_.future)
 
@@ -92,12 +94,16 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
 
   def abortPairingProcess(): Unit = {
     if (_promise.isDefined) {
-      _currentState = State.Resting
-      _promise.get.failure(new InterruptedException())
-      _promise = None
-      websocket foreach { _.close() }
-      _websocketConnectionRetry = 0
+      doAbortPairingProcess()
     }
+  }
+
+  private[this] def doAbortPairingProcess(): Unit = {
+    _currentState = State.Resting
+    _promise.foreach(_.failure(new InterruptedException()))
+    _promise = None
+    websocket foreach { _.close() }
+    _websocketConnectionRetry = 0
   }
 
   def isStarted = _currentState != State.Resting
@@ -122,6 +128,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
     socket on {
       case StringData(data) => {
         try {
+          Logger.d("[WS] <== " + data)
           val pkg = new JSONObject(data)
           answerToPackage(socket, pkg)
         } catch {
@@ -223,7 +230,16 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
     }
   }
 
-  private[this] def sendPendingPackage(socket: WebSocket): Unit = _pendingPackage foreach socket.send
+  private[this] def sendPendingPackage(socket: WebSocket): Unit = {
+    try {
+      for (pkg <- _pendingPackage) {
+        Logger.d("[WS] ==> " + pkg.toString)
+        socket send pkg
+      }
+    } catch {
+      case e: Throwable => e.printStackTrace()
+    }
+  }
 
   private[this] def prepareIdentifyPackage(publicKey: String): Unit = preparePackage(Map("type" -> "identify", "public_key" -> publicKey))
   private[this] def prepareJoinPackage(): Unit = preparePackage(Map("type" -> "join", "room" -> _pairingId.get))
@@ -258,7 +274,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
     val p = _promise
     _promise = None
     p foreach {_.failure(cause)}
-    abortPairingProcess()
+    doAbortPairingProcess()
   }
 
   private object State extends Enumeration {

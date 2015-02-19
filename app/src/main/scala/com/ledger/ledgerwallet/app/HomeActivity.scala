@@ -73,6 +73,7 @@ class HomeActivity extends BaseActivity {
   override def onPause(): Unit = {
     super.onPause()
     api.stop()
+    api onIncomingTransaction null
   }
 
   private[this] def openIncomingTransactionDialog(tx: IncomingTransactionAPI#IncomingTransaction): Unit = {

@@ -30,6 +30,10 @@
  */
 package com.ledger.ledgerwallet.remote.api.m2fa
 
+import java.io.{StringReader, Reader}
+import java.net.URL
+import javax.net.ssl.HttpsURLConnection
+
 import android.content.Context
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.HttpClient
@@ -37,6 +41,8 @@ import com.ledger.ledgerwallet.utils.GooglePlayServiceHelper.RegistrationId
 import com.ledger.ledgerwallet.utils.Preferenceable
 import com.ledger.ledgerwallet.utils.logs.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import com.ledger.ledgerwallet.utils.JsonUtils._
 
 import scala.util.{Failure, Success}
 
@@ -46,16 +52,19 @@ class GcmAPI(c: Context, client: HttpClient = HttpClient.defaultInstance) extend
 
   def updateDongleToken(dongle: PairedDongle, regId: RegistrationId): Unit = {
     if (preferences.getString(dongle.id.get, null) != regId.value) {
-      client.post(
-        "/2fa/pairings/push_token",
-        Some(Map("pairing_id" -> dongle.id.get, "push_token" -> regId.value))
-      ).future onComplete {
+      val pairingId = dongle.id.get
+      val request = client.postJsonObject(
+        s"/2fa/pairings/$pairingId/push_token",
+        body = Some(Map("pairing_id" -> dongle.id.get, "push_token" -> regId.value))
+      )
+      request.future onComplete {
         case Success(_) => {
           edit()
           .putString(dongle.id.get, regId.value)
           .commit()
         }
         case Failure(ex) =>
+          request
       }
     }
   }

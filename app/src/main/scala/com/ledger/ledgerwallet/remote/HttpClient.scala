@@ -43,6 +43,7 @@ import com.koushikdutta.async.http.body.{JSONObjectBody, AsyncHttpRequestBody}
 import com.koushikdutta.async.http.callback.HttpConnectCallback
 import com.ledger.ledgerwallet.app.Config
 import com.ledger.ledgerwallet.utils.logs.Logger
+import org.apache.http.conn.ssl.SSLSocketFactory
 import org.apache.http.impl.DefaultHttpRequestFactory
 import org.apache.http.HttpRequest
 import org.apache.http.client.methods.{HttpDelete, HttpPost, HttpGet}
@@ -50,6 +51,7 @@ import org.json.{JSONArray, JSONObject}
 
 import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
+import scala.util.Try
 
 
 class HttpClient(baseUrl: Uri) {
@@ -61,6 +63,17 @@ class HttpClient(baseUrl: Uri) {
 
   val headers = new mutable.HashMap[String, String]()
   val _client = AsyncHttpClient.getDefaultInstance
+
+/*
+  _client.getSSLSocketMiddleware.setTrustManagers(Array(
+    new X509TrustManager {
+      override def getAcceptedIssuers: Array[X509Certificate] = null
+      override def checkClientTrusted(chain: Array[X509Certificate], authType: String): Unit = {}
+      override def checkServerTrusted(chain: Array[X509Certificate], authType: String): Unit = {}
+    }
+  ))
+  _client.getSSLSocketMiddleware.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER)
+*/
 
   def getJsonObject(url: String,
                     params: Option[ParametersMap] = None,
@@ -106,7 +119,7 @@ class HttpClient(baseUrl: Uri) {
   }
 
   private class RequestImpl[T](_request: AsyncHttpRequest) extends Request[T] {
-    var httpFuture: HttpFuture[T] = _
+    var httpFuture: HttpFuture[String] = _
     val resultPromise = Promise[T]()
     val responsePromise = Promise[AsyncHttpResponse]()
 
@@ -141,7 +154,7 @@ class HttpClient(baseUrl: Uri) {
     : Request[Unit] = {
       val httpAsyncRequest = configureRequest(httpRequest, params, body, headers)
       val request = new RequestImpl[Unit](httpAsyncRequest)
-      request.httpFuture = _client.execute(httpAsyncRequest, new VoidCallback(request)).asInstanceOf[HttpFuture[Unit]]
+      request.httpFuture = _client.executeString(httpAsyncRequest, new VoidCallback(request))
       request
     }
 
@@ -152,7 +165,7 @@ class HttpClient(baseUrl: Uri) {
     : Request[JSONObject] = {
       val httpAsyncRequest = configureRequest(httpRequest, params, body, headers)
       val request = new RequestImpl[JSONObject](httpAsyncRequest)
-      request.httpFuture = _client.executeJSONObject(httpAsyncRequest, new JSONObjectCallback(request))
+      request.httpFuture = _client.executeString(httpAsyncRequest, new JSONObjectCallback(request))
       request
     }
 
@@ -163,7 +176,7 @@ class HttpClient(baseUrl: Uri) {
     : Request[JSONArray] = {
       val httpAsyncRequest = configureRequest(httpRequest, params, body, headers)
       val request = new RequestImpl[JSONArray](httpAsyncRequest)
-      request.httpFuture = _client.executeJSONArray(httpAsyncRequest, new JSONArrayCallback(request))
+      request.httpFuture = _client.executeString(httpAsyncRequest, new JSONArrayCallback(request))
       request
     }
 
@@ -218,8 +231,8 @@ class HttpClient(baseUrl: Uri) {
       asyncRequest
     }
 
-    private class JSONObjectCallback(request: RequestImpl[JSONObject]) extends com.koushikdutta.async.http.AsyncHttpClient.JSONObjectCallback {
-      override def onCompleted(e: Exception, source: AsyncHttpResponse, result: JSONObject): Unit = {
+    private class JSONObjectCallback(request: RequestImpl[JSONObject]) extends com.koushikdutta.async.http.AsyncHttpClient.StringCallback {
+      override def onCompleted(e: Exception, source: AsyncHttpResponse, result: String): Unit = {
         if (request.responsePromise.isCompleted) return
         if (source == null) {
           request.responsePromise.failure(e)
@@ -229,13 +242,13 @@ class HttpClient(baseUrl: Uri) {
           request.resultPromise.failure(e)
         } else {
           request.responsePromise.success(source)
-          request.resultPromise.success(result)
+          request.resultPromise.tryComplete(Try(new JSONObject(if (result.trim.length > 0) result else "{}")))
         }
       }
     }
 
-    private class VoidCallback(request: RequestImpl[Unit]) extends HttpConnectCallback {
-      override def onConnectCompleted(ex: Exception, response: AsyncHttpResponse): Unit = {
+    private class VoidCallback(request: RequestImpl[Unit]) extends com.koushikdutta.async.http.AsyncHttpClient.StringCallback {
+      override def onCompleted(ex: Exception, response: AsyncHttpResponse, result: String): Unit = {
         if (request.responsePromise.isCompleted) return
         if (response == null) {
           request.responsePromise.failure(ex)
@@ -247,8 +260,8 @@ class HttpClient(baseUrl: Uri) {
       }
     }
 
-    private class JSONArrayCallback(request: RequestImpl[JSONArray]) extends com.koushikdutta.async.http.AsyncHttpClient.JSONArrayCallback {
-      override def onCompleted(e: Exception, source: AsyncHttpResponse, result: JSONArray): Unit = {
+    private class JSONArrayCallback(request: RequestImpl[JSONArray]) extends com.koushikdutta.async.http.AsyncHttpClient.StringCallback {
+      override def onCompleted(e: Exception, source: AsyncHttpResponse, result: String): Unit = {
         if (request.responsePromise.isCompleted) return
         if (source == null) {
           request.responsePromise.failure(e)
@@ -258,7 +271,7 @@ class HttpClient(baseUrl: Uri) {
           request.resultPromise.failure(e)
         } else {
           request.responsePromise.success(source)
-          request.resultPromise.success(result)
+          request.resultPromise.tryComplete(Try(new JSONArray(if (result.trim.length > 0) result else "[]")))
         }
       }
     }

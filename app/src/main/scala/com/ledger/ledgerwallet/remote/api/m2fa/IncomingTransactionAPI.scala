@@ -102,7 +102,7 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
   }
 
   private def requestFocus(connection: Connection): Boolean = {
-    if (_focusedConnection.isEmpty) {
+    if (_focusedConnection.isEmpty && _isRunning) {
       _focusedConnection = Option(connection)
       connections.filterNot(_._1 == connection.dongle.id.get) foreach {_._2.disconnect()}
       connections.clear()
