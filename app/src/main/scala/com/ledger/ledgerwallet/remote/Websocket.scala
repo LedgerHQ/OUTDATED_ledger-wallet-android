@@ -54,8 +54,12 @@ class WebSocket(webSocket: com.koushikdutta.async.http.WebSocket) {
   def isChunked = webSocket.isChunked
   def isBuffering = webSocket.isBuffering
 
-  def close(): Unit = webSocket.close()
-  def end(): Unit = webSocket.end()
+  def close(): Unit = {
+    _wsCallback = None
+    webSocket.close()
+    webSocket.end()
+  }
+  def end(): Unit = close()
 
   def on(f: (Event) => Unit): Unit = _wsCallback = Option(f)
 

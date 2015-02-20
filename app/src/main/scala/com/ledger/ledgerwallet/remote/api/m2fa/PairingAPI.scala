@@ -78,7 +78,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
     if (_currentState != State.Resting) {
       throw new IllegalStateException("A pairing process is already in progress")
     }
-    _promise = Some(Promise())
+    _promise = Option(Promise())
     _currentState = State.Starting
     _onRequireUserInput(new RequirePairingId) onComplete {
       case Success(pairingId) => {
@@ -92,17 +92,13 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
     _promise.get.future
   }
 
-  def abortPairingProcess(): Unit = {
-    if (_promise.isDefined) {
-      doAbortPairingProcess()
-    }
-  }
+  def abortPairingProcess(): Unit = failure(new InterruptedException)
 
   private[this] def doAbortPairingProcess(): Unit = {
     _currentState = State.Resting
-    _promise.foreach(_.failure(new InterruptedException()))
-    _promise = None
-    websocket foreach { _.close() }
+    _pendingPackage = None
+    _websocket foreach { _.close() }
+    _websocket = None
     _websocketConnectionRetry = 0
   }
 
@@ -111,6 +107,8 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
   private[this] def initiateConnection(): Unit = {
     httpClient.websocket("/2fa/channels") onComplete {
       case Success(websocket) => {
+        Logger.d("[WS] Open")
+        this.websocket = websocket
         _websocketConnectionRetry = 0
         performPairing(websocket)
       }
@@ -136,7 +134,9 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
           case illegalRequestException: IllegalRequestException => failure(illegalRequestException)
         }
       }
-      case Close(ex) => failure(ex)
+      case Close(ex) =>
+        Logger.d("[WS] Close")
+        failure(ex)
     }
   }
 
@@ -200,12 +200,16 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
     // Ask the user a name for its dongle
     // Success the promise
     // Close the connection
+    if (_currentState != State.Challenging) return
+    _currentState = State.Naming
     Logger.d("Client must give a name " + pkg.toString)
     if (!pkg.optBoolean("is_successful", false))
     {
       failure(new PairingAPI.WrongChallengeAnswerException)
       return
     }
+    _websocket.foreach(_.close())
+    _websocket = None
     _onRequireUserInput(new RequireDongleName) onComplete {
       case Success(name) => {
         Logger.d("Got the name, now finalize and success")
@@ -217,7 +221,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
 
   private[this] def finalizePairing(dongleName: String): Unit = {
     implicit val context = this.context
-    _promise foreach {_.success(PairedDongle.create(_pairingId.get, dongleName, pairingKey))}
+    success(PairedDongle.create(_pairingId.get, dongleName, pairingKey))
   }
 
   private[this] def answerToPackage(socket: WebSocket, pkg: JSONObject): Unit = {
@@ -225,7 +229,11 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
       case "challenge" => handleChallengingStep(socket, pkg)
       case "pairing" => handleNamingStep(socket, pkg)
       case "repeat" => sendPendingPackage(socket)
-      case "disconnect" => failure(new PairingAPI.ClientCancelledException)
+      case "disconnect" =>
+        if (_currentState != State.Resting && _currentState != State.Naming)
+          failure(new PairingAPI.ClientCancelledException)
+        else
+          Logger.d("Ignore package " + pkg.toString)
       case _ => Logger.d("Ignore package " + pkg.toString)
     }
   }
@@ -270,11 +278,17 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
   // Internal Helper
 
   private[this] def failure(cause: Throwable): Unit = {
-    _websocket foreach {_.close()}
+    doAbortPairingProcess()
     val p = _promise
     _promise = None
     p foreach {_.failure(cause)}
+  }
+
+  private[this] def success(dongle: PairedDongle): Unit = {
     doAbortPairingProcess()
+    val p = _promise
+    _promise = None
+    p foreach {_.success(dongle)}
   }
 
   private object State extends Enumeration {

@@ -77,7 +77,6 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     pairingApi.future.get onComplete {
       case Success(pairedDongle) => postResult(CreateDonglePairingActivity.ResultOk)
       case Failure(ex) => {
-        ex.printStackTrace()
         ex match {
           case disconnect: PairingAPI.ClientCancelledException => postResult(CreateDonglePairingActivity.ResultPairingCancelled)
           case wrongChallenge: PairingAPI.WrongChallengeAnswerException => postResult(CreateDonglePairingActivity.ResultWrongChallenge)
@@ -91,6 +90,12 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
   override def onPause(): Unit = {
     super.onPause()
     pairingApi.future.foreach (_.onComplete((_) => {}))
+  }
+
+
+  override def onDestroy(): Unit = {
+    super.onDestroy()
+    pairingApi.abortPairingProcess()
   }
 
   def pairingApi_=(api: PairingAPI): Unit = {
