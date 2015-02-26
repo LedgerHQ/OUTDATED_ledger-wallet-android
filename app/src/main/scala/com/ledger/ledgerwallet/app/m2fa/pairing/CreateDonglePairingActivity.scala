@@ -81,7 +81,9 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
           case disconnect: PairingAPI.ClientCancelledException => postResult(CreateDonglePairingActivity.ResultPairingCancelled)
           case wrongChallenge: PairingAPI.WrongChallengeAnswerException => postResult(CreateDonglePairingActivity.ResultWrongChallenge)
           case e: InterruptedException =>
-          case _ => postResult(CreateDonglePairingActivity.ResultNetworkError)
+          case _ =>
+            ex.printStackTrace()
+            postResult(CreateDonglePairingActivity.ResultNetworkError)
         }
       }
     }

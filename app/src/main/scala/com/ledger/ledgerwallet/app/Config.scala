@@ -48,13 +48,11 @@ object Config extends Config{
 
   private class ConfigImpl extends Config {
     def ApiBaseUri = Uri.parse("https://api02.ledgerwallet.com")
-    def WebSocketBaseUri = Uri.parse("https://ws02.ledgerwallet.com") //Uri.parse("http://192.168.2.107:8080")
+    def WebSocketBaseUri = Uri.parse("https://ws01.ledgerwallet.com") //Uri.parse("http://192.168.2.107:8080") Uri.parse("http://nicolasbigot.fr:9000")
     def LedgerAttestationPublicKey = "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
     def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
     def Env = if (BuildConfig.DEBUG) "dev" else "prod"
   }
-
-
 
 }
 
