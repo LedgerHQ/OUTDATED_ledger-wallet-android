@@ -45,6 +45,7 @@ object InstallationInfo extends Preferenceable {
   def uuid(implicit context: Context): UUID = _uuid.getOrElse {
       val uuidString = Option(preferences.getString("uuid", null))
       _uuid = Some(uuidString.map(UUID.fromString).getOrElse(UUID.randomUUID()))
+      preferences.edit().putString("uuid", _uuid.get.toString).commit()
       _uuid.get
   }
 

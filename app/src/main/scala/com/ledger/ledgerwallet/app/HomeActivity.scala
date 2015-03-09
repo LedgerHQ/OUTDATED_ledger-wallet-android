@@ -41,7 +41,7 @@ import com.ledger.ledgerwallet.bitcoin.AmountFormatter
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.api.m2fa.{GcmAPI, IncomingTransactionAPI}
 import com.ledger.ledgerwallet.utils.logs.Logger
-import com.ledger.ledgerwallet.utils.{GooglePlayServiceHelper, TR}
+import com.ledger.ledgerwallet.utils.{AndroidUtils, GooglePlayServiceHelper, TR}
 import com.ledger.ledgerwallet.widget.TextView
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 
