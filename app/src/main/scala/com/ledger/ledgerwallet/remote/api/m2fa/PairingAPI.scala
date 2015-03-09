@@ -30,7 +30,10 @@
  */
 package com.ledger.ledgerwallet.remote.api.m2fa
 
+import java.util.concurrent.TimeoutException
+
 import android.content.Context
+import android.os.Handler
 import com.ledger.ledgerwallet.app.{InstallationInfo, Config}
 import com.ledger.ledgerwallet.crypto.{Crypto, D3ESCBC, ECKeyPair}
 import com.ledger.ledgerwallet.models.PairedDongle
@@ -48,6 +51,8 @@ import scala.util.{Failure, Success}
 class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocketInstance) {
 
   implicit val LogTag = "PairingApi"
+  private[this] val TimeoutDuration = 30L * 1000L
+  private[this] val HandledPackages = Array("challenge", "repeat", "disconnect", "pairing")
 
   private[this] var _promise: Option[Promise[PairedDongle]] = None
   def future = _promise.map(_.future)
@@ -62,6 +67,8 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
   private[this] val NumberOfWebSocketRetry = 0
 
   private[this] var _pendingPackage: Option[JSONObject] = None
+  private[this] var _timeoutRunnable: Option[Runnable] = None
+  private[this] val _timeoutHandler = new Handler()
 
   private[this] var _pairingId: Option[String] = None
 
@@ -137,7 +144,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
       }
       case Close(ex) =>
         Logger.d("[WS] Close")
-        failure(ex)
+        failure(new NetworkException)
     }
   }
 
@@ -226,7 +233,10 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
   }
 
   private[this] def answerToPackage(socket: WebSocket, pkg: JSONObject): Unit = {
-    pkg.getString("type") match {
+    val packageType = pkg.getString("type")
+    if (HandledPackages.contains(packageType))
+      clearTimeout()
+    packageType match {
       case "challenge" => handleChallengingStep(socket, pkg)
       case "pairing" => handleNamingStep(socket, pkg)
       case "repeat" => sendPendingPackage(socket)
@@ -241,6 +251,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
 
   private[this] def sendPendingPackage(socket: WebSocket): Unit = {
     try {
+      startTimeout()
       for (pkg <- _pendingPackage) {
         Logger.d("[WS] ==> " + pkg.toString)
         socket send pkg
@@ -255,7 +266,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
       "type" -> "identify",
       "public_key" -> publicKey,
       "name" -> AndroidUtils.getModelName,
-      "type" -> "android",
+      "platform" -> "android",
       "uuid" -> InstallationInfo.uuid(context)
     )
   )
@@ -288,6 +299,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
   // Internal Helper
 
   private[this] def failure(cause: Throwable): Unit = {
+    cause.printStackTrace()
     doAbortPairingProcess()
     val p = _promise
     _promise = None
@@ -295,10 +307,29 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
   }
 
   private[this] def success(dongle: PairedDongle): Unit = {
+    clearTimeout()
     doAbortPairingProcess()
     val p = _promise
     _promise = None
     p foreach {_.success(dongle)}
+  }
+
+  private[this] def startTimeout(): Unit = {
+    clearTimeout()
+    Logger.d("Start Timeout")
+    val runnable = new Runnable {
+      override def run(): Unit = failure(new TimeoutException())
+    }
+    _timeoutRunnable = Option(runnable)
+    _timeoutHandler.postDelayed(runnable, TimeoutDuration)
+  }
+
+  private[this] def clearTimeout(): Unit = {
+    if (_timeoutRunnable.isDefined) {
+      Logger.d("Clear Timeout")
+      _timeoutHandler.removeCallbacks(_timeoutRunnable.get)
+      _timeoutRunnable = None
+    }
   }
 
   private object State extends Enumeration {
@@ -335,3 +366,4 @@ sealed case class RequireDongleName() extends RequiredUserInput
 
 sealed class IllegalRequestException(reason: String = null) extends Exception(reason)
 sealed class IllegalUserInputException(reason: String = null) extends Exception(reason)
+sealed class NetworkException extends Exception

@@ -30,6 +30,8 @@
  */
 package com.ledger.ledgerwallet.app.m2fa.pairing
 
+import java.util.concurrent.TimeoutException
+
 import android.app.AlertDialog.Builder
 import android.app.{AlertDialog, Activity}
 import android.content.DialogInterface
@@ -80,6 +82,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
         ex match {
           case disconnect: PairingAPI.ClientCancelledException => postResult(CreateDonglePairingActivity.ResultPairingCancelled)
           case wrongChallenge: PairingAPI.WrongChallengeAnswerException => postResult(CreateDonglePairingActivity.ResultWrongChallenge)
+          case timeout: TimeoutException => postResult(CreateDonglePairingActivity.ResultTimeout)
           case e: InterruptedException =>
           case _ =>
             ex.printStackTrace()
@@ -197,6 +200,7 @@ object CreateDonglePairingActivity {
   val ResultNetworkError = 0x02
   val ResultWrongChallenge = 0x03
   val ResultPairingCancelled = 0x04
+  val ResultTimeout = 0x05
 
   trait CreateDonglePairingProccessContract {
     def gotToStep(stepNumber: Int, instructionText: CharSequence, fragment: BaseFragment): Unit
