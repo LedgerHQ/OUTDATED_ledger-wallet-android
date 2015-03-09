@@ -121,7 +121,6 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
       }
     }
   }
-
   
   override def gotToStep(stepNumber: Int, instructionText: CharSequence, fragment: BaseFragment): Unit = {
     stepNumberTextView.setText(stepNumber.toString + ".")

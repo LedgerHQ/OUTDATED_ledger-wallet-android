@@ -67,7 +67,7 @@ class GcmIntentService extends IntentService("Ledger Wallet GCM Service") {
     val launchIntent = new Intent(this, classOf[HomeActivity])
     val intent = PendingIntent.getActivity(this, 0, launchIntent, 0)
     val notification = new NotificationCompat.Builder(this)
-      .setSmallIcon(R.drawable.ic_launcher)
+      .setSmallIcon(R.drawable.ic_notification)
       .setContentTitle(TR(R.string.app_name).as[String])
       .setContentText(extras.getString("message"))
       .setContentIntent(intent)
