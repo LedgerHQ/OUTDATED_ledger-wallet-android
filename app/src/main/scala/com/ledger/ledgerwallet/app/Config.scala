@@ -30,6 +30,7 @@
  */
 package com.ledger.ledgerwallet.app
 
+import android.content.Context
 import android.net.Uri
 import com.ledger.ledgerwallet.BuildConfig
 
