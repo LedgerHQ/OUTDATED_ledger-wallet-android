@@ -31,6 +31,7 @@
 package com.ledger.ledgerwallet.utils
 
 import android.content.Context
+import android.os.Build
 
 import scala.util.Try
 
@@ -40,6 +41,15 @@ object AndroidUtils {
 
   def getAppVersion(implicit context: Context)
   : Try[Int] = Try(context.getPackageManager.getPackageInfo(context.getPackageName, 0).versionCode)
+
+  def getModelName: String = {
+    val manufacturer = Build.MANUFACTURER
+    val model = Build.MODEL
+    if (model.startsWith(manufacturer))
+      model.capitalize
+    else
+      manufacturer.capitalize + " " + model
+  }
 
   def notifyActivityOnResume(): Unit = _isApplicationInForeground += 1
   def notifyActivityOnPause(): Unit = _isApplicationInForeground -= 1
