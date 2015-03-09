@@ -31,10 +31,11 @@
 package com.ledger.ledgerwallet.remote.api.m2fa
 
 import android.content.Context
-import com.ledger.ledgerwallet.app.Config
+import com.ledger.ledgerwallet.app.{InstallationInfo, Config}
 import com.ledger.ledgerwallet.crypto.{Crypto, D3ESCBC, ECKeyPair}
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.{StringData, Close, WebSocket, HttpClient}
+import com.ledger.ledgerwallet.utils.AndroidUtils
 import com.ledger.ledgerwallet.utils.logs.Logger
 import org.json.{JSONException, JSONObject}
 import org.spongycastle.util.encoders.Hex
@@ -249,7 +250,16 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
     }
   }
 
-  private[this] def prepareIdentifyPackage(publicKey: String): Unit = preparePackage(Map("type" -> "identify", "public_key" -> publicKey))
+  private[this] def prepareIdentifyPackage(publicKey: String): Unit = preparePackage(
+    Map(
+      "type" -> "identify",
+      "public_key" -> publicKey,
+      "name" -> AndroidUtils.getModelName,
+      "type" -> "android",
+      "uuid" -> InstallationInfo.uuid
+    )
+  )
+
   private[this] def prepareJoinPackage(): Unit = preparePackage(Map("type" -> "join", "room" -> _pairingId.get))
   private[this] def prepareChallengePackage(answer: String): Unit = preparePackage(Map("type" -> "challenge", "data" -> answer))
 
