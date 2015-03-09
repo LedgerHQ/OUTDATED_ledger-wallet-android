@@ -256,7 +256,7 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
       "public_key" -> publicKey,
       "name" -> AndroidUtils.getModelName,
       "type" -> "android",
-      "uuid" -> InstallationInfo.uuid
+      "uuid" -> InstallationInfo.uuid(context)
     )
   )
 
