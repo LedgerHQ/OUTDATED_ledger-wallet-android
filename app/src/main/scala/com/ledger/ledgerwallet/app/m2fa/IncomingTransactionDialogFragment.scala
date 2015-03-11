@@ -74,6 +74,7 @@ class IncomingTransactionDialogFragment extends BaseDialogFragment {
   override def onPause(): Unit = {
     super.onPause()
     _transaction.foreach(_.onCancelled(null))
+    dismissAllowingStateLoss()
   }
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {

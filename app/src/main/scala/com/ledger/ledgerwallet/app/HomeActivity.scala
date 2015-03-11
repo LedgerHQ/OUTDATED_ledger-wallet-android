@@ -103,6 +103,7 @@ class HomeActivity extends BaseActivity {
         case CreateDonglePairingActivity.ResultNetworkError => showErrorDialog(R.string.pairing_failure_dialog_error_network)
         case CreateDonglePairingActivity.ResultPairingCancelled => showErrorDialog(R.string.pairing_failure_dialog_cancelled)
         case CreateDonglePairingActivity.ResultWrongChallenge => showErrorDialog(R.string.pairing_failure_dialog_wrong_answer)
+        case CreateDonglePairingActivity.ResultTimeout => showErrorDialog(R.string.pairing_failure_dialog_timeout)
         case _ =>
       }
     }

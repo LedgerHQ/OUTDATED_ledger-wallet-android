@@ -8,12 +8,12 @@
     <!-- Home Activity -->
     <string name="home_p_title">Waiting for transactions…</string>
     <string name="home_p_subtitle">Transactions will automatically appear when manual validation is required</string>
-    <string name="home_p_action">MANAGE PAIRED DEVICES</string>
+    <string name="home_p_action">MANAGE PAIRED LEDGER WALLETS</string>
     <string name="home_p_bottom">Need help? Visit our help center.</string>
 
-    <string name="home_np_title">No paired device</string>
-    <string name="home_np_subtitle">To enable second factor validation,\npair your Ledger Wallet with this device.</string>
-    <string name="home_np_action">PAIR A NEW DEVICE</string>
+    <string name="home_np_title">No paired Ledger Wallet</string>
+    <string name="home_np_subtitle">To enable second factor validation,\npair your Ledger Wallet with this mobile device.</string>
+    <string name="home_np_action">PAIR A NEW LEDGER WALLET</string>
     <string name="home_np_bottom">Need help? Visit our help center.</string>
 
     <!-- Paired Dongle Activity -->
@@ -27,7 +27,7 @@
     <string name="create_dongle_instruction_step_2_text">Please wait this operation may take a while.</string>
     <string name="create_dongle_instruction_step_3">Take your <b>security card</b> and enter the matching value for each character.</string>
     <string name="create_dongle_instruction_step_3_bottom">Type in the letter or digit in the black box matching \"%s\" on your security card.</string>
-    <string name="create_dongle_instruction_step_4">Your Ledger Wallet is now finalizing the pairing process with this device.</string>
+    <string name="create_dongle_instruction_step_4">Your Ledger Wallet is now finalizing the pairing process with this mobile device.</string>
     <string name="create_dongle_instruction_step_4_title">PAIRING IN PROGRESS…</string>
     <string name="create_dongle_instruction_step_4_text">Please wait this operation may take a while.</string>
     <string name="create_dongle_instruction_step_5">Finally, give a name to this Ledger Wallet to access it easily.</string>
@@ -53,6 +53,7 @@
     <string name="pairing_failure_dialog_error_network">A network error occurred.\nPlease check your internet connection.</string>
     <string name="pairing_failure_dialog_wrong_answer">The security card validation code is incorrect. Please try again.</string>
     <string name="pairing_failure_dialog_cancelled">The Ledger Wallet Chrome application cancelled the pairing process.</string>
+    <string name="pairing_failure_dialog_timeout">TIMEOUT!!!!!</string>
 
     <!-- Actions -->
     <string name="action_done">Done</string>
