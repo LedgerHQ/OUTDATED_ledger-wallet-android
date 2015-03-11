@@ -42,6 +42,7 @@ import com.ledger.ledgerwallet.base.{BaseFragment, BaseActivity}
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.api.m2fa.{RequireDongleName, RequireChallengeResponse, RequirePairingId, PairingAPI}
 import com.ledger.ledgerwallet.utils.TR
+import com.ledger.ledgerwallet.utils.logs.Logger
 import com.ledger.ledgerwallet.widget.TextView
 import scala.concurrent.Promise
 import scala.util.{Try, Failure, Success}
@@ -184,6 +185,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
   }
 
   postResult = (result: Int) => {
+    Logger.d("Post result now")
     setResult(result)
     finish()
   }
