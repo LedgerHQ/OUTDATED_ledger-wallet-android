@@ -82,8 +82,10 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
   def listen(): Unit = {
     if (!_isRunning) {
       _isRunning = true
-      PairedDongle.all(context) foreach connect
-      Logger.d("Waiting for transaction [Listen]")
+      Future {
+        PairedDongle.all(context) foreach connect
+        Logger.d("Waiting for transaction [Listen]")
+      }
     }
   }
 

@@ -38,7 +38,7 @@
     <com.ledger.ledgerwallet.widget.TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/create_dongle_instruction_step_3_bottom"
+        android:text="@string/create_dongle_instruction_step_5_bottom"
         android:id="@+id/bottom_text"
         app:kerning="@dimen/small_font_spacing"
         android:textSize="@dimen/small_font_size"

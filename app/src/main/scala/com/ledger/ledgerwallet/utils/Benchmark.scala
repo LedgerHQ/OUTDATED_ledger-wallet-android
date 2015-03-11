@@ -44,13 +44,14 @@ object Benchmark {
 
   def stop(name: String = "Benchmark")(implicit LogTag: String = "Benchmark", DisableLogging: Boolean = false): Unit = {
     if (timers.contains(name))
-      Logger.d(s"$name: ${System.currentTimeMillis() - timers(name)}")
+      Logger.d(s"$name result: ${System.currentTimeMillis() - timers(name)}ms")
   }
 
-  def apply(block: => Unit): Unit = {
+  def apply[T](block: => T)(implicit LogTag: String = "Benchmark", DisableLogging: Boolean = false): T = {
     start()
-    block
+    val result = block
     stop()
+    result
   }
 
 }

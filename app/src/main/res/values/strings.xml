@@ -53,7 +53,7 @@
     <string name="pairing_failure_dialog_error_network">A network error occurred.\nPlease check your internet connection.</string>
     <string name="pairing_failure_dialog_wrong_answer">The security card validation code is incorrect. Please try again.</string>
     <string name="pairing_failure_dialog_cancelled">The Ledger Wallet Chrome application cancelled the pairing process.</string>
-    <string name="pairing_failure_dialog_timeout">TIMEOUT!!!!!</string>
+    <string name="pairing_failure_dialog_timeout">The pairing process took too much time (timeout).</string>
 
     <!-- Actions -->
     <string name="action_done">Done</string>

@@ -299,7 +299,6 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
   // Internal Helper
 
   private[this] def failure(cause: Throwable): Unit = {
-    cause.printStackTrace()
     doAbortPairingProcess()
     val p = _promise
     _promise = None
