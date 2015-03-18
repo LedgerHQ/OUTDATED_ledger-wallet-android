@@ -223,6 +223,8 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
           throw new Exception("No pairing key")
         val d3es = new D3ESCBC(pairingKey.get.secret)
         val decrypted = d3es.decrypt(Hex.decode(data))
+        if (decrypted.length <= 29)
+          throw new Exception("Invalid request")
         Logger.d("Package -> " + json.toString)
         Logger.d("Decrypted -> " + Hex.toHexString(decrypted))
         var offset = 0
@@ -234,6 +236,8 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
         offset += 8
         val change = new BigInteger(1, decrypted.slice(offset, offset + 8))
         offset += 8
+        if (decrypted.length < offset + 1 + decrypted.apply(offset).toInt)
+          throw new Exception("Invalid request")
         val address = new String(decrypted.slice(offset + 1, offset + 1 + decrypted.apply(offset).toInt))
         if (!BitcoinUtils.isAddressValid(address))
           throw new Exception("Invalid address")
