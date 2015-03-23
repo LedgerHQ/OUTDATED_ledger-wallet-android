@@ -25,3 +25,4 @@
 -keep class scala.collection.SeqLike {
     public protected *;
 }
+-keep class net.sourceforge.zbar.** { *; }
