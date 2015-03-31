@@ -12,6 +12,7 @@
         <item name="colorAccent">@color/accent_color</item>
         <item name="android:windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
+        <item name="android:windowBackground">@drawable/bg_window</item>
     </style>
 
     <style name="DefaultActionBarStyle" parent="ThemeOverlay.AppCompat.ActionBar">
