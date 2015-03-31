@@ -7,46 +7,47 @@
 
     <!-- Home Activity -->
     <string name="home_p_title">Waiting for transactions…</string>
-    <string name="home_p_subtitle">Transactions will automatically appear when manual validation is required</string>
-    <string name="home_p_action">MANAGE PAIRED LEDGER WALLETS</string>
+    <string name="home_p_subtitle">Transactions will automatically appear when manual validation is required.</string>
+    <string name="home_p_action">PAIRED LEDGER WALLETS</string>
     <string name="home_p_bottom">Need help? Visit our help center.</string>
 
     <string name="home_np_title">No paired Ledger Wallet</string>
-    <string name="home_np_subtitle">To enable second factor validation,\npair your Ledger Wallet with this mobile device.</string>
-    <string name="home_np_action">PAIR A NEW LEDGER WALLET</string>
+    <string name="home_np_subtitle">To enable second factor validation,\npair your Ledger Wallet with this smartphone.</string>
+    <string name="home_np_action">PAIR A LEDGER WALLET</string>
     <string name="home_np_bottom">Need help? Visit our help center.</string>
 
     <!-- Paired Dongle Activity -->
+    <string name="paired_dongle_activity_name">Paired Ledger Wallets</string>
     <string name="paired_dongle_paired_on">Paired on %s</string>
 
     <!-- Create Dongle Pairing Activity -->
-    <string name="create_dongle_title">Pair a new device</string>
-    <string name="create_dongle_instruction_step_1">First, scan the <b>pairing QR Code</b> on the Ledger Wallet Chrome application</string>
-    <string name="create_dongle_instruction_step_2">This device is now creating a secure connection with your Ledger Wallet.</string>
+    <string name="create_dongle_title">Pair a Ledger Wallet</string>
+    <string name="create_dongle_instruction_step_1">Scan the <b>pairing QR code</b> on the Ledger Wallet Chrome application.</string>
+    <string name="create_dongle_instruction_step_2">This smartphone is creating a secure connection with your Ledger Wallet.</string>
     <string name="create_dongle_instruction_step_2_title">Establishing connection…</string>
-    <string name="create_dongle_instruction_step_2_text">Please wait this operation may take a while.</string>
-    <string name="create_dongle_instruction_step_3">Take your <b>security card</b> and enter the matching value for each character.</string>
-    <string name="create_dongle_instruction_step_3_bottom">Type in the letter or digit in the black box matching \"%s\" on your security card.</string>
-    <string name="create_dongle_instruction_step_4">Your Ledger Wallet is now finalizing the pairing process with this mobile device.</string>
-    <string name="create_dongle_instruction_step_4_title">PAIRING IN PROGRESS…</string>
-    <string name="create_dongle_instruction_step_4_text">Please wait this operation may take a while.</string>
-    <string name="create_dongle_instruction_step_5">Finally, give a name to this Ledger Wallet to access it easily.</string>
+    <string name="create_dongle_instruction_step_2_text">Please wait, this operation may take a while.</string>
+    <string name="create_dongle_instruction_step_3">Grab your <b>security card</b> and enter the matching value for each character.</string>
+    <string name="create_dongle_instruction_step_3_bottom">Enter the letter or digit in the black box matching \"%s\" on your security card.</string>
+    <string name="create_dongle_instruction_step_4">Your Ledger Wallet is finalizing the pairing process with this smartphone.</string>
+    <string name="create_dongle_instruction_step_4_title">Pairing in progress…</string>
+    <string name="create_dongle_instruction_step_4_text">Please wait, this operation may take a while.</string>
+    <string name="create_dongle_instruction_step_5">The pairing process is complete. Enter a name for this Ledger Wallet.</string>
     <string name="create_dongle_instruction_step_5_default_name">My Ledger Wallet</string>
     <string name="create_dongle_instruction_step_5_name_hint">Ledger Wallet name</string>
     <string name="create_dongle_instruction_step_5_error_title">Error</string>
-    <string name="create_dongle_instruction_step_5_error_message">This name is already taken by another Ledger Wallet</string>
-    <string name="create_dongle_instruction_step_5_bottom">Enter a name to assign to this Ledger Wallet</string>
+    <string name="create_dongle_instruction_step_5_error_message">This name is used by another paired Ledger Wallet.</string>
+    <string name="create_dongle_instruction_step_5_bottom">Choose a name to assign to this Ledger Wallett</string>
 
     <!-- Delete Pairing Dialog -->
-    <string name="delete_pairing_dialog_message">Are you sure?</string>
+    <string name="delete_pairing_dialog_message">By deleting this Ledger Wallet, you will no longer be able to manually validate transaction from this smartphone. Do you want to continue?</string>
 
     <!-- Incoming Transaction Dialog -->
-    <string name="incoming_tx_title">NEW OPERATION</string>
+    <string name="incoming_tx_title">CONFIRM TRANSACTION</string>
     <string name="incoming_tx_date" formatted="false">requested on %s at %s</string>
 
     <!-- Pairing Success Dialog -->
-    <string name="pairing_success_dialog_title">PAIRING SUCCEED</string>
-    <string name="pairing_success_dialog_content">Your Ledger Wallet \"%s\" is now paired with your mobile device</string>
+    <string name="pairing_success_dialog_title">PAIRING SUCCEEDED</string>
+    <string name="pairing_success_dialog_content">Your Ledger Wallet \"%s\" is now paired with your smartphone.</string>
 
     <!-- Pairing Failure Dialog -->
     <string name="pairing_failure_dialog_title">PAIRING FAILED</string>
@@ -65,7 +66,7 @@
 
     <!-- Dialog Actions -->
     <string name="dialog_action_confirm">CONFIRM</string>
-    <string name="dialog_action_refuse">REFUSE</string>
+    <string name="dialog_action_refuse">REJECT</string>
     <string name="dialog_action_close">CLOSE</string>
     <string name="dialog_action_ok">OK</string>
     <string name="dialog_action_cancel">CANCEL</string>
