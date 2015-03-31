@@ -40,6 +40,7 @@ import com.ledger.ledgerwallet.base.{BigIconAlertDialog, BaseFragment, BaseActiv
 import com.ledger.ledgerwallet.bitcoin.AmountFormatter
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.HttpClient
+import com.ledger.ledgerwallet.remote.api.TeeAPI
 import com.ledger.ledgerwallet.remote.api.m2fa.{GcmAPI, IncomingTransactionAPI}
 import com.ledger.ledgerwallet.utils.logs.Logger
 import com.ledger.ledgerwallet.utils.{AndroidUtils, GooglePlayServiceHelper, TR}
@@ -65,12 +66,18 @@ class HomeActivity extends BaseActivity {
     api onIncomingTransaction openIncomingTransactionDialog
     GooglePlayServiceHelper.getGcmRegistrationId onComplete {
       case Success(regId) =>
-        Logger.d("REG ID = " + regId.value)
         GcmAPI.defaultInstance.updateDonglesToken(regId)
       case Failure(ex) =>
     }
-    val dialog = new TrustletPromotionDialog()
-    dialog.show(getSupportFragmentManager, "toto")
+
+    TrustletPromotionDialog.isShowable.onSuccess {
+      case true =>
+        TeeAPI.defaultInstance.isDeviceEligible.onSuccess {
+          case true => TrustletPromotionDialog.show(getSupportFragmentManager)
+          case _ => // Nothing to do
+        }
+      case _ => // Nothing to do
+    }
   }
 
   override def onPause(): Unit = {

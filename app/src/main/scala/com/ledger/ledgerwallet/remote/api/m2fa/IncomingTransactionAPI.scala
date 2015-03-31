@@ -52,6 +52,8 @@ import scala.util.{Try, Failure, Success}
 
 class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.websocketInstance) {
 
+  implicit val DisableLogging = true
+
   private[this] val handler = new Handler()
   private[this] val mainThreadHandler = new Handler(Looper.getMainLooper)
   private[this] val connections = mutable.Map[String, Connection]()

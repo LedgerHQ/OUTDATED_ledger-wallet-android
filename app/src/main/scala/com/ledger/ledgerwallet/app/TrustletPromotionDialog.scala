@@ -30,7 +30,7 @@
  */
 package com.ledger.ledgerwallet.app
 
-import android.content.Context
+import android.content.{Intent, Context}
 import android.os.Bundle
 import android.support.v4.app.FragmentManager
 import android.view.{View, ViewGroup, LayoutInflater}
@@ -53,7 +53,8 @@ class TrustletPromotionDialog extends BaseDialogFragment {
     actions.negativeButton.setText(R.string.dialog_action_no_thanks)
     actions.positiveButton.setText(R.string.dialog_action_see_more)
     actions.onPositiveClick {
-
+      getActivity.startActivity(new Intent(Intent.ACTION_VIEW, Config.TrustletWebPage))
+      dismiss()
     }
     actions.onNegativeClick { dismiss() }
   }
@@ -72,14 +73,11 @@ object TrustletPromotionDialog extends Preferenceable {
       HttpClient.defaultInstance.testPageExistence(Config.TrustletWebPage.toString)
   }
 
-  def show(fragmentManager: FragmentManager): TrustletPromotionDialog = {
-   /*
-    preferences.edit().putInt("show_count", preferences.getInt("show_count", 0) + 1).commit()
+  def show(fragmentManager: FragmentManager)(implicit context: Context): TrustletPromotionDialog = {
+    edit().putInt("show_count", preferences.getInt("show_count", 0) + 1).commit()
     val fragment = new TrustletPromotionDialog()
     fragment.show(fragmentManager, DefaultTag)
     fragment
-    */
-    null
   }
 
 }

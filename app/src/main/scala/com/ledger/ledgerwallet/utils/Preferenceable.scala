@@ -36,6 +36,6 @@ trait Preferenceable {
 
   protected[this] def preferences(implicit context: Context) = context.getSharedPreferences(PreferencesName, Context.MODE_PRIVATE)
   protected[this] def edit()(implicit context: Context) = preferences.edit()
-  def PreferencesName = "Preferenceable"
+  def PreferencesName = "GlobalPreferences"
 
 }
