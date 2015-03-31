@@ -57,15 +57,7 @@
             android:layout_height="wrap_content"
             android:text="@string/home_np_action"
             android:id="@+id/button"
-            android:textColor="@color/white"
-            android:background="@drawable/bg_green_button"
-            app:kerning="@dimen/medium_font_spacing"
-            android:paddingLeft="@dimen/small_margin"
-            android:paddingRight="@dimen/small_margin"
-            android:paddingTop="@dimen/small_margin"
-            android:paddingBottom="@dimen/small_margin"
-            android:textSize="@dimen/medium_font_size"
-            style="@style/Base.FlatButtonStyle"
+            style="@style/RoundedGreenButtonStyle"
             android:layout_gravity="center_horizontal" />
 
     </LinearLayout>

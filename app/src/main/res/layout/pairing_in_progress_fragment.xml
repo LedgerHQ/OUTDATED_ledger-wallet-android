@@ -18,10 +18,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/create_dongle_instruction_step_2_title"
-        android:textSize="@dimen/large_font_size"
-        app:fontStyle="semiBold"
+        android:textSize="@dimen/medium_font_size"
+        app:kerning="@dimen/medium_font_spacing"
         android:textColor="@color/black"
-        app:kerning="@dimen/large_font_spacing"
         android:layout_marginTop="@dimen/large_margin"
         android:layout_gravity="center_horizontal" />
 

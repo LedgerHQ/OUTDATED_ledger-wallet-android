@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- Base application theme. -->
     <style name="AppTheme.Base" parent="Theme.AppCompat.Light.NoActionBar">
@@ -34,7 +34,7 @@
     <style name="ActionBarTitleStyle">
         <item name="android:textColor">@color/white</item>
         <item name="android:background">@android:color/transparent</item>
-        <item name="android:textSize">@dimen/very_large_font_size</item>
+        <item name="android:textSize">@dimen/large_font_size</item>
         <item name="android:layout_gravity">left</item>
     </style>
 
@@ -63,5 +63,24 @@
     <style name="Base.TextViewStyle">
 
     </style>
-    
+
+    <style name="RoundedButtonStyle" parent="Base.FlatButtonStyle">
+        <item name="android:paddingLeft">@dimen/medium_margin</item>
+        <item name="android:paddingRight">@dimen/medium_margin</item>
+        <item name="android:paddingTop">@dimen/almost_very_small_margin</item>
+        <item name="android:paddingBottom">@dimen/almost_very_small_margin</item>
+        <item name="kerning">@dimen/medium_font_spacing</item>
+        <item name="android:textSize">@dimen/medium_font_size</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+    </style>
+
+    <style name="RoundedGreyButtonStyle" parent="RoundedButtonStyle">
+       <item name="android:background">@drawable/bg_grey_button</item>
+    </style>
+
+    <style name="RoundedGreenButtonStyle" parent="RoundedButtonStyle">
+        <item name="android:background">@drawable/bg_green_button</item>
+    </style>
+
 </resources>

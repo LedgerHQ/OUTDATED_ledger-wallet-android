@@ -23,7 +23,7 @@
     <string name="create_dongle_title">Pair a new device</string>
     <string name="create_dongle_instruction_step_1">First, scan the <b>pairing QR Code</b> on the Ledger Wallet Chrome application</string>
     <string name="create_dongle_instruction_step_2">This device is now creating a secure connection with your Ledger Wallet.</string>
-    <string name="create_dongle_instruction_step_2_title">ESTABLISHING CONNECTION…</string>
+    <string name="create_dongle_instruction_step_2_title">Establishing connection…</string>
     <string name="create_dongle_instruction_step_2_text">Please wait this operation may take a while.</string>
     <string name="create_dongle_instruction_step_3">Take your <b>security card</b> and enter the matching value for each character.</string>
     <string name="create_dongle_instruction_step_3_bottom">Type in the letter or digit in the black box matching \"%s\" on your security card.</string>
@@ -55,6 +55,11 @@
     <string name="pairing_failure_dialog_cancelled">The Ledger Wallet Chrome application cancelled the pairing process.</string>
     <string name="pairing_failure_dialog_timeout">The pairing process took too much time (timeout).</string>
 
+    <!-- Trustlet Promotion Dialog -->
+    <string name="trustlet_promotion_dialog_title">LEDGER TRUSTLET</string>
+    <string name="trustlet_promotion_dialog_main_message">Your smartphone is compatible with Ledger Trustlet, our new Trusted Execution Environment technology.</string>
+    <string name="trustlet_promotion_dialog_bottom_message">Would you like to know more about it?</string>
+
     <!-- Actions -->
     <string name="action_done">Done</string>
 
@@ -64,5 +69,7 @@
     <string name="dialog_action_close">CLOSE</string>
     <string name="dialog_action_ok">OK</string>
     <string name="dialog_action_cancel">CANCEL</string>
+    <string name="dialog_action_see_more">SEE MORE</string>
+    <string name="dialog_action_no_thanks">NO THANKS</string>
 
 </resources>

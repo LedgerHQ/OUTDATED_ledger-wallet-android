@@ -39,6 +39,7 @@ import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
 import com.ledger.ledgerwallet.base.{BigIconAlertDialog, BaseFragment, BaseActivity}
 import com.ledger.ledgerwallet.bitcoin.AmountFormatter
 import com.ledger.ledgerwallet.models.PairedDongle
+import com.ledger.ledgerwallet.remote.HttpClient
 import com.ledger.ledgerwallet.remote.api.m2fa.{GcmAPI, IncomingTransactionAPI}
 import com.ledger.ledgerwallet.utils.logs.Logger
 import com.ledger.ledgerwallet.utils.{AndroidUtils, GooglePlayServiceHelper, TR}
@@ -68,6 +69,8 @@ class HomeActivity extends BaseActivity {
         GcmAPI.defaultInstance.updateDonglesToken(regId)
       case Failure(ex) =>
     }
+    val dialog = new TrustletPromotionDialog()
+    dialog.show(getSupportFragmentManager, "toto")
   }
 
   override def onPause(): Unit = {

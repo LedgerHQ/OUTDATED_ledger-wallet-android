@@ -30,6 +30,7 @@
  */
 package com.ledger.ledgerwallet.remote
 
+import java.net.{HttpURLConnection, URLConnection, URL}
 import java.security.cert.X509Certificate
 import java.util.Locale
 import javax.net.ssl.X509TrustManager
@@ -52,7 +53,7 @@ import org.json.{JSONArray, JSONObject}
 import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
-
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class HttpClient(baseUrl: Uri) {
 
@@ -110,6 +111,14 @@ class HttpClient(baseUrl: Uri) {
                 params: Option[ParametersMap] = None,
                 headers: Option[HeadersMap] = None)
   : Future[WebSocket] = Request.websocket(url, protocol, params, headers).future
+
+  def testPageExistence(url: String): Future[Boolean] = Future {
+    val urlValue = new URL(url)
+    val connection =  urlValue.openConnection().asInstanceOf[HttpURLConnection]
+    connection.setRequestMethod("GET")
+    connection.connect()
+    connection.getResponseCode() != 404
+  }
 
   trait Request[T] {
     def future: Future[T]

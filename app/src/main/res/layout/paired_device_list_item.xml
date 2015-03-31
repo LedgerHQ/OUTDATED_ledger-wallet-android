@@ -9,42 +9,54 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="@dimen/very_large_margin"
-        android:paddingBottom="@dimen/very_large_margin"
+        android:paddingTop="@dimen/medium_margin"
+        android:paddingBottom="@dimen/medium_margin"
         android:background="@drawable/bg_dialog_button"
         android:paddingLeft="@dimen/activity_border_margin"
         >
-
-        <com.ledger.ledgerwallet.widget.TextView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="New Text"
-            android:id="@+id/dongle_name"
             android:layout_alignParentLeft="true"
             android:layout_marginLeft="0dp"
-            android:layout_alignParentTop="true"
-            android:layout_marginTop="0dp"
-            android:textColor="@color/black"
-            android:textSize="@dimen/large_font_size"
-            app:kerning="@dimen/medium_font_spacing"
+            android:orientation="vertical"
+            android:layout_centerVertical="true"
             android:layout_toLeftOf="@+id/delete_btn"
-            android:layout_toStartOf="@+id/delete_btn" />
+            android:layout_toStartOf="@+id/delete_btn">
 
-        <com.ledger.ledgerwallet.widget.TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="New Text"
-            android:id="@+id/pairing_date"
-            android:layout_below="@+id/dongle_name"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:textColor="@color/dark_grey"
-            android:textSize="@dimen/small_font_size"
-            app:kerning="@dimen/medium_font_spacing"
-            app:fontStyle="regular"
-            android:layout_marginTop="@dimen/extra_small_margin"
-            android:layout_toLeftOf="@+id/delete_btn"
-            android:layout_toStartOf="@+id/delete_btn" />
+            <com.ledger.ledgerwallet.widget.TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Text"
+                android:id="@+id/dongle_name"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="0dp"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="0dp"
+                android:textColor="@color/black"
+                android:textSize="@dimen/medium_font_size"
+                app:kerning="@dimen/medium_font_spacing"
+                android:layout_toLeftOf="@+id/delete_btn"
+                android:layout_toStartOf="@+id/delete_btn" />
+
+            <com.ledger.ledgerwallet.widget.TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Text"
+                android:id="@+id/pairing_date"
+                android:layout_below="@+id/dongle_name"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:textColor="@color/dark_grey"
+                android:textSize="@dimen/small_font_size"
+                app:kerning="@dimen/medium_font_spacing"
+                app:fontStyle="regular"
+                android:layout_marginTop="@dimen/extra_small_margin"
+                android:layout_toLeftOf="@+id/delete_btn"
+                android:layout_toStartOf="@+id/delete_btn" />
+
+        </LinearLayout>
+
 
         <View
             android:layout_width="50dp"
