@@ -1,0 +1,76 @@
+<resources>
+
+    <!-- General -->
+    <string name="app_name">Ledger Wallet</string>
+    <string name="app_version">Ledger Wallet Android %s</string>
+    <string name="btc_acronyme">BTC</string>
+
+    <!-- Home Activity -->
+    <string name="home_p_title">En attente de transactions…</string>
+    <string name="home_p_subtitle">Les transactions apparaîtront automatiquement quand une validation manuelle est requise.</string>
+    <string name="home_p_action">LEDGER WALLET ASSOCIÉS</string>
+    <string name="home_p_bottom">Besoin d\'aide? Visitez notre centre d\'aide.</string>
+
+    <string name="home_np_title">Aucun Ledger Wallet associé</string>
+    <string name="home_np_subtitle">Pour activer le second facteur d\'authentification mobile, associez votre Ledger Wallet avec ce smartphone.</string>
+    <string name="home_np_action">ASSOCIER UN LEDGER WALLET</string>
+    <string name="home_np_bottom">Besoin d\'aide? Visitez notre centre d\'aide.</string>
+
+    <!-- Paired Dongle Activity -->
+    <string name="paired_dongle_activity_name">Ledger Wallet Associés</string>
+    <string name="paired_dongle_paired_on">Associé le %s</string>
+
+    <!-- Create Dongle Pairing Activity -->
+    <string name="create_dongle_title">Associer un Ledger Wallet</string>
+    <string name="create_dongle_instruction_step_1">Scannez le code QR d\'association sur l\'application Chrome Ledger Wallet.</string>
+    <string name="create_dongle_instruction_step_2">Ce smartphone crée une connexion sécurisée avec votre Ledger Wallet.</string>
+    <string name="create_dongle_instruction_step_2_title">Établissement de la connexion…</string>
+    <string name="create_dongle_instruction_step_2_text">Veuillez patienter, cette opération peut prendre quelques instants.</string>
+    <string name="create_dongle_instruction_step_3">Utilisez votre carte de sécurité et entrez les valeurs correspondantes.</string>
+    <string name="create_dongle_instruction_step_3_bottom">Entrez la lettre ou le chiffre dans la case noire\n pour \"%s\".</string>
+    <string name="create_dongle_instruction_step_4">Your Ledger Wallet is finalizing the pairing process with this smartphone.</string>
+    <string name="create_dongle_instruction_step_4_title">Association en cours…</string>
+    <string name="create_dongle_instruction_step_4_text">Veuillez patienter, cette opération peut prendre quelques instants.</string>
+    <string name="create_dongle_instruction_step_5">L\'association est terminée.\nEntrez un nom pour ce Ledger Wallet.</string>
+    <string name="create_dongle_instruction_step_5_default_name">Mon Ledger Wallet</string>
+    <string name="create_dongle_instruction_step_5_name_hint">Nom du Ledger Wallet</string>
+    <string name="create_dongle_instruction_step_5_error_title">Erreur</string>
+    <string name="create_dongle_instruction_step_5_error_message">Ce nom est déjà utilisé par un autre Ledger Wallet associé.</string>
+    <string name="create_dongle_instruction_step_5_bottom">Choisissez un nom pour ce Ledger Wallet.</string>
+
+    <!-- Delete Pairing Dialog -->
+    <string name="delete_pairing_dialog_message">En supprimant ce Ledger Wallet, vous ne pourrez plus valider les transactions depuis ce smartphone.\nSouhaitez-vous continuer ?</string>
+
+    <!-- Incoming Transaction Dialog -->
+    <string name="incoming_tx_title">CONFIRMER LA TRANSACTION</string>
+    <string name="incoming_tx_date" formatted="false">Initié le %s à %s</string>
+
+    <!-- Pairing Success Dialog -->
+    <string name="pairing_success_dialog_title">ASSOCIATION RÉUSSIE</string>
+    <string name="pairing_success_dialog_content">Votre Ledger Wallet \"%s\" est maintenant associé avec ce smartphone.</string>
+
+    <!-- Pairing Failure Dialog -->
+    <string name="pairing_failure_dialog_title">ASSOCIATION ÉCHOUÉE</string>
+    <string name="pairing_failure_dialog_error_network">Une erreur réseau est survenue.\nVérifiez votre connexion Internet.</string>
+    <string name="pairing_failure_dialog_wrong_answer">Le code de validation de la carte de sécurité est incorrect.</string>
+    <string name="pairing_failure_dialog_cancelled">L\'application Chrome Ledger Wallet a annulé l\'association.</string>
+    <string name="pairing_failure_dialog_timeout">L\'association a dépassé le temps limite (timeout).</string>
+
+    <!-- Trustlet Promotion Dialog -->
+    <string name="trustlet_promotion_dialog_title">LEDGER TRUSTLET</string>
+    <string name="trustlet_promotion_dialog_main_message">Votre smartphone est compatible avec Ledger Trustlet, notre nouvelle technologie en environement d\'exécution sécurisé.</string>
+    <string name="trustlet_promotion_dialog_bottom_message">Voulez-vous en savoir plus ?</string>
+
+    <!-- Actions -->
+    <string name="action_done">Terminé</string>
+
+    <!-- Dialog Actions -->
+    <string name="dialog_action_confirm">CONFIRMER</string>
+    <string name="dialog_action_refuse">REJETER</string>
+    <string name="dialog_action_close">FERMER</string>
+    <string name="dialog_action_ok">OK</string>
+    <string name="dialog_action_cancel">ANNULER</string>
+    <string name="dialog_action_see_more">VOIR PLUS</string>
+    <string name="dialog_action_no_thanks">NON MERCI</string>
+
+</resources>

@@ -36,7 +36,7 @@
     <string name="create_dongle_instruction_step_5_name_hint">Ledger Wallet name</string>
     <string name="create_dongle_instruction_step_5_error_title">Error</string>
     <string name="create_dongle_instruction_step_5_error_message">This name is used by another paired Ledger Wallet.</string>
-    <string name="create_dongle_instruction_step_5_bottom">Choose a name to assign to this Ledger Wallett</string>
+    <string name="create_dongle_instruction_step_5_bottom">Choose a name to assign to this Ledger Wallet.</string>
 
     <!-- Delete Pairing Dialog -->
     <string name="delete_pairing_dialog_message">By deleting this Ledger Wallet, you will no longer be able to manually validate transaction from this smartphone. Do you want to continue?</string>

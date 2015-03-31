@@ -30,8 +30,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/large_margin"
         android:text="@string/create_dongle_instruction_step_2_text"
+        android:layout_marginLeft="@dimen/large_margin"
+        android:layout_marginRight="@dimen/large_margin"
         android:textSize="@dimen/small_font_size"
         android:textColor="@color/soft_grey"
+        android:gravity="center"
         app:kerning="@dimen/small_font_spacing"
         android:layout_gravity="center_horizontal" />
 </LinearLayout>
