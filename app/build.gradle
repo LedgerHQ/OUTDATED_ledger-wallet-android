@@ -9,7 +9,7 @@ android {
         applicationId "com.ledger.ledgerwallet"
         minSdkVersion 14
         targetSdkVersion 21
-        versionCode 2
+        versionCode 3
         versionName "1.0.0"
         //testInstrumentationRunner "com.android.test.runner.MultiDexTestRunner"
     }
