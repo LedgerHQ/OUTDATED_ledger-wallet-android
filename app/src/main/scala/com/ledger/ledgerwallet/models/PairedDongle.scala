@@ -39,7 +39,7 @@ import com.ledger.ledgerwallet.remote.api.m2fa.GcmAPI
 import com.ledger.ledgerwallet.utils.{Benchmark, GooglePlayServiceHelper}
 import org.json.JSONObject
 
-import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.ui
+import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 import scala.collection.JavaConversions._
 
 import android.content.Context

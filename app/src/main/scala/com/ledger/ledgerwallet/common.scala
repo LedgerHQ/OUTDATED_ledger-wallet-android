@@ -1,9 +1,9 @@
 /**
  *
- * ExecutionContext
+ * common
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 02/02/15.
+ * Created by Pierre Pollastri on 11/06/15.
  *
  * The MIT License (MIT)
  *
@@ -28,21 +28,28 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.concurrent
+package com.ledger.ledgerwallet
 
-import android.os.{AsyncTask, Looper, Handler}
+import android.os.{Looper, Handler}
+import com.ledger.ledgerwallet.utils.AndroidImplicitConversions
 
-object ExecutionContext {
+import scala.concurrent.ExecutionContext
 
-  object Implicits {
-    implicit lazy val main = scala.concurrent.ExecutionContext.fromExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
-  }
+// Base on scaloid
 
-  class HandlerExecutionContext(handler: Handler) extends scala.concurrent.ExecutionContextExecutor {
-    override def execute(runnable: Runnable): Unit = {
-      handler.post(runnable)
+package object common extends AndroidImplicitConversions {
+
+  implicit val executor: ExecutionContext = com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
+
+  private[this] lazy val mainThreadHandler = new Handler(Looper.getMainLooper)
+  private[this] lazy val mainThread = Looper.getMainLooper.getThread
+
+  def runOnUiThread(runnable: => Unit): Unit = {
+    if (Thread.currentThread == mainThread) {
+      runnable
+    } else {
+      mainThreadHandler.post { runnable }
     }
-    override def reportFailure(cause: Throwable): Unit = {}
   }
 
 }

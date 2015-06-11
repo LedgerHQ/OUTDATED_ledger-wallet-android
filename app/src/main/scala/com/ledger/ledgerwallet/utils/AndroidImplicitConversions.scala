@@ -35,7 +35,7 @@ import android.view.{KeyEvent, View}
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
 
-object AndroidImplicitConversions {
+trait AndroidImplicitConversions {
 
   implicit def funcToViewOnClickListener[F](f: => F): View.OnClickListener = {
     new View.OnClickListener {
@@ -72,3 +72,5 @@ object AndroidImplicitConversions {
   }
 
 }
+
+object AndroidImplicitConversions extends AndroidImplicitConversions

@@ -57,6 +57,7 @@ dependencies {
 
 tasks.withType(ScalaCompile) {
     scalaCompileOptions.deprecation = false
+    scalaCompileOptions.useCompileDaemon = true
 }
 
 

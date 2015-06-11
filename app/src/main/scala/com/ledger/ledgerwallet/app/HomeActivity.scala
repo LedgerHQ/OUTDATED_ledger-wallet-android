@@ -45,8 +45,9 @@ import com.ledger.ledgerwallet.remote.api.m2fa.{GcmAPI, IncomingTransactionAPI}
 import com.ledger.ledgerwallet.utils.logs.Logger
 import com.ledger.ledgerwallet.utils.{AndroidUtils, GooglePlayServiceHelper, TR}
 import com.ledger.ledgerwallet.widget.TextView
-import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
+import com.ledger.ledgerwallet.common._
 
+import scala.concurrent.{Promise, Future}
 import scala.util.{Failure, Success}
 
 class HomeActivity extends BaseActivity {

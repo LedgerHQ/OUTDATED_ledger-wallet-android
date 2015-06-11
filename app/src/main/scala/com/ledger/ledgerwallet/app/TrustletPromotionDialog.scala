@@ -41,6 +41,7 @@ import com.ledger.ledgerwallet.utils.Preferenceable
 import com.ledger.ledgerwallet.view.DialogActionBarController
 
 import scala.concurrent.{Promise, Future}
+import com.ledger.ledgerwallet.common._
 
 class TrustletPromotionDialog extends BaseDialogFragment {
 
@@ -76,7 +77,7 @@ object TrustletPromotionDialog extends Preferenceable {
   def show(fragmentManager: FragmentManager)(implicit context: Context): TrustletPromotionDialog = {
     edit().putInt("show_count", preferences.getInt("show_count", 0) + 1).commit()
     val fragment = new TrustletPromotionDialog()
-    fragment.show(fragmentManager, DefaultTag)
+    runOnUiThread(fragment.show(fragmentManager, DefaultTag))
     fragment
   }
 
