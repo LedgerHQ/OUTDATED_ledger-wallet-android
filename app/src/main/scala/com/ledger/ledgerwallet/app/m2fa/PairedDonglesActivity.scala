@@ -109,10 +109,7 @@ class PairedDonglesActivity extends BaseActivity {
 
     implicit val context = c
 
-    private[this] lazy val DateFormat = {
-      val f = android.text.format.DateFormat.getBestDateTimePattern(Locale.getDefault, "dd/MM/yyyy")
-      new SimpleDateFormat(f)
-    }
+    private[this] lazy val DateFormat = android.text.format.DateFormat.getDateFormat(c)
 
     private var _pairedDongles = Array[PairedDongle]()
     def pairedDongles = _pairedDongles

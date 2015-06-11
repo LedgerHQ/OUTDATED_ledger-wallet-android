@@ -108,6 +108,5 @@
     <orderEntry type="library" exported="" name="androidasync-2.0.5" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="multidex-instrumentation-1.0.1" level="project" />
     <orderEntry type="library" exported="" name="zbar-1.6" level="project" />
-    <orderEntry type="library" name="scala-sdk-2.11.6" level="application" />
   </component>
 </module>

@@ -94,8 +94,7 @@ class IncomingTransactionDialogFragment extends BaseDialogFragment {
         amount.setText(AmountFormatter.Bitcoin.format(transaction.amount))
         address.setText(transaction.address)
         name.setText(transaction.dongle.name.get)
-        android.text.format.DateFormat.getBestDateTimePattern(Locale.getDefault, "dd/MM/yyyy")
-        val df = new SimpleDateFormat(android.text.format.DateFormat.getBestDateTimePattern(Locale.getDefault, "dd/MM/yyyy"))
+        val df = android.text.format.DateFormat.getDateFormat(getActivity)
         val hf = android.text.format.DateFormat.getTimeFormat(getActivity)
         date.setText(TR(R.string.incoming_tx_date).as[String].format(df.format(transaction.date), hf.format(transaction.date)))
       case _ =>
