@@ -1,11 +1,6 @@
-*~
-*.swp
-*.hprof
 .gradle
-local.properties
+/local.properties
 /.idea/workspace.xml
 /.idea/libraries
 .DS_Store
 /build
-*.iml
-local.gradle
