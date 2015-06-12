@@ -44,7 +44,7 @@ class KeyPairTest extends InstrumentationTestCase {
     Logger.d("Public size: " + (keypair.publicKeyHexString.length / 2))
     Logger.d("Private size: " + (keypair.privateKeyHexString.length / 2))
     Assert.assertEquals(65, keypair.publicKey.length)
-    Assert.assertEquals(32, keypair.privateKey.length)
+    Assert.assertTrue(32 >= keypair.privateKey.length)
   }
 
   def testShouldPerformECDH(): Unit = {
