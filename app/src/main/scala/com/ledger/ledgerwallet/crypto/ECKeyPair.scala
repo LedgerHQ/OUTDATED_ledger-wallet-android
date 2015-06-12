@@ -40,7 +40,11 @@ import org.spongycastle.crypto.params.{ECPrivateKeyParameters, ECPublicKeyParame
 import org.spongycastle.math.ec.ECPoint
 import org.spongycastle.util.encoders.Hex
 
+import scala.util.Try
+
 abstract class ECKeyPair {
+
+  Try(PRNGFixes.apply())
 
   def publicKeyPoint: ECPoint
   def privateKeyInteger: BigInteger
