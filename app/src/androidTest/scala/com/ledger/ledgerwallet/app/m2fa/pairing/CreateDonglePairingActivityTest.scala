@@ -38,7 +38,7 @@ import android.os.{Looper, Handler}
 import android.test.ActivityInstrumentationTestCase2
 import android.view.KeyEvent
 import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.app.{Config, TestConfig}
+import com.ledger.ledgerwallet.app.Config
 import com.ledger.ledgerwallet.crypto.ECKeyPair
 import com.ledger.ledgerwallet.remote.api.m2fa.{MockPairingApi, PairingApiServer}
 import junit.framework.Assert

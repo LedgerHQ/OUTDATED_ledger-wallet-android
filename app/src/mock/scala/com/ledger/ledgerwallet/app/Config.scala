@@ -1,9 +1,14 @@
+package com.ledger.ledgerwallet.app
+
+import android.net.Uri
+import com.ledger.ledgerwallet.BuildConfig
+
 /**
  *
- * TestConfig
+ * Config
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 02/02/15.
+ * Created by Pierre Pollastri on 12/06/15.
  *
  * The MIT License (MIT)
  *
@@ -28,16 +33,14 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.app
 
-import android.net.Uri
+object Config {
 
-object TestConfig extends Config {
+  def ApiBaseUri = Uri.parse("https://api.ledgerwallet.com")
+  def WebSocketBaseUri = Uri.parse("https://ws.ledgerwallet.com")
+  def LedgerAttestationPublicKey = "0478c0837ded209265ea8131283585f71c5bddf7ffafe04ccddb8fe10b3edc7833d6dee70c3b9040e1a1a01c5cc04fcbf9b4de612e688d09245ef5f9135413cc1d"
+  def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
+  def Env = if (BuildConfig.DEBUG) "dev" else "prod"
+  def TrustletWebPage = Uri.parse("https://ledgerwallet.com/trustlet")
 
-  override def ApiBaseUri: Uri = Uri.parse("http://localhost:5000")
-  override def WebSocketBaseUri: Uri = Uri.parse("http://localhost:5000")
-  override def LedgerAttestationPublicKey = "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
-  override def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
-  override def Env: String = "test"
-  override def TrustletWebPage: Uri = Uri.parse("http://ledgerwallet.com/trustlet")
 }
