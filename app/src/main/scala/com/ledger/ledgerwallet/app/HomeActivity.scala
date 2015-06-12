@@ -74,7 +74,7 @@ class HomeActivity extends BaseActivity {
     TrustletPromotionDialog.isShowable.onSuccess {
       case true =>
         TeeAPI.defaultInstance.isDeviceEligible.onSuccess {
-          case true => TrustletPromotionDialog.show(getSupportFragmentManager)
+          case true => runOnUiThread(TrustletPromotionDialog.show(getSupportFragmentManager))
           case _ => // Nothing to do
         }
       case _ => // Nothing to do

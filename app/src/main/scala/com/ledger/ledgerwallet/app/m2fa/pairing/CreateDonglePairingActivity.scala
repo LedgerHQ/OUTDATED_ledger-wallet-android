@@ -78,8 +78,8 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
       }
     }
     pairingApi.future.get onComplete {
-      case Success(pairedDongle) => postResult(CreateDonglePairingActivity.ResultOk)
-      case Failure(ex) => {
+      case Success(pairedDongle) => runOnUiThread(postResult(CreateDonglePairingActivity.ResultOk))
+      case Failure(ex) => runOnUiThread {
         ex match {
           case disconnect: PairingAPI.ClientCancelledException => postResult(CreateDonglePairingActivity.ResultPairingCancelled)
           case wrongChallenge: PairingAPI.WrongChallengeAnswerException => postResult(CreateDonglePairingActivity.ResultWrongChallenge)
@@ -109,13 +109,13 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     _pairingApi onRequireUserInput {
       case RequirePairingId() => pairindId.future
       case RequireChallengeResponse(challenge) => {
-        this runOnUiThread {
+        runOnUiThread {
           gotToStep(3, TR(R.string.create_dongle_instruction_step_3).as[String], new PairingChallengeFragment(challenge))
         }
         challengeResponse.future
       }
       case RequireDongleName() => {
-        this runOnUiThread {
+        runOnUiThread {
           gotToStep(5, TR(R.string.create_dongle_instruction_step_5).as[String], new NameDongleFragment)
         }
         dongleName.future
