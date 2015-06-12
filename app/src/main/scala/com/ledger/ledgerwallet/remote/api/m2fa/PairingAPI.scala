@@ -47,6 +47,7 @@ import com.ledger.ledgerwallet.utils.JsonUtils._
 
 import scala.concurrent.{Promise, Future}
 import scala.util.{Failure, Success}
+import com.ledger.ledgerwallet.common._
 
 class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocketInstance) {
 
@@ -229,7 +230,10 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
 
   private[this] def finalizePairing(dongleName: String): Unit = {
     implicit val context = this.context
-    success(PairedDongle.create(_pairingId.get, dongleName, pairingKey))
+    Future {
+      val dongle = PairedDongle.create(_pairingId.get, dongleName, pairingKey)
+      runOnUiThread(success(dongle))
+    }
   }
 
   private[this] def answerToPackage(socket: WebSocket, pkg: JSONObject): Unit = {

@@ -55,7 +55,6 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
 
   override def setUp(): Unit = {
     super.setUp()
-    Config.setImplementation(TestConfig)
     setActivityInitialTouchMode(false)
     instrumentation = getInstrumentation
     activity = getActivity

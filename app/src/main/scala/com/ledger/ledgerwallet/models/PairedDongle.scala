@@ -102,9 +102,7 @@ object PairedDongle extends Collection[PairedDongle] {
         .edit()
         .putString(id, dongle.toJson.toString)
         .commit()
-      Future {
-        storePairingKey(context, id, pairingKey)
-      }
+      storePairingKey(context, id, pairingKey)
       GooglePlayServiceHelper.getGcmRegistrationId onComplete {
         case Success(regId) => GcmAPI.defaultInstance.updateDonglesToken(regId)
         case _ =>

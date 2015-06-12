@@ -39,6 +39,16 @@ import scala.collection.mutable
 
 class PairedDongleTest extends InstrumentationTestCase {
 
+
+  override def setUp(): Unit = {
+    super.setUp()
+    implicit val context = getInstrumentation.getTargetContext
+
+    for (dongle <- PairedDongle.all) {
+      dongle.delete()
+    }
+  }
+
   def testShouldCreateAndGet(): Unit = {
     implicit val context = getInstrumentation.getTargetContext
     val pairingId = "a test pairing id"
@@ -64,7 +74,7 @@ class PairedDongleTest extends InstrumentationTestCase {
     Logger.d(Hex.toHexString(pairingKey) + " <> " + Hex.toHexString(dongle.get.pairingKey.get.secret))
   }
 
-  def testShouldCreateAndGetFromPreferencesMuktipleDongle(): Unit = {
+  def testShouldCreateAndGetFromPreferencesMultipleDongle(): Unit = {
     implicit val context = getInstrumentation.getTargetContext
 
     val testSet = mutable.Map[String, (String, String)]()
