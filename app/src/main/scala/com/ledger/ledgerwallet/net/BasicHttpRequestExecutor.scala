@@ -33,6 +33,7 @@ package com.ledger.ledgerwallet.net
 import java.util.concurrent.Executors
 
 import scala.concurrent.{Future, ExecutionContext}
+import scala.util.Try
 
 class BasicHttpRequestExecutor extends HttpRequestExecutor {
 
@@ -40,7 +41,9 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
 
   override def execute(responseBuilder: HttpClient#ResponseBuilder): Unit = Future {
 
+    val result = Try {
 
+    }
 
     responseBuilder.build()
   }

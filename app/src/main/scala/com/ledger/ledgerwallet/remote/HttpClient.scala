@@ -65,10 +65,6 @@ class HttpClient(baseUrl: Uri) {
   val headers = new mutable.HashMap[String, String]()
   val _client = AsyncHttpClient.getDefaultInstance
 
-
-  val sslContext = new SSLContext()
-
-  _client.getSSLSocketMiddleware.setS
 /*
   _client.getSSLSocketMiddleware.setTrustManagers(Array(
     new X509TrustManager {
