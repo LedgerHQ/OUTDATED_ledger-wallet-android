@@ -30,6 +30,69 @@
  */
 package com.ledger.ledgerwallet.net
 
-class HttpClient {
+import java.io.{OutputStream, InputStream}
+
+import android.content.Context
+import android.net.Uri
+
+import scala.concurrent.{Promise, Future}
+
+class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor) {
+
+  /*
+      http post to 'toto' json
+   */
+
+  def execute(method: String,
+              url: String,
+              body: InputStream,
+              headers: Map[String, String]
+               )
+             (implicit context: Context)
+  : Request = {
+    null
+  }
+
+  private[this] def createResponseBuilder(request: HttpClient#Request): ResponseBuilder = {
+
+  }
+
+  class Request(val method: String,
+                val url: Uri,
+                val body: InputStream,
+                val headers: Map[String, String],
+                val context: Context) {
+
+    lazy val response: Future[HttpClient#Response] = {
+      val builder = createResponseBuilder(this)
+      executor.execute(builder)
+      builder.future
+    }
+
+
+
+  }
+
+  class Response(
+                val statusCode: Int,
+                val statusMessage: String,
+                val body: InputStream,
+                val headers: Map[String, String],
+                val request: HttpClient#Request
+                  ) {
+
+  }
+
+  class ResponseBuilder(val request: HttpClient#Request) {
+    private [this] val buildPromise = Promise[Response]()
+    val future = buildPromise.future
+
+    def failure(cause: Throwable) = buildPromise.failure(cause)
+
+    def build(): Response = {
+      null
+    }
+
+  }
 
 }

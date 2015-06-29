@@ -54,17 +54,20 @@ class GcmAPI(c: Context, client: HttpClient = HttpClient.defaultInstance) extend
   def updateDongleToken(dongle: PairedDongle, regId: RegistrationId): Unit = {
     if (preferences.getString(dongle.id.get, null) != regId.value) {
       val pairingId = dongle.id.get
+      Logger.d(s"POST /2fa/pairings/$pairingId/push_token")
       val request = client.postJsonObject(
         s"/2fa/pairings/$pairingId/push_token",
         body = Some(Map("pairing_id" -> dongle.id.get, "push_token" -> regId.value))
       )
       request.future onComplete {
         case Success(_) => {
+          Logger.d("POST OK")
           edit()
           .putString(dongle.id.get, regId.value)
           .commit()
         }
         case Failure(ex) =>
+          Logger.d("POST KO")
           request
       }
     }

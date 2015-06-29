@@ -33,7 +33,7 @@ package com.ledger.ledgerwallet.remote
 import java.net.{HttpURLConnection, URLConnection, URL}
 import java.security.cert.X509Certificate
 import java.util.Locale
-import javax.net.ssl.X509TrustManager
+import javax.net.ssl.{SSLContext, X509TrustManager}
 
 import android.net.Uri
 import com.koushikdutta.async.future.FutureCallback
@@ -65,6 +65,10 @@ class HttpClient(baseUrl: Uri) {
   val headers = new mutable.HashMap[String, String]()
   val _client = AsyncHttpClient.getDefaultInstance
 
+
+  val sslContext = new SSLContext()
+
+  _client.getSSLSocketMiddleware.setS
 /*
   _client.getSSLSocketMiddleware.setTrustManagers(Array(
     new X509TrustManager {

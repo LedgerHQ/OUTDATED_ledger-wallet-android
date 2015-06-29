@@ -1,9 +1,9 @@
 /**
  *
- * common
+ * FutureUtils
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 11/06/15.
+ * Created by Pierre Pollastri on 29/06/15.
  *
  * The MIT License (MIT)
  *
@@ -28,28 +28,11 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet
+package com.ledger.ledgerwallet.concurrent
 
-import android.os.{Looper, Handler}
-import com.ledger.ledgerwallet.utils.AndroidImplicitConversions
+import scala.concurrent.{Promise, Future}
 
-import scala.concurrent.{Promise, Future, ExecutionContext}
+object FutureUtils {
 
-// Base on scaloid
-
-package object common extends AndroidImplicitConversions {
-
-  implicit val executor: ExecutionContext = com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
-
-  private[this] lazy val mainThreadHandler = new Handler(Looper.getMainLooper)
-  private[this] lazy val mainThread = Looper.getMainLooper.getThread
-
-  def runOnUiThread(runnable: => Unit): Unit = {
-    if (Thread.currentThread == mainThread) {
-      runnable
-    } else {
-      mainThreadHandler.post { runnable }
-    }
-  }
 
 }

@@ -1,9 +1,9 @@
 /**
  *
- * common
+ * BasicHttpRequestExecutor
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 11/06/15.
+ * Created by Pierre Pollastri on 29/06/15.
  *
  * The MIT License (MIT)
  *
@@ -28,28 +28,20 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet
+package com.ledger.ledgerwallet.net
 
-import android.os.{Looper, Handler}
-import com.ledger.ledgerwallet.utils.AndroidImplicitConversions
+import java.util.concurrent.Executors
 
-import scala.concurrent.{Promise, Future, ExecutionContext}
+import scala.concurrent.{Future, ExecutionContext}
 
-// Base on scaloid
+class BasicHttpRequestExecutor extends HttpRequestExecutor {
 
-package object common extends AndroidImplicitConversions {
+  implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(10))
 
-  implicit val executor: ExecutionContext = com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
+  override def execute(responseBuilder: HttpClient#ResponseBuilder): Unit = Future {
 
-  private[this] lazy val mainThreadHandler = new Handler(Looper.getMainLooper)
-  private[this] lazy val mainThread = Looper.getMainLooper.getThread
 
-  def runOnUiThread(runnable: => Unit): Unit = {
-    if (Thread.currentThread == mainThread) {
-      runnable
-    } else {
-      mainThreadHandler.post { runnable }
-    }
+
+    responseBuilder.build()
   }
-
 }
