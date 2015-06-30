@@ -30,21 +30,88 @@
  */
 package com.ledger.ledgerwallet.net
 
+import java.io.{BufferedInputStream, BufferedOutputStream}
+import java.net.{HttpURLConnection, URL}
 import java.util.concurrent.Executors
 
+import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class BasicHttpRequestExecutor extends HttpRequestExecutor {
 
-  implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(10))
+  val BufferSize = 10 * 1024 // ~= 10KB buffer
+  val NumberOfThreads = 10
+  val Buffers: mutable.Map[Long, Array[Byte]] = mutable.Map[Long, Array[Byte]]()
+
+  implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(NumberOfThreads))
+
+
 
   override def execute(responseBuilder: HttpClient#ResponseBuilder): Unit = Future {
+    val request = responseBuilder.request
+    val url = new URL(request.url.toString)
+    val connection = url.openConnection().asInstanceOf[HttpURLConnection]
+    implicit val buffer = this.buffer
 
-    val result = Try {
+    Try {
+      configureConnection(connection, request)
+      writeBody(connection, request)
 
+    } match {
+      case Success(_) => responseBuilder.build()
+      case Failure(cause) => responseBuilder.failure(cause)
     }
+    connection.disconnect()
 
-    responseBuilder.build()
   }
+
+  private[this] def configureConnection(connection: HttpURLConnection,
+                                        request: HttpClient#Request): Unit = {
+    request.method match {
+      case "POST" | "PUT" =>
+        connection.setDoOutput(true)
+        connection.setRequestMethod(request.method)
+        if (request.isBodyStreamed) {
+          connection.setChunkedStreamingMode(request.chunkLength)
+        } else {
+          connection.setFixedLengthStreamingMode(request.body.available())
+        }
+      case "GET" | "DELETE" =>
+        connection.setRequestMethod(request.method)
+      case invalid =>
+        throw new Exception(s"No such method ${request.method}")
+    }
+  }
+
+  private[this] def writeBody(connection: HttpURLConnection,
+                              request: HttpClient#Request)
+                             (implicit buffer: Array[Byte]): Unit = {
+    request.method match {
+      case "POST" | "PUT" =>
+        val out = new BufferedOutputStream(connection.getOutputStream)
+        val in = new BufferedInputStream(request.body)
+
+        out.close()
+      case nothing => // Nothing to do
+    }
+  }
+
+  private[this] def readResponse(connection: HttpURLConnection,
+                                 request: HttpClient#Request)
+                                (implicit buffer: Array[Byte]): Unit = {
+
+  }
+
+  private[this] def buffer: Array[Byte] = {
+    Buffers.synchronized {
+      var buffer = Buffers(Thread.currentThread().getId)
+      if (buffer == null) {
+        buffer = new Array[Byte](BufferSize)
+        Buffers(Thread.currentThread().getId) = buffer
+      }
+      buffer
+    }
+  }
+
 }

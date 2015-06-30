@@ -54,7 +54,7 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor) {
   }
 
   private[this] def createResponseBuilder(request: HttpClient#Request): ResponseBuilder = {
-
+    new ResponseBuilder(request)
   }
 
   class Request(val method: String,
@@ -63,14 +63,21 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor) {
                 val headers: Map[String, String],
                 val context: Context) {
 
+    private[this] var _chunkLength = -1
+
     lazy val response: Future[HttpClient#Response] = {
       val builder = createResponseBuilder(this)
       executor.execute(builder)
       builder.future
     }
 
+    def streamBody(chunkLength: Int = 0): HttpClient#Request = {
+      _chunkLength = chunkLength
+      this
+    }
 
-
+    def isBodyStreamed = _chunkLength > -1
+    def chunkLength = _chunkLength
   }
 
   class Response(
