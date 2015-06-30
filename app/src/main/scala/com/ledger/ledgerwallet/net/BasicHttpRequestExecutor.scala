@@ -47,10 +47,6 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
   val NumberOfThreads = 10
   val Buffers: mutable.Map[Long, Array[Byte]] = mutable.Map[Long, Array[Byte]]()
 
-  private[this] val fib = {
-    val array =
-  }
-
   implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(NumberOfThreads))
 
   override def execute(responseBuilder: HttpClient#ResponseBuilder): Unit = Future {
@@ -86,7 +82,6 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
         headers(connection.getHeaderFieldKey(pos)) = connection.getHeaderField(pos)
       }
       responseBuilder.headers = headers.toMap
-      _
     }
     connection.disconnect()
     result

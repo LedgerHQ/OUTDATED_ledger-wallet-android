@@ -30,14 +30,16 @@
  */
 package com.ledger.ledgerwallet.net
 
-import java.io.{OutputStream, InputStream}
+import java.io.{ByteArrayInputStream, OutputStream, InputStream}
 
 import android.content.Context
 import android.net.Uri
+import com.netaporter.uri.PathPart
+import org.json.{JSONArray, JSONObject}
 
 import scala.concurrent.{Promise, Future}
 
-class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor) {
+class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpRequestExecutor.getDefault()) {
 
   var requestTimeout = 30L * 1000L
   var retryNumber = 3
@@ -47,19 +49,73 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor) {
       http post to 'toto' json
    */
 
+  def get(path: String): MutableRequest = execute("GET", path)
+
   def execute(method: String,
-              url: String,
-              body: InputStream,
-              headers: Map[String, String],
-              cached: Boolean = cacheResponses
-               )
-             (implicit context: Context)
-  : Request = {
-    null
+              path: String)
+             (implicit context: Context = null)
+  : MutableRequest = {
+    new MutableRequest(
+      method = method,
+      url = baseUrl.buildUpon().appendEncodedPath(path).build(),
+      timeout = requestTimeout,
+      retryNumber = retryNumber,
+      cached = cacheResponses
+    )
   }
 
   private[this] def createResponseBuilder(request: HttpClient#Request): ResponseBuilder = {
     new ResponseBuilder(request)
+  }
+
+
+  class MutableRequest(
+    method: String = null,
+    url: Uri = null,
+    body: InputStream = null,
+    headers: Map[String, String] = Map.empty,
+    timeout: Long = requestTimeout,
+    retryNumber: Int = retryNumber,
+    cached: Boolean = cacheResponses,
+    chunkLength: Int = -1
+    ) extends Request(method, url, body, headers, timeout, retryNumber, cached, chunkLength) {
+
+    def path(pathPart: String): MutableRequest = {
+      copy(url = url.buildUpon().appendPath(pathPart).build())
+    }
+
+    def param(param: (String, Any)): MutableRequest = {
+      copy(url = url.buildUpon().appendQueryParameter(param._1, param._2.toString).build())
+    }
+
+    def header(header: (String, String)): MutableRequest = {
+      copy(headers = headers + header)
+    }
+
+    def retry(retryNumber: Int): MutableRequest = copy(retryNumber = retryNumber)
+    def cached(enableCache: Boolean): MutableRequest = copy(cached = enableCache)
+    def timeout(requestTimeout: Long):MutableRequest = copy(timeout = requestTimeout)
+
+    def body(inputStream: InputStream): MutableRequest = copy(body = inputStream)
+    def body(stringBody: String): MutableRequest = copy(body = new ByteArrayInputStream(stringBody.getBytes))
+    def body(jsonBody: JSONObject): MutableRequest = body(jsonBody.toString)
+    def body(jsonBody: JSONArray): MutableRequest = body(jsonBody.toString)
+
+    def streamBody(chunkLength: Int = 0): MutableRequest = copy(chunkLength = chunkLength)
+
+    def isBodyStreamed = chunkLength > -1
+
+    private[this] def copy(method: String = this.method,
+                           url: Uri = this.url,
+                           body: InputStream = this.body,
+                           headers: Map[String, String] = this.headers,
+                           timeout: Long = this.timeout,
+                           retryNumber: Int = this.retryNumber,
+                           cached: Boolean = this.cached,
+                           chunkLength: Int = this.chunkLength): MutableRequest = {
+      new MutableRequest(method, url, body, headers, timeout, retryNumber, cached)
+    }
+
   }
 
   class Request(val method: String,
@@ -69,9 +125,7 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor) {
                 val timeout: Long,
                 val retryNumber: Int,
                 val cached: Boolean,
-                val context: Context) {
-
-    private[this] var _chunkLength = -1
+                val chunkLength: Int) {
 
     lazy val response: Future[HttpClient#Response] = {
       val builder = createResponseBuilder(this)
@@ -79,13 +133,6 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor) {
       builder.future
     }
 
-    def streamBody(chunkLength: Int = 0): HttpClient#Request = {
-      _chunkLength = chunkLength
-      this
-    }
-
-    def isBodyStreamed = _chunkLength > -1
-    def chunkLength = _chunkLength
   }
 
   class Response(
@@ -116,6 +163,7 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor) {
         headers,
         request
       )
+      // TODO: Handle failure
       buildPromise.success(response)
       response
     }
