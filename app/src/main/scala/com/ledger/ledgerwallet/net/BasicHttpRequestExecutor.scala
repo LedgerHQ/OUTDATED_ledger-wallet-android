@@ -34,40 +34,71 @@ import java.io.{BufferedInputStream, BufferedOutputStream}
 import java.net.{HttpURLConnection, URL}
 import java.util.concurrent.Executors
 
+import com.ledger.ledgerwallet.utils.io.IOUtils
+
 import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Failure, Success, Try}
 
 class BasicHttpRequestExecutor extends HttpRequestExecutor {
 
+  val TimeoutDuration = 1000L
   val BufferSize = 10 * 1024 // ~= 10KB buffer
   val NumberOfThreads = 10
   val Buffers: mutable.Map[Long, Array[Byte]] = mutable.Map[Long, Array[Byte]]()
 
+  private[this] val fib = {
+    val array =
+  }
+
   implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(NumberOfThreads))
 
-
-
   override def execute(responseBuilder: HttpClient#ResponseBuilder): Unit = Future {
+    for (tryNumber <- 0 until responseBuilder.request.retryNumber)
+      attemptPerform(responseBuilder) match {
+        case Success(_) =>
+          responseBuilder.build()
+          return
+        case Failure(cause) =>
+          if (tryNumber + 1 < responseBuilder.request.retryNumber)
+            Thread.sleep(tryNumber * TimeoutDuration)
+          else
+            responseBuilder.failure(cause)
+      }
+  }
+
+  private[this] def attemptPerform(responseBuilder: HttpClient#ResponseBuilder): Try[_] = {
     val request = responseBuilder.request
     val url = new URL(request.url.toString)
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     implicit val buffer = this.buffer
 
-    Try {
+    val result = Try {
       configureConnection(connection, request)
       writeBody(connection, request)
 
-    } match {
-      case Success(_) => responseBuilder.build()
-      case Failure(cause) => responseBuilder.failure(cause)
+      responseBuilder.statusCode = connection.getResponseCode
+      responseBuilder.statusMessage = connection.getResponseMessage
+      responseBuilder.body = new BufferedInputStream(connection.getInputStream)
+
+      val headers = mutable.Map[String, String]()
+      for (pos <- 0 until connection.getHeaderFields.size()) {
+        headers(connection.getHeaderFieldKey(pos)) = connection.getHeaderField(pos)
+      }
+      responseBuilder.headers = headers.toMap
+      _
     }
     connection.disconnect()
-
+    result
   }
 
   private[this] def configureConnection(connection: HttpURLConnection,
                                         request: HttpClient#Request): Unit = {
+
+    request.headers.foreach {case (k, v) =>
+      connection.setRequestProperty(k, v)
+    }
+
     request.method match {
       case "POST" | "PUT" =>
         connection.setDoOutput(true)
@@ -82,6 +113,7 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
       case invalid =>
         throw new Exception(s"No such method ${request.method}")
     }
+
   }
 
   private[this] def writeBody(connection: HttpURLConnection,
@@ -91,16 +123,11 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
       case "POST" | "PUT" =>
         val out = new BufferedOutputStream(connection.getOutputStream)
         val in = new BufferedInputStream(request.body)
-
+        IOUtils.copy(in, out, buffer)
         out.close()
+        in.close()
       case nothing => // Nothing to do
     }
-  }
-
-  private[this] def readResponse(connection: HttpURLConnection,
-                                 request: HttpClient#Request)
-                                (implicit buffer: Array[Byte]): Unit = {
-
   }
 
   private[this] def buffer: Array[Byte] = {

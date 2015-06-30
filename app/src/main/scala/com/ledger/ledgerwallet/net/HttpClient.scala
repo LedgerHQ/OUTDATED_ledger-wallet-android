@@ -39,6 +39,10 @@ import scala.concurrent.{Promise, Future}
 
 class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor) {
 
+  var requestTimeout = 30L * 1000L
+  var retryNumber = 3
+  var cacheResponses = true
+
   /*
       http post to 'toto' json
    */
@@ -46,7 +50,8 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor) {
   def execute(method: String,
               url: String,
               body: InputStream,
-              headers: Map[String, String]
+              headers: Map[String, String],
+              cached: Boolean = cacheResponses
                )
              (implicit context: Context)
   : Request = {
@@ -61,6 +66,9 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor) {
                 val url: Uri,
                 val body: InputStream,
                 val headers: Map[String, String],
+                val timeout: Long,
+                val retryNumber: Int,
+                val cached: Boolean,
                 val context: Context) {
 
     private[this] var _chunkLength = -1
@@ -85,8 +93,7 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor) {
                 val statusMessage: String,
                 val body: InputStream,
                 val headers: Map[String, String],
-                val request: HttpClient#Request
-                  ) {
+                val request: HttpClient#Request) {
 
   }
 
@@ -94,10 +101,23 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor) {
     private [this] val buildPromise = Promise[Response]()
     val future = buildPromise.future
 
+    var statusCode: Int = 0
+    var statusMessage: String = ""
+    var body: InputStream = _
+    var headers = Map[String, String]()
+
     def failure(cause: Throwable) = buildPromise.failure(cause)
 
     def build(): Response = {
-      null
+      val response = new Response(
+        statusCode,
+        statusMessage,
+        body,
+        headers,
+        request
+      )
+      buildPromise.success(response)
+      response
     }
 
   }
