@@ -30,11 +30,10 @@
  */
 package com.ledger.ledgerwallet.net
 
-import java.io.{ByteArrayInputStream, OutputStream, InputStream}
+import java.io.{ByteArrayInputStream, InputStream}
 
 import android.content.Context
 import android.net.Uri
-import com.netaporter.uri.PathPart
 import org.json.{JSONArray, JSONObject}
 
 import scala.concurrent.{Promise, Future}
@@ -103,8 +102,6 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
 
     def streamBody(chunkLength: Int = 0): MutableRequest = copy(chunkLength = chunkLength)
 
-    def isBodyStreamed = chunkLength > -1
-
     private[this] def copy(method: String = this.method,
                            url: Uri = this.url,
                            body: InputStream = this.body,
@@ -133,6 +130,8 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
       builder.future
     }
 
+    def isBodyStreamed = chunkLength > -1
+
   }
 
   class Response(
@@ -141,6 +140,7 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
                 val body: InputStream,
                 val headers: Map[String, String],
                 val request: HttpClient#Request) {
+
 
   }
 

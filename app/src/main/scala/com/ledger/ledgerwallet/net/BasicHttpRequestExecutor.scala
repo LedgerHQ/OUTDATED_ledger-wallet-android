@@ -35,7 +35,9 @@ import java.net.{HttpURLConnection, URL}
 import java.util.concurrent.Executors
 
 import com.ledger.ledgerwallet.utils.io.IOUtils
+import com.ledger.ledgerwallet.utils.logs.Logger
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Failure, Success, Try}
@@ -50,40 +52,63 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
   implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(NumberOfThreads))
 
   override def execute(responseBuilder: HttpClient#ResponseBuilder): Unit = Future {
-    for (tryNumber <- 0 until responseBuilder.request.retryNumber)
+    Logger.d(s"Begin request ${responseBuilder.request.url.toString}")
+
+    @tailrec
+    def iterate(tryNumber: Int): Unit = {
+      Logger.d(s"Attempt $tryNumber")
+      var continue = false
       attemptPerform(responseBuilder) match {
         case Success(_) =>
+          Logger.d("Success")
           responseBuilder.build()
-          return
         case Failure(cause) =>
-          if (tryNumber + 1 < responseBuilder.request.retryNumber)
+          Logger.d("Failure")
+          cause.printStackTrace()
+          if (tryNumber + 1 < responseBuilder.request.retryNumber) {
             Thread.sleep(tryNumber * TimeoutDuration)
-          else
+            continue = true
+          } else
             responseBuilder.failure(cause)
       }
+      if (continue && tryNumber + 1 < responseBuilder.request.retryNumber) iterate(tryNumber + 1)
+    }
+    iterate(0)
   }
 
   private[this] def attemptPerform(responseBuilder: HttpClient#ResponseBuilder): Try[_] = {
     val request = responseBuilder.request
     val url = new URL(request.url.toString)
-    val connection = url.openConnection().asInstanceOf[HttpURLConnection]
+    Logger.d(s"Perform request on ${url.toString}")
+    val connection = Try(url.openConnection().asInstanceOf[HttpURLConnection])
+
+    if (connection.isFailure)
+      return connection
+
+    Logger.d("Step -1")
     implicit val buffer = this.buffer
+    Logger.d("Step 0")
+    val result: Try[_] = Try {
+      Logger.d("Step 1")
+      configureConnection(connection.get, request)
+      Logger.d("Step 2")
+      writeBody(connection.get, request)
+      Logger.d("Step 3")
 
-    val result = Try {
-      configureConnection(connection, request)
-      writeBody(connection, request)
-
-      responseBuilder.statusCode = connection.getResponseCode
-      responseBuilder.statusMessage = connection.getResponseMessage
-      responseBuilder.body = new BufferedInputStream(connection.getInputStream)
-
+      responseBuilder.statusCode = connection.get.getResponseCode
+      Logger.d("Step 4")
+      responseBuilder.statusMessage = connection.get.getResponseMessage
+      Logger.d("Step 5")
+      responseBuilder.body = new BufferedInputStream(connection.get.getInputStream)
+      Logger.d("Step 6")
       val headers = mutable.Map[String, String]()
-      for (pos <- 0 until connection.getHeaderFields.size()) {
-        headers(connection.getHeaderFieldKey(pos)) = connection.getHeaderField(pos)
+      for (pos <- 0 until connection.get.getHeaderFields.size()) {
+        headers(connection.get.getHeaderFieldKey(pos)) = connection.get.getHeaderField(pos)
       }
       responseBuilder.headers = headers.toMap
+      0
     }
-    connection.disconnect()
+    connection.get.disconnect()
     result
   }
 
@@ -126,14 +151,21 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
   }
 
   private[this] def buffer: Array[Byte] = {
-    Buffers.synchronized {
-      var buffer = Buffers(Thread.currentThread().getId)
-      if (buffer == null) {
-        buffer = new Array[Byte](BufferSize)
-        Buffers(Thread.currentThread().getId) = buffer
+    Logger.d("Buffer begin")
+    //Buffers.synchronized {
+      Logger.d("Buffer sync")
+      var buffer = Buffers.get(Thread.currentThread().getId)
+      Logger.d("Buffer sync 1")
+      if (buffer.isEmpty) {
+        Logger.d("Buffer sync 2")
+        buffer = Option(new Array[Byte](BufferSize))
+        Logger.d("Buffer sync 3")
+        Buffers(Thread.currentThread().getId) = buffer.get
+        Logger.d("Buffer sync 4")
       }
-      buffer
-    }
+      Logger.d("Buffer sync 5")
+      buffer.get
+    //}
   }
 
 }
