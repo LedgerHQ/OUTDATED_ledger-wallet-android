@@ -1,9 +1,9 @@
 /**
  *
- * HttpClientTest
+ * ResponseHelper
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 30/06/15.
+ * Created by Pierre Pollastri on 01/07/15.
  *
  * The MIT License (MIT)
  *
@@ -30,36 +30,45 @@
  */
 package com.ledger.ledgerwallet.net
 
-import java.util.concurrent.CountDownLatch
+import java.io.{ByteArrayOutputStream, BufferedInputStream}
 
-import android.net.Uri
-import android.test.InstrumentationTestCase
+import com.ledger.ledgerwallet.utils.io.IOUtils
+import org.json.{JSONArray, JSONObject}
+import com.ledger.ledgerwallet.net.HttpRequestExecutor.defaultExecutionContext
+import scala.concurrent.Future
+import scala.io.Source
 
-import scala.util.{Failure, Success}
-import scala.concurrent.ExecutionContext.Implicits.global
+object ResponseHelper {
 
-class HttpClientTest extends InstrumentationTestCase {
+  implicit class ResponseFuture(f: Future[HttpClient#Response]) {
 
-  var client: HttpClient = _
-  var signal: CountDownLatch = _
-
-  override def setUp(): Unit = {
-    super.setUp()
-    client = new HttpClient(Uri.parse("http://httpbin.org"))
-    signal = new CountDownLatch(1)
-  }
-
-  def testGet(): Unit = {
-    client
-      .get("get")
-      .param("Toto" -> 12)
-      .json.onComplete {
-        case Success((json, response)) =>
-
-        case Failure(ex) =>
+    def json: Future[(JSONObject, HttpClient#Response)] = {
+      f.string.map { case (body, response) =>
+        (new JSONObject(body), response)
+      }
     }
 
-    signal.await()
+    def jsonArray: Future[(JSONArray, HttpClient#Response)] = {
+      f.string.map { case (body, response) =>
+        (new JSONArray(body), response)
+      }
+    }
+
+    def string: Future[(String, HttpClient#Response)] = {
+      f.map { response =>
+        (Source.fromInputStream(response.body, response.bodyEncoding).mkString, response)
+      }
+    }
+
+    def bytes: Future[(Array[Byte], HttpClient#Response)] = {
+      f.map { response =>
+        val input = new BufferedInputStream(response.body)
+        val output = new ByteArrayOutputStream()
+        IOUtils.copy(input, output)
+        (output.toByteArray, response)
+      }
+    }
+
   }
 
 }

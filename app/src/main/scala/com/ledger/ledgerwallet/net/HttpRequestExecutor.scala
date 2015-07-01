@@ -30,7 +30,9 @@
  */
 package com.ledger.ledgerwallet.net
 
-import scala.concurrent.Future
+import java.util.concurrent.Executors
+
+import scala.concurrent.{ExecutionContext, Future}
 
 trait HttpRequestExecutor {
 
@@ -39,6 +41,9 @@ trait HttpRequestExecutor {
 }
 
 object HttpRequestExecutor {
+
+  val NumberOfThreads = 10
+  implicit lazy val defaultExecutionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(NumberOfThreads))
 
   private[this] lazy val _defaultExecutor = new BasicHttpRequestExecutor()
 

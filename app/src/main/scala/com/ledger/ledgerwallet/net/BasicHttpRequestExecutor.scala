@@ -32,7 +32,6 @@ package com.ledger.ledgerwallet.net
 
 import java.io.{BufferedInputStream, BufferedOutputStream}
 import java.net.{HttpURLConnection, URL}
-import java.util.concurrent.Executors
 
 import com.ledger.ledgerwallet.utils.io.IOUtils
 import com.ledger.ledgerwallet.utils.logs.Logger
@@ -41,15 +40,14 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Failure, Success, Try}
+import com.ledger.ledgerwallet.net.HttpRequestExecutor.defaultExecutionContext
 
 class BasicHttpRequestExecutor extends HttpRequestExecutor {
 
   val TimeoutDuration = 1000L
   val BufferSize = 10 * 1024 // ~= 10KB buffer
-  val NumberOfThreads = 10
-  val Buffers: mutable.Map[Long, Array[Byte]] = mutable.Map[Long, Array[Byte]]()
 
-  implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(NumberOfThreads))
+  val Buffers: mutable.Map[Long, Array[Byte]] = mutable.Map[Long, Array[Byte]]()
 
   override def execute(responseBuilder: HttpClient#ResponseBuilder): Unit = Future {
     Logger.d(s"Begin request ${responseBuilder.request.url.toString}")
@@ -99,13 +97,14 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
       Logger.d("Step 4")
       responseBuilder.statusMessage = connection.get.getResponseMessage
       Logger.d("Step 5")
-      responseBuilder.body = new BufferedInputStream(connection.get.getInputStream)
+      responseBuilder.body = connection.get.getInputStream
       Logger.d("Step 6")
       val headers = mutable.Map[String, String]()
       for (pos <- 0 until connection.get.getHeaderFields.size()) {
         headers(connection.get.getHeaderFieldKey(pos)) = connection.get.getHeaderField(pos)
       }
       responseBuilder.headers = headers.toMap
+      responseBuilder.bodyEncoding = connection.get.getContentEncoding
       0
     }
     connection.get.disconnect()
@@ -118,6 +117,9 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
     request.headers.foreach {case (k, v) =>
       connection.setRequestProperty(k, v)
     }
+    connection.setUseCaches(request.cached)
+    connection.setConnectTimeout(request.connectTimeout)
+    connection.setReadTimeout(request.readTimeout)
 
     request.method match {
       case "POST" | "PUT" =>

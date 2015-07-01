@@ -35,12 +35,13 @@ import java.io.{ByteArrayInputStream, InputStream}
 import android.content.Context
 import android.net.Uri
 import org.json.{JSONArray, JSONObject}
-
 import scala.concurrent.{Promise, Future}
+import com.ledger.ledgerwallet.net.ResponseHelper._
 
 class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpRequestExecutor.getDefault()) {
 
-  var requestTimeout = 30L * 1000L
+  var defaultReadTimeout = 30 * 1000
+  var defaultConnectTimeout = 10 * 1000
   var retryNumber = 3
   var cacheResponses = true
 
@@ -56,10 +57,7 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
   : MutableRequest = {
     new MutableRequest(
       method = method,
-      url = baseUrl.buildUpon().appendEncodedPath(path).build(),
-      timeout = requestTimeout,
-      retryNumber = retryNumber,
-      cached = cacheResponses
+      url = baseUrl.buildUpon().appendEncodedPath(path).build()
     )
   }
 
@@ -67,17 +65,17 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
     new ResponseBuilder(request)
   }
 
-
   class MutableRequest(
     method: String = null,
     url: Uri = null,
     body: InputStream = null,
     headers: Map[String, String] = Map.empty,
-    timeout: Long = requestTimeout,
+    readTimeout: Int = defaultReadTimeout,
+    connectTimeout: Int = defaultConnectTimeout,
     retryNumber: Int = retryNumber,
     cached: Boolean = cacheResponses,
     chunkLength: Int = -1
-    ) extends Request(method, url, body, headers, timeout, retryNumber, cached, chunkLength) {
+    ) extends Request(method, url, body, headers, readTimeout, connectTimeout, retryNumber, cached, chunkLength) {
 
     def path(pathPart: String): MutableRequest = {
       copy(url = url.buildUpon().appendPath(pathPart).build())
@@ -93,7 +91,7 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
 
     def retry(retryNumber: Int): MutableRequest = copy(retryNumber = retryNumber)
     def cached(enableCache: Boolean): MutableRequest = copy(cached = enableCache)
-    def timeout(requestTimeout: Long):MutableRequest = copy(timeout = requestTimeout)
+    def readTimeout(timeout: Int):MutableRequest = copy(readTimeout = timeout)
 
     def body(inputStream: InputStream): MutableRequest = copy(body = inputStream)
     def body(stringBody: String): MutableRequest = copy(body = new ByteArrayInputStream(stringBody.getBytes))
@@ -106,11 +104,12 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
                            url: Uri = this.url,
                            body: InputStream = this.body,
                            headers: Map[String, String] = this.headers,
-                           timeout: Long = this.timeout,
+                           readTimeout: Int = this.readTimeout,
+                           connectTimeout: Int = this.connectTimeout,
                            retryNumber: Int = this.retryNumber,
                            cached: Boolean = this.cached,
                            chunkLength: Int = this.chunkLength): MutableRequest = {
-      new MutableRequest(method, url, body, headers, timeout, retryNumber, cached)
+      new MutableRequest(method, url, body, headers, readTimeout, connectTimeout, retryNumber, cached)
     }
 
   }
@@ -119,7 +118,8 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
                 val url: Uri,
                 val body: InputStream,
                 val headers: Map[String, String],
-                val timeout: Long,
+                val readTimeout: Int,
+                val connectTimeout: Int,
                 val retryNumber: Int,
                 val cached: Boolean,
                 val chunkLength: Int) {
@@ -130,6 +130,10 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
       builder.future
     }
 
+    def json: Future[(JSONObject, HttpClient#Response)] = response.json
+    def jsonArray: Future[(JSONArray, HttpClient#Response)] = response.jsonArray
+    def string: Future[(String, HttpClient#Response)] = response.string
+
     def isBodyStreamed = chunkLength > -1
 
   }
@@ -139,6 +143,7 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
                 val statusMessage: String,
                 val body: InputStream,
                 val headers: Map[String, String],
+                val bodyEncoding: String,
                 val request: HttpClient#Request) {
 
 
@@ -152,22 +157,30 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
     var statusMessage: String = ""
     var body: InputStream = _
     var headers = Map[String, String]()
+    var bodyEncoding = ""
 
-    def failure(cause: Throwable) = buildPromise.failure(cause)
+    def failure(cause: Throwable) = buildPromise.failure(new HttpException(request, toResponse, cause))
 
     def build(): Response = {
-      val response = new Response(
+      val response = toResponse
+      if ((200 <= response.statusCode && response.statusCode < 400) || response.statusCode == 304)
+        buildPromise.success(response)
+      else
+        buildPromise.failure(new HttpException(request, toResponse, new Exception(s"$statusCode $statusMessage")))
+      response
+    }
+
+    private[this] def toResponse =
+      new Response(
         statusCode,
         statusMessage,
         body,
         headers,
+        bodyEncoding,
         request
       )
-      // TODO: Handle failure
-      buildPromise.success(response)
-      response
-    }
 
   }
 
+  case class HttpException(request: Request, response: Response, cause: Throwable) extends Exception
 }
