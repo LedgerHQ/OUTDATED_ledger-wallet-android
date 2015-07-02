@@ -33,6 +33,7 @@ package com.ledger.ledgerwallet.net
 import java.io.{ByteArrayOutputStream, BufferedInputStream}
 
 import com.ledger.ledgerwallet.utils.io.IOUtils
+import com.ledger.ledgerwallet.utils.logs.Logger
 import org.json.{JSONArray, JSONObject}
 import com.ledger.ledgerwallet.net.HttpRequestExecutor.defaultExecutionContext
 import scala.concurrent.Future
@@ -44,6 +45,7 @@ object ResponseHelper {
 
     def json: Future[(JSONObject, HttpClient#Response)] = {
       f.string.map { case (body, response) =>
+        Logger.d("Converting to json")
         (new JSONObject(body), response)
       }
     }
@@ -56,7 +58,8 @@ object ResponseHelper {
 
     def string: Future[(String, HttpClient#Response)] = {
       f.map { response =>
-        (Source.fromInputStream(response.body, response.bodyEncoding).mkString, response)
+        Logger.d("Converting to string")
+        (Source.fromInputStream(response.body).mkString, response)
       }
     }
 

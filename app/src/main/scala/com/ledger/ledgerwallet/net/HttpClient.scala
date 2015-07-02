@@ -35,6 +35,7 @@ import java.io.{ByteArrayInputStream, InputStream}
 import android.content.Context
 import android.net.Uri
 import org.json.{JSONArray, JSONObject}
+import scala.collection.mutable
 import scala.concurrent.{Promise, Future}
 import com.ledger.ledgerwallet.net.ResponseHelper._
 
@@ -44,12 +45,18 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
   var defaultConnectTimeout = 10 * 1000
   var retryNumber = 3
   var cacheResponses = true
+  var followRedirect = true
+
+  private[this] val _defaultHttpHeaders = mutable.Map[String, String]()
 
   /*
       http post to 'toto' json
    */
 
   def get(path: String): MutableRequest = execute("GET", path)
+  def post(path: String): MutableRequest = execute("POST", path)
+  def put(path: String): MutableRequest = execute("PUT", path)
+  def delete(path: String): MutableRequest = execute("DELETE", path)
 
   def execute(method: String,
               path: String)
@@ -61,6 +68,12 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
     )
   }
 
+  def setDefaultHttpHeader(headerField: (String, String)): Unit = {
+    synchronized {
+      _defaultHttpHeaders += headerField
+    }
+  }
+
   private[this] def createResponseBuilder(request: HttpClient#Request): ResponseBuilder = {
     new ResponseBuilder(request)
   }
@@ -69,13 +82,16 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
     method: String = null,
     url: Uri = null,
     body: InputStream = null,
-    headers: Map[String, String] = Map.empty,
+    headers: Map[String, String] = _defaultHttpHeaders.toMap,
     readTimeout: Int = defaultReadTimeout,
     connectTimeout: Int = defaultConnectTimeout,
     retryNumber: Int = retryNumber,
     cached: Boolean = cacheResponses,
+    followRedirect: Boolean = followRedirect,
+    successCodes: List[Int] = List.empty,
+    failureCodes: List[Int] = List.empty,
     chunkLength: Int = -1
-    ) extends Request(method, url, body, headers, readTimeout, connectTimeout, retryNumber, cached, chunkLength) {
+    ) extends Request(method, url, body, headers, readTimeout, connectTimeout, retryNumber, cached, followRedirect, successCodes, failureCodes, chunkLength) {
 
     def path(pathPart: String): MutableRequest = {
       copy(url = url.buildUpon().appendPath(pathPart).build())
@@ -95,10 +111,17 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
 
     def body(inputStream: InputStream): MutableRequest = copy(body = inputStream)
     def body(stringBody: String): MutableRequest = copy(body = new ByteArrayInputStream(stringBody.getBytes))
-    def body(jsonBody: JSONObject): MutableRequest = body(jsonBody.toString)
-    def body(jsonBody: JSONArray): MutableRequest = body(jsonBody.toString)
+    def body(jsonBody: JSONObject): MutableRequest = body(jsonBody.toString).header("Content-Type" -> "application/json")
+    def body(jsonBody: JSONArray): MutableRequest = body(jsonBody.toString).header("Content-Type" -> "application/json")
+
+    def contentType(contentType: String): MutableRequest = header("Content-Type" -> contentType)
 
     def streamBody(chunkLength: Int = 0): MutableRequest = copy(chunkLength = chunkLength)
+
+    def success(code: Int): MutableRequest = copy(successCodes = successCodes.::(code))
+    def fail(code: Int): MutableRequest = copy(failureCodes = failureCodes.::(code))
+
+    def followRedirect(enable: Boolean): MutableRequest = copy(followRedirect = enable)
 
     private[this] def copy(method: String = this.method,
                            url: Uri = this.url,
@@ -108,8 +131,11 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
                            connectTimeout: Int = this.connectTimeout,
                            retryNumber: Int = this.retryNumber,
                            cached: Boolean = this.cached,
+                           followRedirect: Boolean = this.followRedirect,
+                           successCodes: List[Int] = this.successCodes,
+                           failureCodes: List[Int] = this.failureCodes,
                            chunkLength: Int = this.chunkLength): MutableRequest = {
-      new MutableRequest(method, url, body, headers, readTimeout, connectTimeout, retryNumber, cached)
+      new MutableRequest(method, url, body, headers, readTimeout, connectTimeout, retryNumber, cached, followRedirect, successCodes, failureCodes, chunkLength)
     }
 
   }
@@ -122,10 +148,13 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
                 val connectTimeout: Int,
                 val retryNumber: Int,
                 val cached: Boolean,
+                val followRedirect: Boolean,
+                val successCodes: List[Int],
+                val failureCodes: List[Int],
                 val chunkLength: Int) {
 
     lazy val response: Future[HttpClient#Response] = {
-      val builder = createResponseBuilder(this)
+      val builder = createResponseBuilder(this.toRequest)
       executor.execute(builder)
       builder.future
     }
@@ -133,9 +162,10 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
     def json: Future[(JSONObject, HttpClient#Response)] = response.json
     def jsonArray: Future[(JSONArray, HttpClient#Response)] = response.jsonArray
     def string: Future[(String, HttpClient#Response)] = response.string
+    def bytes: Future[(Array[Byte], HttpClient#Response)] = response.bytes
 
     def isBodyStreamed = chunkLength > -1
-
+    def toRequest = new Request(method, url, body, headers, readTimeout, connectTimeout, retryNumber, cached, followRedirect, successCodes, failureCodes, chunkLength)
   }
 
   class Response(
@@ -182,5 +212,5 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
 
   }
 
-  case class HttpException(request: Request, response: Response, cause: Throwable) extends Exception
+  case class HttpException(request: HttpClient#Request, response:  HttpClient#Response, cause: Throwable) extends Exception
 }

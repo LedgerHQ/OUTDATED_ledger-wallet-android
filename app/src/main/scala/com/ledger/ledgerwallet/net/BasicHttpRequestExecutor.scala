@@ -32,6 +32,7 @@ package com.ledger.ledgerwallet.net
 
 import java.io.{BufferedInputStream, BufferedOutputStream}
 import java.net.{HttpURLConnection, URL}
+import java.util.zip.GZIPOutputStream
 
 import com.ledger.ledgerwallet.utils.io.IOUtils
 import com.ledger.ledgerwallet.utils.logs.Logger
@@ -39,6 +40,7 @@ import com.ledger.ledgerwallet.utils.logs.Logger
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext}
+import scala.io.Source
 import scala.util.{Failure, Success, Try}
 import com.ledger.ledgerwallet.net.HttpRequestExecutor.defaultExecutionContext
 
@@ -46,7 +48,6 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
 
   val TimeoutDuration = 1000L
   val BufferSize = 10 * 1024 // ~= 10KB buffer
-
   val Buffers: mutable.Map[Long, Array[Byte]] = mutable.Map[Long, Array[Byte]]()
 
   override def execute(responseBuilder: HttpClient#ResponseBuilder): Unit = Future {
@@ -59,14 +60,16 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
       attemptPerform(responseBuilder) match {
         case Success(_) =>
           Logger.d("Success")
+          Try(responseBuilder.request.body.close())
           responseBuilder.build()
         case Failure(cause) =>
           Logger.d("Failure")
           cause.printStackTrace()
-          if (tryNumber + 1 < responseBuilder.request.retryNumber) {
+          if (tryNumber + 1 < responseBuilder.request.retryNumber && responseBuilder.request.body.markSupported()) {
             Thread.sleep(tryNumber * TimeoutDuration)
             continue = true
           } else
+            Try(responseBuilder.request.body.close())
             responseBuilder.failure(cause)
       }
       if (continue && tryNumber + 1 < responseBuilder.request.retryNumber) iterate(tryNumber + 1)
@@ -120,7 +123,7 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
     connection.setUseCaches(request.cached)
     connection.setConnectTimeout(request.connectTimeout)
     connection.setReadTimeout(request.readTimeout)
-
+    connection.setDoInput(true)
     request.method match {
       case "POST" | "PUT" =>
         connection.setDoOutput(true)
@@ -128,6 +131,7 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
         if (request.isBodyStreamed) {
           connection.setChunkedStreamingMode(request.chunkLength)
         } else {
+          Logger
           connection.setFixedLengthStreamingMode(request.body.available())
         }
       case "GET" | "DELETE" =>
@@ -143,18 +147,21 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
                              (implicit buffer: Array[Byte]): Unit = {
     request.method match {
       case "POST" | "PUT" =>
+        Logger.d(s"Write body")
+        if (request.body.markSupported())
+          request.body.mark(Int.MaxValue)
         val out = new BufferedOutputStream(connection.getOutputStream)
         val in = new BufferedInputStream(request.body)
         IOUtils.copy(in, out, buffer)
         out.close()
-        in.close()
+        // Don't close the input stream in case of error
       case nothing => // Nothing to do
     }
   }
 
   private[this] def buffer: Array[Byte] = {
     Logger.d("Buffer begin")
-    //Buffers.synchronized {
+    synchronized {
       Logger.d("Buffer sync")
       var buffer = Buffers.get(Thread.currentThread().getId)
       Logger.d("Buffer sync 1")
@@ -167,7 +174,7 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
       }
       Logger.d("Buffer sync 5")
       buffer.get
-    //}
+    }
   }
 
 }

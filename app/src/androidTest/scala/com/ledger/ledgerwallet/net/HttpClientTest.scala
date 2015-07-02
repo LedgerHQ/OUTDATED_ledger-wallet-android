@@ -34,6 +34,8 @@ import java.util.concurrent.CountDownLatch
 
 import android.net.Uri
 import android.test.InstrumentationTestCase
+import com.ledger.ledgerwallet.utils.logs.Logger
+import org.json.JSONObject
 
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -55,10 +57,30 @@ class HttpClientTest extends InstrumentationTestCase {
       .param("Toto" -> 12)
       .json.onComplete {
         case Success((json, response)) =>
-
+          Logger.d("Response")
+          Logger.d(json.toString(2))
+          signal.countDown()
         case Failure(ex) =>
+          ex.printStackTrace()
     }
 
+    signal.await()
+  }
+
+  def testPost(): Unit = {
+    val json = new JSONObject()
+    json.put("foo", "bar")
+    client
+      .post("post")
+      .body(json)
+      .json.onComplete {
+        case Success((json, response)) =>
+          Logger.d("Response")
+          Logger.d(json.toString(2))
+          signal.countDown()
+        case Failure(ex) =>
+          ex.printStackTrace()
+    }
     signal.await()
   }
 
