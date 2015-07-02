@@ -30,18 +30,14 @@
  */
 package com.ledger.ledgerwallet.remote.api.m2fa
 
-import java.io.{StringReader, Reader}
-import java.net.URL
-import javax.net.ssl.HttpsURLConnection
 
 import android.content.Context
 import com.ledger.ledgerwallet.models.PairedDongle
-import com.ledger.ledgerwallet.remote.HttpClient
+import com.ledger.ledgerwallet.net.HttpClient
 import com.ledger.ledgerwallet.utils.GooglePlayServiceHelper.RegistrationId
 import com.ledger.ledgerwallet.utils.Preferenceable
 import com.ledger.ledgerwallet.utils.logs.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import com.ledger.ledgerwallet.utils.JsonUtils._
 import com.netaporter.uri.dsl._
 
@@ -54,26 +50,22 @@ class GcmAPI(c: Context, client: HttpClient = HttpClient.defaultInstance) extend
   def updateDongleToken(dongle: PairedDongle, regId: RegistrationId): Unit = {
     if (preferences.getString(dongle.id.get, null) != regId.value) {
       val pairingId = dongle.id.get
-      Logger.d(s"POST /2fa/pairings/$pairingId/push_token")
-      val request = client.postJsonObject(
-        s"/2fa/pairings/$pairingId/push_token",
-        body = Some(Map("pairing_id" -> dongle.id.get, "push_token" -> regId.value))
-      )
-      request.future onComplete {
-        case Success(_) => {
-          Logger.d("POST OK")
-          edit()
-          .putString(dongle.id.get, regId.value)
-          .commit()
+      client.post(s"/2fa/pairings/$pairingId/push_token")
+        .body(Map("pairing_id" -> dongle.id.get, "push_token" -> regId.value))
+        .noResponseBody.onComplete {
+          case Success(_) => {
+            Logger.d("POST OK")
+            edit()
+              .putString(dongle.id.get, regId.value)
+              .commit()
+          }
+          case Failure(ex) =>
+            Logger.d("POST KO")
         }
-        case Failure(ex) =>
-          Logger.d("POST KO")
-          request
-      }
     }
   }
 
-  def removeDongleToken(dongle: PairedDongle): Unit = client.delete("/2fa/pairings" / dongle.id.get / "push_token")
+  def removeDongleToken(dongle: PairedDongle): Unit = client.delete("/2fa/pairings" / dongle.id.get / "push_token").noResponseBody
   def updateDonglesToken(regId: RegistrationId): Unit = PairedDongle.all.foreach(updateDongleToken(_, regId))
 }
 

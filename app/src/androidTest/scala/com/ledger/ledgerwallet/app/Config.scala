@@ -42,5 +42,5 @@ object Config {
   def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
   def Env: String = "test"
   def TrustletWebPage: Uri = Uri.parse("http://ledgerwallet.com/trustlet")
-
+  def DisableLogging = !BuildConfig.DEBUG
  }

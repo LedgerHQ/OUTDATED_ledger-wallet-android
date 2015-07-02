@@ -30,10 +30,14 @@
  */
 package com.ledger.ledgerwallet
 
+import android.app.Activity
+import android.content.Context
 import android.os.{Looper, Handler}
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions
 
 import scala.concurrent.{Promise, Future, ExecutionContext}
+import scala.util.{Failure, Success, Try}
+import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 
 // Base on scaloid
 
@@ -50,6 +54,31 @@ package object common extends AndroidImplicitConversions {
     } else {
       mainThreadHandler.post { runnable }
     }
+  }
+
+  implicit class UiFuture[+T](f: Future[T]) {
+
+    def thenRunOnUiThread(runnable: (Try[T]) => Unit): Unit = {
+      f.onComplete((result: Try[T]) => {
+        runOnUiThread {
+          runnable(result)
+        }
+      })
+    }
+
+    def contextual(implicit context: Context): Future[T] = {
+      val p = Promise[T]()
+      f.onComplete((result) => {
+        context match {
+          case activiy: Activity =>
+            if (!activiy.isFinishing && !activiy.isDestroyed)
+              p.complete(result)
+          case someContext => p.complete(result)
+        }
+      })
+      p.future
+    }
+
   }
 
 }

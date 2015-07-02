@@ -31,9 +31,11 @@
 package com.ledger.ledgerwallet.net
 
 import java.io.{ByteArrayInputStream, InputStream}
+import java.util.Locale
 
 import android.content.Context
 import android.net.Uri
+import com.ledger.ledgerwallet.app.Config
 import org.json.{JSONArray, JSONObject}
 import scala.collection.mutable
 import scala.concurrent.{Promise, Future}
@@ -65,9 +67,17 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
               path: String)
              (implicit context: Context = null)
   : MutableRequest = {
+    val pathUri = Uri.parse(path)
+    val url = pathUri.isAbsolute match {
+      case true => pathUri
+      case false =>
+        val builder = baseUrl.buildUpon()
+        builder.appendEncodedPath(if (path.charAt(0) == '/') path.substring(1) else path)
+        builder.build()
+    }
     new MutableRequest(
       method = method,
-      url = baseUrl.buildUpon().appendEncodedPath(path).build()
+      url = url
     )
   }
 
@@ -181,6 +191,7 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
     def jsonArray: Future[(JSONArray, HttpClient#Response)] = response.jsonArray
     def string: Future[(String, HttpClient#Response)] = response.string
     def bytes: Future[(Array[Byte], HttpClient#Response)] = response.bytes
+    def noResponseBody: Future[HttpClient#Response] = response.noResponseBody
 
     def isBodyStreamed = chunkLength > -1
     def toRequest = new Request(method, url, body, headers, readTimeout, connectTimeout, retryNumber, cached, followRedirect, successCodes, failureCodes, chunkLength, requestLogger)
@@ -235,4 +246,22 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
   }
 
   case class HttpException(request: HttpClient#Request, response:  HttpClient#Response, cause: Throwable) extends Exception
+}
+
+object HttpClient {
+
+  private[this] lazy val _defaultInstance = new HttpClient(Config.ApiBaseUri)
+  private[this] lazy val _websocketInstance = new HttpClient(Config.WebSocketBaseUri)
+
+  def defaultInstance = configure(_defaultInstance)
+
+  def websocketInstance = configure(_websocketInstance)
+
+  private[this] def configure(client: HttpClient): HttpClient = {
+    client.setDefaultHttpHeader("X-Ledger-Locale" -> Locale.getDefault.toString)
+    client.setDefaultHttpHeader("X-Ledger-Platform" -> "android")
+    client.setDefaultHttpHeader("X-Ledger-Environment" -> Config.Env)
+    client
+  }
+
 }

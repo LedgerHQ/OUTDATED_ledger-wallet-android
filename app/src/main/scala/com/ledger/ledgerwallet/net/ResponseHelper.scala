@@ -38,6 +38,7 @@ import org.json.{JSONArray, JSONObject}
 import com.ledger.ledgerwallet.net.HttpRequestExecutor.defaultExecutionContext
 import scala.concurrent.Future
 import scala.io.Source
+import scala.util.{Failure, Success}
 
 object ResponseHelper {
 
@@ -68,7 +69,20 @@ object ResponseHelper {
         val input = new BufferedInputStream(response.body)
         val output = new ByteArrayOutputStream()
         IOUtils.copy(input, output)
-        (output.toByteArray, response)
+        val result = output.toByteArray
+        input.close()
+        output.close()
+        (result, response)
+      }
+    }
+
+    def noResponseBody: Future[HttpClient#Response] = {
+      f.andThen {
+        case Success(response) =>
+          response.body.close()
+          response
+        case Failure(cause) =>
+          throw cause
       }
     }
 

@@ -35,9 +35,12 @@ import java.util.Date
 
 import android.content.Context
 import android.os.{Looper, Handler}
+import com.ledger.ledgerwallet.app.Config
 import com.ledger.ledgerwallet.bitcoin.BitcoinUtils
 import com.ledger.ledgerwallet.crypto.D3ESCBC
 import com.ledger.ledgerwallet.models.PairedDongle
+import com.ledger.ledgerwallet.net.WebSocket
+import com.ledger.ledgerwallet.remote.WebSocket
 import com.ledger.ledgerwallet.remote.{StringData, Close, WebSocket, HttpClient}
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 import com.ledger.ledgerwallet.utils.JsonUtils._
@@ -52,7 +55,7 @@ import scala.util.{Try, Failure, Success}
 
 class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.websocketInstance) {
 
-  implicit val DisableLogging = true
+  implicit val DisableLogging = Config.DisableLogging
 
   private[this] val handler = new Handler()
   private[this] val mainThreadHandler = new Handler(Looper.getMainLooper)

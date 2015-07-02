@@ -1,14 +1,9 @@
-package com.ledger.ledgerwallet.app
-
-import android.net.Uri
-import com.ledger.ledgerwallet.BuildConfig
-
 /**
  *
- * Config
+ * HttpUtils
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 12/06/15.
+ * Created by Pierre Pollastri on 02/07/15.
  *
  * The MIT License (MIT)
  *
@@ -33,14 +28,20 @@ import com.ledger.ledgerwallet.BuildConfig
  * SOFTWARE.
  *
  */
+package com.ledger.ledgerwallet.net
 
-object Config {
+import java.net.{HttpURLConnection, URL}
 
-  def ApiBaseUri = Uri.parse("https://api.ledgerwallet.com")
-  def WebSocketBaseUri = Uri.parse("https://ws.ledgerwallet.com")
-  def LedgerAttestationPublicKey = "0478c0837ded209265ea8131283585f71c5bddf7ffafe04ccddb8fe10b3edc7833d6dee70c3b9040e1a1a01c5cc04fcbf9b4de612e688d09245ef5f9135413cc1d"
-  def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
-  def Env = if (BuildConfig.DEBUG) "dev" else "prod"
-  def TrustletWebPage = Uri.parse("https://ledgerwallet.com/trustlet")
-  def DisableLogging = !BuildConfig.DEBUG
+import scala.concurrent.Future
+
+object HttpUtils {
+
+  def testUrl(url: String, method: String = "GET"): Future[Boolean] = Future {
+    val urlValue = new URL(url)
+    val connection =  urlValue.openConnection().asInstanceOf[HttpURLConnection]
+    connection.setRequestMethod(method)
+    connection.connect()
+    connection.getResponseCode != 404
+  }
+
 }

@@ -52,6 +52,8 @@ import com.ledger.ledgerwallet.common._
 class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocketInstance) {
 
   implicit val LogTag = "PairingApi"
+  implicit val DisableLogging = Config.DisableLogging
+
   private[this] val TimeoutDuration = 30L * 1000L
   private[this] val HandledPackages = Array("challenge", "repeat", "disconnect", "pairing")
 
