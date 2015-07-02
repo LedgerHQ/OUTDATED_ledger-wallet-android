@@ -52,7 +52,6 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
 
   override def execute(responseBuilder: HttpClient#ResponseBuilder): Unit = Future {
     Logger.d(s"Begin request ${responseBuilder.request.url.toString}")
-
     @tailrec
     def iterate(tryNumber: Int): Unit = {
       Logger.d(s"Attempt $tryNumber")
