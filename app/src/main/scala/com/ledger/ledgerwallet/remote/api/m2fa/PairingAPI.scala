@@ -42,8 +42,6 @@ import com.ledger.ledgerwallet.utils.AndroidUtils
 import com.ledger.ledgerwallet.utils.logs.Logger
 import org.json.{JSONException, JSONObject}
 import org.spongycastle.util.encoders.Hex
-import scala.concurrent.ExecutionContext.Implicits.global
-import com.ledger.ledgerwallet.utils.JsonUtils._
 
 import scala.concurrent.{Promise, Future}
 import scala.util.{Failure, Success}

@@ -33,6 +33,7 @@ package com.ledger.ledgerwallet.net
 import java.net.{HttpURLConnection, URL}
 
 import scala.concurrent.Future
+import HttpRequestExecutor.defaultExecutionContext
 
 object HttpUtils {
 

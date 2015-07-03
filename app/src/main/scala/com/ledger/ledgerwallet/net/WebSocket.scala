@@ -34,6 +34,7 @@ import java.net.URI
 import javax.net.ssl.SSLContext
 
 import android.net.Uri
+import com.ledger.ledgerwallet.utils.logs.Logger
 import org.java_websocket.client.{DefaultSSLWebSocketClientFactory, WebSocketClient}
 import org.java_websocket.handshake.ServerHandshake
 import org.json.{JSONArray, JSONObject}
@@ -74,7 +75,7 @@ class WebSocket(client: WebSocket.CallbackWebSocketClient) {
   def send(json: JSONObject): Unit = send(json.toString)
   def send(json: JSONArray): Unit = send(json.toString)
 
-  def close(): Unit = Future {client.close()}
+  def close(): Unit = Future {client.closeBlocking()}
 
   def isOpen = Option(client.getConnection).exists(_.isOpen)
   def isConnecting = Option(client.getConnection).exists(_.isConnecting)
@@ -109,7 +110,14 @@ object WebSocket {
     if (uri.getScheme == "https" || uri.getScheme == "wss") {
       socket.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(_sslContext))
     }
+    var connectionError: Option[Throwable] = None
+    socket.delegate.onError((ex) => {
+      connectionError = Option(ex)
+    })
     socket.connectBlocking()
+    if (connectionError.isDefined)
+      throw connectionError.get
+    socket.delegate.onError(null)
     new WebSocket(socket)
   }
 

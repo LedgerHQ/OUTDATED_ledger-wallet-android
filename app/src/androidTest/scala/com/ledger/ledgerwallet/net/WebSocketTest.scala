@@ -34,9 +34,9 @@ import java.util.concurrent.{TimeUnit, CountDownLatch}
 
 import android.net.Uri
 import android.test.InstrumentationTestCase
+import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.utils.logs.Logger
 import junit.framework.Assert
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
 class WebSocketTest extends InstrumentationTestCase {
@@ -69,28 +69,48 @@ class WebSocketTest extends InstrumentationTestCase {
         throw ex
     }
     signal.await(30, TimeUnit.SECONDS)
+    Assert.assertEquals(0, signal.getCount)
   }
 
   def testConnectAndEchoJson(): Unit = {
-    val testJson = "Ledger Wallet is on Android too!"
+    val testJson = json"{foo: ${"bar"}, ledger: ${"wallet"}}"
     Logger.d(s"Connecting to ${uri.toString}")
     WebSocket.connect(uri).onComplete {
       case Success(ws) =>
         Logger.d(s"Connected to ${uri.toString}")
-        ws.onStringMessage((message) => {
-          Logger.d(s"Just received a message $message")
-          Assert.assertEquals(testString, message)
+        ws.onJsonMessage((json) => {
+          Logger.d(s"Just received a message ${json.toString}")
+          Assert.assertEquals(json.get("foo"), testJson.get("foo"))
+          Assert.assertEquals(json.get("ledger"), testJson.get("ledger"))
           signal.countDown()
           ws.onClose((code, reason, remote) => {signal.countDown()})
           ws.close()
         })
-        ws.send(testString)
+        ws.send(testJson)
       case Failure(ex) =>
         Logger.d(s"Failed connection to ${uri.toString}")
         ex.printStackTrace()
         throw ex
     }
     signal.await(30, TimeUnit.SECONDS)
+    Assert.assertEquals(0, signal.getCount)
+  }
+
+  def testShouldFailedConnection(): Unit = {
+    WebSocket.connect(Uri.parse("wss://an_uri_that_will_never_handle_websockets.never/ever")).onComplete {
+      case Success(ws) => // WTF???
+        ws.onClose((code, reason, remote) => Logger.d(s"Received $code $reason $remote"))
+        Logger.d(s"WS is ${ws.isConnecting} ${ws.isClosing} ${ws.isOpen} ${ws.isClosed}")
+        Assert.fail("It should failed connection")
+      case Failure(ex) => {
+        Logger.d("Failed to connect")
+        ex.printStackTrace()
+        signal.countDown()
+        signal.countDown()
+      }
+    }
+    signal.await(30, TimeUnit.SECONDS)
+    Assert.assertEquals(0, signal.getCount)
   }
 
 }
