@@ -69,7 +69,6 @@ class WebSocket(client: WebSocket.CallbackWebSocketClient) {
     _errorHandler.foreach(_(ex))
   })
 
-
   def send(data: String): Unit = client.send(data)
   def send(data: Array[Byte]): Unit = client.send(data)
   def send(json: JSONObject): Unit = send(json.toString)
@@ -130,11 +129,8 @@ object WebSocket {
     }
 
     override def onError(ex: Exception): Unit = _errorHandler.foreach(_(ex))
-
     override def onMessage(message: String): Unit = _messageHandler.foreach(_(message))
-
     override def onClose(code: Int, reason: String, remote: Boolean): Unit = _closeHandler.foreach(_(code, reason, remote))
-
     override def onOpen(handshakedata: ServerHandshake): Unit = _openHandler.foreach(_(handshakedata))
   }
 
