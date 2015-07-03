@@ -33,7 +33,7 @@ package com.ledger.ledgerwallet.utils
 import org.json.{JSONArray, JSONObject}
 import scala.collection.Map
 
-object JsonUtils {
+trait JsonUtils {
 
   implicit def Map2JsonObject[T](map: Map[String, T]): JSONObject = {
     val json = new JSONObject()
@@ -56,17 +56,35 @@ object JsonUtils {
   implicit def Array2JsonArray[T](array: Array[T]): JSONArray = {
     val json = new JSONArray()
     array foreach {
-        case string: String => json.put(string)
-        case double: Double => json.put(double)
-        case float: Float => json.put(float)
-        case boolean: Boolean => json.put(boolean)
-        case jsonObject: JSONObject => json.put(jsonObject)
-        case jsonArray: JSONArray => json.put(jsonArray)
-        case map: Map[_, _] => json.put(Map2JsonObject(map.asInstanceOf[Map[String, _]]))
-        case array: Array[AnyRef] => json.put(Array2JsonArray(array))
-        case value => json.put(value.toString)
+      case string: String => json.put(string)
+      case double: Double => json.put(double)
+      case float: Float => json.put(float)
+      case boolean: Boolean => json.put(boolean)
+      case jsonObject: JSONObject => json.put(jsonObject)
+      case jsonArray: JSONArray => json.put(jsonArray)
+      case map: Map[_, _] => json.put(Map2JsonObject(map.asInstanceOf[Map[String, _]]))
+      case array: Array[AnyRef] => json.put(Array2JsonArray(array))
+      case value => json.put(value.toString)
     }
     json
   }
 
+  implicit class JsonStringContext(val c: StringContext) {
+    def json(args: Any*): JSONObject = {
+      val strings = c.parts.iterator
+      val arguments = args.iterator
+      val string = new StringBuffer(strings.next())
+      while (strings.hasNext) {
+        arguments.next() match {
+          case charSequence: CharSequence => string.append("\"" + charSequence.toString + "\"")
+          case arg => string.append(arg.toString)
+        }
+        string.append(strings.next())
+      }
+      new JSONObject(string.toString)
+    }
+  }
+
 }
+
+object JsonUtils extends JsonUtils

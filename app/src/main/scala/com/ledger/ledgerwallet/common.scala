@@ -33,7 +33,7 @@ package com.ledger.ledgerwallet
 import android.app.Activity
 import android.content.Context
 import android.os.{Looper, Handler}
-import com.ledger.ledgerwallet.utils.AndroidImplicitConversions
+import com.ledger.ledgerwallet.utils.{JsonUtils, AndroidImplicitConversions}
 
 import scala.concurrent.{Promise, Future, ExecutionContext}
 import scala.util.{Failure, Success, Try}
@@ -41,7 +41,7 @@ import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 
 // Base on scaloid
 
-package object common extends AndroidImplicitConversions {
+package object common extends AndroidImplicitConversions with JsonUtils {
 
   implicit val executor: ExecutionContext = com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 
