@@ -33,11 +33,12 @@ package com.ledger.ledgerwallet.remote.api.m2fa
 import java.util.concurrent.TimeoutException
 
 import android.content.Context
+import android.net.Uri
 import android.os.Handler
 import com.ledger.ledgerwallet.app.{InstallationInfo, Config}
 import com.ledger.ledgerwallet.crypto.{Crypto, D3ESCBC, ECKeyPair}
 import com.ledger.ledgerwallet.models.PairedDongle
-import com.ledger.ledgerwallet.remote.{StringData, Close, WebSocket, HttpClient}
+import com.ledger.ledgerwallet.net.WebSocket
 import com.ledger.ledgerwallet.utils.AndroidUtils
 import com.ledger.ledgerwallet.utils.logs.Logger
 import org.json.{JSONException, JSONObject}
@@ -46,8 +47,9 @@ import org.spongycastle.util.encoders.Hex
 import scala.concurrent.{Promise, Future}
 import scala.util.{Failure, Success}
 import com.ledger.ledgerwallet.common._
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocketInstance) {
+class PairingAPI(context: Context, websocketUri: Uri = Config.WebSocketChannelsUri) {
 
   implicit val LogTag = "PairingApi"
   implicit val DisableLogging = Config.DisableLogging
@@ -114,39 +116,39 @@ class PairingAPI(context: Context, httpClient: HttpClient = HttpClient.websocket
   def isStarted = _currentState != State.Resting
 
   private[this] def initiateConnection(): Unit = {
-    httpClient.websocket("/2fa/channels") onComplete {
-      case Success(websocket) => {
+
+    WebSocket.connect(websocketUri) onComplete {
+      case Success(websocket) =>
         Logger.d("[WS] Open")
         this.websocket = websocket
         _websocketConnectionRetry = 0
         performPairing(websocket)
-      }
-      case Failure(exception) => {
+      case Failure(exception) =>
         _websocketConnectionRetry += 1
-        if (_websocketConnectionRetry > NumberOfWebSocketRetry) {
+        if (_websocketConnectionRetry > NumberOfWebSocketRetry)
           failure(exception)
-        }
-      }
     }
+
   }
 
   private[this] def performPairing(socket: WebSocket): Unit = {
     handleCurrentStep(socket)
-    socket on {
-      case StringData(data) => {
-        try {
-          Logger.d("[WS] <== " + data)
-          val pkg = new JSONObject(data)
-          answerToPackage(socket, pkg)
-        } catch {
-          case jsonException: JSONException => failure(jsonException)
-          case illegalRequestException: IllegalRequestException => failure(illegalRequestException)
-        }
+    socket.onStringMessage((data) => {
+      try {
+        Logger.d("[WS] <== " + data)
+        val pkg = new JSONObject(data)
+        answerToPackage(socket, pkg)
+      } catch {
+        case jsonException: JSONException => failure(jsonException)
+        case illegalRequestException: IllegalRequestException => failure(illegalRequestException)
       }
-      case Close(ex) =>
-        Logger.d("[WS] Close")
-        failure(new NetworkException)
-    }
+    })
+
+    socket.onClose((ex) => {
+      Logger.d("[WS] Close")
+      failure(new NetworkException(ex))
+    })
+
   }
 
   private[this] def handleCurrentStep(socket: WebSocket): Unit = {
@@ -369,4 +371,4 @@ sealed case class RequireDongleName() extends RequiredUserInput
 
 sealed class IllegalRequestException(reason: String = null) extends Exception(reason)
 sealed class IllegalUserInputException(reason: String = null) extends Exception(reason)
-sealed class NetworkException extends Exception
+sealed case class NetworkException(cause: Throwable) extends Exception(cause.getMessage)

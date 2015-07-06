@@ -43,8 +43,6 @@ import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 
 package object common extends AndroidImplicitConversions with JsonUtils {
 
-  implicit val executor: ExecutionContext = com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
-
   private[this] lazy val mainThreadHandler = new Handler(Looper.getMainLooper)
   private[this] lazy val mainThread = Looper.getMainLooper.getThread
 

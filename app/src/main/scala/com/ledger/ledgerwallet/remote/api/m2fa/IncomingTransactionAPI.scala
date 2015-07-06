@@ -34,12 +34,13 @@ import java.math.BigInteger
 import java.util.Date
 
 import android.content.Context
+import android.net.Uri
 import android.os.{Looper, Handler}
 import com.ledger.ledgerwallet.app.Config
 import com.ledger.ledgerwallet.bitcoin.BitcoinUtils
 import com.ledger.ledgerwallet.crypto.D3ESCBC
 import com.ledger.ledgerwallet.models.PairedDongle
-import com.ledger.ledgerwallet.remote.{StringData, Close, WebSocket, HttpClient}
+import com.ledger.ledgerwallet.net.WebSocket
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 import com.ledger.ledgerwallet.utils.JsonUtils._
 import com.ledger.ledgerwallet.utils.logs.Logger
@@ -51,7 +52,7 @@ import scala.collection.mutable
 import scala.concurrent.Future
 import scala.util.{Try, Failure, Success}
 
-class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.websocketInstance) {
+class IncomingTransactionAPI(context: Context, webSocketUri: Uri = Config.WebSocketChannelsUri) {
 
   implicit val DisableLogging = Config.DisableLogging
 
@@ -175,7 +176,7 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
 
     def connect(): Unit = {
       Logger.d("Connecting to " + dongle.id.get)
-      client.websocket("/2fa/channels") onComplete {
+      WebSocket.connect(webSocketUri) onComplete {
         case Success(websocket) => onConnect(websocket)
         case Failure(ex) => {
           _retryNumber += 1
@@ -194,20 +195,20 @@ class IncomingTransactionAPI(context: Context, client: HttpClient = HttpClient.w
     private[this] def onConnect(websocket: WebSocket): Unit = {
       _websocket = Option(websocket)
       sendConnectionPackage()
-      websocket on {
-        case StringData(data) => {
-          try {
-            handlePackage(new JSONObject(data))
-          } catch {
-            case json: JSONException => json.printStackTrace()
-            case others: Throwable => throw others
-          }
+      websocket onStringMessage((data) => {
+        try {
+          handlePackage(new JSONObject(data))
+        } catch {
+          case json: JSONException => json.printStackTrace()
+          case others: Throwable => throw others
         }
-        case Close(ex) => {
-          _websocket = None
-          scheduleRetryConnect()
-        }
-      }
+      })
+
+      websocket onClose((ex) => {
+        _websocket = None
+        scheduleRetryConnect()
+      })
+
     }
 
     private[this] def handlePackage(json: JSONObject): Unit = {
@@ -304,7 +305,7 @@ object IncomingTransactionAPI {
 
   private[this] var _defaultInstance: IncomingTransactionAPI = null
 
-  def defaultInstance(context: Context, client: HttpClient = HttpClient.websocketInstance): IncomingTransactionAPI = {
+  def defaultInstance(context: Context): IncomingTransactionAPI = {
     if (_defaultInstance == null)
       _defaultInstance = new IncomingTransactionAPI(context)
     _defaultInstance

@@ -37,7 +37,7 @@ import com.ledger.ledgerwallet.BuildConfig
 object Config {
 
   def ApiBaseUri = Uri.parse("https://api.ledgerwallet.com")
-  def WebSocketBaseUri = Uri.parse("https://ws.ledgerwallet.com")
+  def WebSocketBaseUri = Uri.parse("wss://ws.ledgerwallet.com")
   def LedgerAttestationPublicKey = "0478c0837ded209265ea8131283585f71c5bddf7ffafe04ccddb8fe10b3edc7833d6dee70c3b9040e1a1a01c5cc04fcbf9b4de612e688d09245ef5f9135413cc1d"
   def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
   def Env = if (BuildConfig.DEBUG) "dev" else "prod"

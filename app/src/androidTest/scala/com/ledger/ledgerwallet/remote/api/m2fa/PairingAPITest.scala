@@ -196,7 +196,7 @@ class PairingApiServer(responseDelay: Long = 0) {
 
 }
 
-class MockPairingApi(c: Context) extends PairingAPI(c, new HttpClient(Uri.parse("http://localhost:5000"))) {
+class MockPairingApi(c: Context) extends PairingAPI(c) {
   override def keypair: ECKeyPair = {
     ECKeyPair.create(Hex.decode("dbd39adafe3a007706e61a17e0c56849146cfe95849afef7ede15a43a1984491"))
   }

@@ -34,120 +34,128 @@ import java.net.URI
 import javax.net.ssl.SSLContext
 
 import android.net.Uri
+import com.koushikdutta.async.callback.CompletedCallback
+import com.koushikdutta.async.future.FutureCallback
+import com.koushikdutta.async.http.WebSocket.StringCallback
+import com.koushikdutta.async.{http, AsyncServer}
+import com.koushikdutta.async.http.AsyncHttpClient.WebSocketConnectCallback
 import com.ledger.ledgerwallet.utils.logs.Logger
-import org.java_websocket.client.{DefaultSSLWebSocketClientFactory, WebSocketClient}
-import org.java_websocket.handshake.ServerHandshake
+import com.koushikdutta.async.http.{AsyncHttpRequest, AsyncHttpClient}
+import org.apache.http.impl.DefaultHttpRequestFactory
 import org.json.{JSONArray, JSONObject}
 
-import scala.concurrent.Future
-import HttpRequestExecutor.defaultExecutionContext
+import scala.concurrent.{Promise, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 
-import scala.util.Try
+class WebSocket(socket: http.WebSocket) {
 
-class WebSocket(client: WebSocket.CallbackWebSocketClient) {
+  Logger.d(s"Begin WS creation")
 
-  client.delegate.onOpen((ServerHandshake) => {
-    _openHandler.foreach(_())
+  socket.setStringCallback(new StringCallback {
+    override def onStringAvailable(s: String): Unit = _stringHandler.foreach(_(s))
   })
 
-  client.delegate.onClose((code, reason, remote) => {
-    _closeHandler.foreach(_(code, reason, remote))
+  Logger.d(s"1")
+
+  socket.setClosedCallback(new CompletedCallback {
+    override def onCompleted(ex: Exception): Unit = _closeHandler.foreach(_(ex))
   })
 
-  client.delegate.onMessage((message) => {
+  Logger.d(s"2")
 
-    def notifyJsonMessage(): Boolean = {
-      Try({
-        _jsonHandler.get(new JSONObject(message))
-      }).isSuccess
-    }
+  def send(data: String): Unit = socket.send(data)
 
-    if (_jsonHandler.isEmpty || !notifyJsonMessage())
-      _stringHandler.foreach(_(message))
-  })
+  Logger.d(s"3")
 
-  client.delegate.onError((ex) => {
-    _errorHandler.foreach(_(ex))
-  })
+  def send(data: Array[Byte]): Unit = socket.send(data)
 
-  def send(data: String): Unit = client.send(data)
-  def send(data: Array[Byte]): Unit = client.send(data)
+  Logger.d(s"4")
+
   def send(json: JSONObject): Unit = send(json.toString)
+
+  Logger.d(s"5")
+
   def send(json: JSONArray): Unit = send(json.toString)
 
-  def close(): Unit = Future {client.closeBlocking()}
+  Logger.d(s"6")
 
-  def isOpen = Option(client.getConnection).exists(_.isOpen)
-  def isConnecting = Option(client.getConnection).exists(_.isConnecting)
-  def isClosing = Option(client.getConnection).exists(_.isClosing)
-  def isClosed = Option(client.getConnection).exists(_.isClosed)
+  def close(): Unit = Future {socket.close()}
+
+  Logger.d(s"7")
+
+  def isOpen = socket.isOpen
+
+  Logger.d(s"8")
+
+  def isClosed = !isOpen
+
+  Logger.d(s"9")
 
   def onOpen(handler: () => Unit): Unit = _openHandler = Option(handler)
+
+  Logger.d(s"10")
+
   def onJsonMessage(handler: JSONObject => Unit): Unit = _jsonHandler = Option(handler)
+
+  Logger.d(s"11")
+
   def onStringMessage(handler: String => Unit): Unit = _stringHandler = Option(handler)
-  def onClose(handler: (Int, String, Boolean) => Unit): Unit = _closeHandler = Option(handler)
+
+  Logger.d(s"13")
+
+  def onClose(handler: (Throwable) => Unit): Unit = _closeHandler = Option(handler)
+
+  Logger.d(s"14")
+
   def onError(handler: Throwable => Unit): Unit = _errorHandler = Option(handler)
 
+  Logger.d(s"15")
+
   private var _openHandler: Option[() => Unit] = None
+
+  Logger.d(s"16")
+
   private var _jsonHandler: Option[(JSONObject) => Unit] = None
+
+  Logger.d(s"17")
+
   private var _stringHandler: Option[(String) => Unit] = None
-  private var _closeHandler: Option[(Int, String, Boolean) => Unit] = None
+
+  Logger.d(s"18")
+
+  private var _closeHandler: Option[(Throwable) => Unit] = None
+
+  Logger.d(s"19")
+
   private var _errorHandler: Option[(Throwable) => Unit] = None
+
+  Logger.d(s"End WS creation")
 }
 
 object WebSocket {
 
-  private[this] lazy val _sslContext = {
-    val context = SSLContext.getInstance( "TLS" )
-    context.init(null, null, null) // Use system trust manager and key manager
-    context
-  }
+  implicit val LogTag = "WebSocket"
 
-  def connect(uri: Uri): Future[WebSocket] = Future {
-    val u = new URI(uri.toString)
-    val socket = new CallbackWebSocketClient(u)
+  private[this] lazy val _client = AsyncHttpClient.getDefaultInstance
+  private[this] lazy val _requestFactory = new DefaultHttpRequestFactory
 
-    if (uri.getScheme == "https" || uri.getScheme == "wss") {
-      socket.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(_sslContext))
-    }
-    var connectionError: Option[Throwable] = None
-    socket.delegate.onError((ex) => {
-      connectionError = Option(ex)
+  def connect(uri: Uri): Future[WebSocket] = {
+    val promise = Promise[WebSocket]()
+    val url = uri.toString.replace("wss://", "https://").replace("ws://", "http://")
+    val request = _requestFactory.newHttpRequest("GET", url)
+    Logger.d(s"Connecting to $url")
+    _client.websocket(AsyncHttpRequest.create(request), null, null).setCallback(new FutureCallback[http.WebSocket] {
+      override def onCompleted(ex: Exception, webSocket: http.WebSocket): Unit = {
+        if (ex != null) {
+          Logger.d(s"Connection to $url failed ${ex.getMessage}")
+          promise.failure(ex)
+        } else {
+          Logger.d(s"Connected to $url")
+          promise.success(new WebSocket(webSocket))
+        }
+      }
     })
-    socket.connectBlocking()
-    if (connectionError.isDefined)
-      throw connectionError.get
-    socket.delegate.onError(null)
-    new WebSocket(socket)
-  }
-
-  private[WebSocket] class CallbackWebSocketClient(uri: URI) extends WebSocketClient(uri) {
-
-    private var _errorHandler: Option[(Exception) => Unit] = None
-    private var _messageHandler: Option[(String) => Unit] = None
-    private var _closeHandler: Option[(Int, String, Boolean) => Unit] = None
-    private var _openHandler: Option[(ServerHandshake) => Unit] = None
-
-    object delegate {
-
-      def onError(handler: (Exception) => Unit): Unit = _errorHandler = Option(handler)
-      def onMessage(handler: (String) => Unit): Unit = _messageHandler = Option(handler)
-      def onClose(handler: (Int, String, Boolean) => Unit): Unit = _closeHandler = Option(handler)
-      def onOpen(handler: (ServerHandshake) => Unit): Unit = _openHandler = Option(handler)
-    }
-
-    override def onError(ex: Exception): Unit = _errorHandler.foreach(_(ex))
-    override def onMessage(message: String): Unit = _messageHandler.foreach(_(message))
-    override def onClose(code: Int, reason: String, remote: Boolean): Unit = _closeHandler.foreach(_(code, reason, remote))
-    override def onOpen(handshakedata: ServerHandshake): Unit = _openHandler.foreach(_(handshakedata))
+    promise.future
   }
 
 }
-
-abstract class Event
-case class Pong(s: String) extends Event
-case class StringData(s: String) extends Event
-case class Send() extends Event
-case class End(ex: Exception) extends Event
-case class Close(ex: Exception) extends Event
-case class Json(json: JSONObject) extends Event
