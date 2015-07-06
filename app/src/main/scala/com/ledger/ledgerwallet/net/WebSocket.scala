@@ -52,6 +52,7 @@ class WebSocket(socket: http.WebSocket) {
   socket.setClosedCallback(new CompletedCallback {
     override def onCompleted(ex: Exception): Unit = _closeHandler.foreach(_(ex))
   })
+
   def send(data: String): Unit = socket.send(data)
   def send(data: Array[Byte]): Unit = socket.send(data)
   def send(json: JSONObject): Unit = send(json.toString)
