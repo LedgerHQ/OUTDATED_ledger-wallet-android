@@ -34,13 +34,13 @@ import java.io.File
 
 import android.content.Context
 import android.os.Build
-import com.ledger.ledgerwallet.remote.HttpClient
+import com.ledger.ledgerwallet.net.HttpClient
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.{Promise, Future}
 import scala.util.{Try, Failure, Success}
 
-class TeeAPI(context: Context, client: HttpClient = HttpClient.websocketInstance) {
+class TeeAPI(context: Context, client: HttpClient = HttpClient.defaultInstance) {
 
   private[this] var _lastResult: Option[Boolean] = None
 
@@ -50,8 +50,8 @@ class TeeAPI(context: Context, client: HttpClient = HttpClient.websocketInstance
       p.success(_lastResult.get)
     else {
       if (new File("/dev/mobicore").exists() || new File("/dev/mobicore-user").exists()) {
-        client.getJsonObject(s"/mobile/tee/${Build.MODEL}/is_eligible").future.onComplete {
-          case Success(json) =>
+        client.get(s"/mobile/tee/${Build.MODEL}/is_eligible").json.onComplete {
+          case Success((json, _)) =>
             val value = Try(json.getBoolean("is_eligible"))
             _lastResult = if (value.isSuccess) Option(value.get) else None
             p.tryComplete(value)

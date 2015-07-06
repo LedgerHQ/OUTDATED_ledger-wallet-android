@@ -16,6 +16,9 @@
     <string name="home_np_action">PAIR A LEDGER WALLET</string>
     <string name="home_np_bottom">Need help? Visit our help center.</string>
 
+    <!-- Home Activity Menu -->
+    <string name="home_activity_menu_export_logs">Export logs</string>
+
     <!-- Paired Dongle Activity -->
     <string name="paired_dongle_activity_name">Paired Ledger Wallets</string>
     <string name="paired_dongle_paired_on">Paired on %s</string>

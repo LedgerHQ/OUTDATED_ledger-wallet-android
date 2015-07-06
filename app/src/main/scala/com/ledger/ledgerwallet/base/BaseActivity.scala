@@ -33,7 +33,7 @@ package com.ledger.ledgerwallet.base
 
 import android.app.NotificationManager
 import android.os.Bundle
-import android.support.v7.app.{ActionBar, ActionBarActivity}
+import android.support.v7.app.{AppCompatActivity, ActionBar, ActionBarActivity}
 import com.ledger.ledgerwallet.widget.Toolbar
 import android.view.ViewGroup.LayoutParams
 import android.view.{MenuItem, LayoutInflater, View}
@@ -46,7 +46,7 @@ import android.content.Context
 
 import scala.concurrent.ExecutionContext
 
-abstract class BaseActivity extends ActionBarActivity with Loggable {
+abstract class BaseActivity extends AppCompatActivity with Loggable {
   implicit val context = this
   implicit val executor: ExecutionContext = com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 

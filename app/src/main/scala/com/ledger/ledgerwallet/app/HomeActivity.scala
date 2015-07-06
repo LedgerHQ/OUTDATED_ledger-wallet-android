@@ -30,24 +30,20 @@
  */
 package com.ledger.ledgerwallet.app
 
-import android.content.{DialogInterface, Intent}
+import android.content.Intent
 import android.os.Bundle
-import android.view.{View, ViewGroup, LayoutInflater}
+import android.view._
 import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.app.m2fa.{IncomingTransactionDialogFragment, PairedDonglesActivity}
 import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
-import com.ledger.ledgerwallet.base.{BigIconAlertDialog, BaseFragment, BaseActivity}
-import com.ledger.ledgerwallet.bitcoin.AmountFormatter
+import com.ledger.ledgerwallet.app.m2fa.{IncomingTransactionDialogFragment, PairedDonglesActivity}
+import com.ledger.ledgerwallet.base.{BaseActivity, BaseFragment, BigIconAlertDialog}
+import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.models.PairedDongle
-import com.ledger.ledgerwallet.remote.HttpClient
 import com.ledger.ledgerwallet.remote.api.TeeAPI
 import com.ledger.ledgerwallet.remote.api.m2fa.{GcmAPI, IncomingTransactionAPI}
-import com.ledger.ledgerwallet.utils.logs.Logger
-import com.ledger.ledgerwallet.utils.{AndroidUtils, GooglePlayServiceHelper, TR}
+import com.ledger.ledgerwallet.utils.{GooglePlayServiceHelper, TR}
 import com.ledger.ledgerwallet.widget.TextView
-import com.ledger.ledgerwallet.common._
 
-import scala.concurrent.{Promise, Future}
 import scala.util.{Failure, Success}
 
 class HomeActivity extends BaseActivity {
@@ -58,6 +54,12 @@ class HomeActivity extends BaseActivity {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.single_fragment_holder_activity)
     ensureFragmentIsSetup()
+  }
+
+
+  override def onCreateOptionsMenu(menu: Menu): Boolean = {
+    getMenuInflater().inflate(R.menu.home_activity_menu, menu);
+    true
   }
 
   override def onResume(): Unit = {
@@ -170,5 +172,10 @@ class HomeActivityContentFragment extends BaseFragment {
       val intent = new Intent(Intent.ACTION_VIEW, Config.HelpCenterUri)
       startActivity(intent)
     }
+  }
+
+  override def onCreateOptionsMenu(menu: Menu, inflater: MenuInflater): Unit = {
+    super.onCreateOptionsMenu(menu, inflater)
+    //inflater.inflate(R.menu.home_activity_menu, menu)
   }
 }

@@ -26,3 +26,8 @@
     public protected *;
 }
 -keep class net.sourceforge.zbar.** { *; }
+
+## Support library v4 22.2.0
+-dontwarn android.support.v4.app.**
+-dontwarn android.support.v4.view.**
+-dontwarn android.support.v4.widget.**

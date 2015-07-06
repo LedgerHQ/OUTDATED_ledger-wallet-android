@@ -251,11 +251,8 @@ class HttpClient(val baseUrl: Uri, val executor: HttpRequestExecutor = HttpReque
 object HttpClient {
 
   private[this] lazy val _defaultInstance = new HttpClient(Config.ApiBaseUri)
-  private[this] lazy val _websocketInstance = new HttpClient(Config.WebSocketBaseUri)
 
   def defaultInstance = configure(_defaultInstance)
-
-  def websocketInstance = configure(_websocketInstance)
 
   private[this] def configure(client: HttpClient): HttpClient = {
     client.setDefaultHttpHeader("X-Ledger-Locale" -> Locale.getDefault.toString)

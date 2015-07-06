@@ -36,7 +36,7 @@ import android.support.v4.app.FragmentManager
 import android.view.{View, ViewGroup, LayoutInflater}
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.BaseDialogFragment
-import com.ledger.ledgerwallet.remote.HttpClient
+import com.ledger.ledgerwallet.net.HttpUtils
 import com.ledger.ledgerwallet.utils.Preferenceable
 import com.ledger.ledgerwallet.view.DialogActionBarController
 
@@ -71,7 +71,7 @@ object TrustletPromotionDialog extends Preferenceable {
     if (preferences.getInt("show_count", 0) > 0)
       Promise().success(false).future
     else
-      HttpClient.defaultInstance.testPageExistence(Config.TrustletWebPage.toString)
+      HttpUtils.testUrl(Config.TrustletWebPage.toString)
   }
 
   def show(fragmentManager: FragmentManager)(implicit context: Context): TrustletPromotionDialog = {

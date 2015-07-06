@@ -33,13 +33,14 @@ package com.ledger.ledgerwallet.widget
 
 import android.content.Context
 import android.graphics.Typeface
+import android.support.v7.widget.AppCompatTextView
 import android.text.Spannable
 import android.util.AttributeSet
 import android.widget.TextView.BufferType
 import com.ledger.ledgerwallet.widget.traits.FontView
 
 class TextView(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int)
-  extends android.widget.TextView(context, attrs)
+  extends AppCompatTextView(context, attrs)
   with FontView {
   initializeFontView(context, attrs)
 
