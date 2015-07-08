@@ -40,6 +40,7 @@ object Config {
   def WebSocketBaseUri = Uri.parse("https://ws.ledgerwallet.com")
   def LedgerAttestationPublicKey = "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
   def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
+  def SupportEmailAddress = "hello@ledger.fr"
   def Env = if (BuildConfig.DEBUG) "dev" else "prod"
   def TrustletWebPage = Uri.parse("https://ledgerwallet.com/trustlet")
   def DisableLogging = !BuildConfig.DEBUG

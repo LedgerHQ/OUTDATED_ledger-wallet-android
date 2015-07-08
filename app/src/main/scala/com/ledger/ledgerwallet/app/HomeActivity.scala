@@ -41,6 +41,7 @@ import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.api.TeeAPI
 import com.ledger.ledgerwallet.remote.api.m2fa.{GcmAPI, IncomingTransactionAPI}
+import com.ledger.ledgerwallet.utils.logs.LogCatReader
 import com.ledger.ledgerwallet.utils.{GooglePlayServiceHelper, TR}
 import com.ledger.ledgerwallet.widget.TextView
 
@@ -56,10 +57,21 @@ class HomeActivity extends BaseActivity {
     ensureFragmentIsSetup()
   }
 
-
   override def onCreateOptionsMenu(menu: Menu): Boolean = {
     getMenuInflater().inflate(R.menu.home_activity_menu, menu);
     true
+  }
+
+
+  override def onOptionsItemSelected(item: MenuItem): Boolean = {
+    super.onOptionsItemSelected(item)
+
+    item.getItemId match {
+      case R.id.export_logs =>
+        exportLogs()
+        true
+      case somethingElse => false
+    }
   }
 
   override def onResume(): Unit = {
@@ -136,6 +148,15 @@ class HomeActivity extends BaseActivity {
       .setContentText(TR(R.string.pairing_success_dialog_content).as[String].format(dongleName))
       .setIcon(R.drawable.ic_big_green_success)
       .create().show(getSupportFragmentManager, "SuccessDialog")
+  }
+
+  private[this] def exportLogs(): Unit = {
+    LogCatReader.createEmailIntent(this).onComplete {
+      case Success(intent) =>
+        startActivity(intent)
+      case Failure(ex) =>
+        ex.printStackTrace()
+    }
   }
 
 }

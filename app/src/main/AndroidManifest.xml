@@ -60,6 +60,15 @@
             </intent-filter>
         </receiver>
         <service android:name=".app.GcmIntentService" />
+        <provider
+            android:name=".content.FileContentProvider"
+            android:authorities="com.ledger.ledgerwallet.file_exporter"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/shared_file_paths" />
+        </provider>
     </application>
 
 </manifest>

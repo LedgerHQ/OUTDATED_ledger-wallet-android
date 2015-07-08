@@ -55,7 +55,6 @@ class BigIconAlertDialog extends BaseDialogFragment {
     inflater.inflate(R.layout.bigicon_dialog, container, false)
   }
 
-
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     super.onViewCreated(view, savedInstanceState)
     actionBar onNegativeClick dismiss

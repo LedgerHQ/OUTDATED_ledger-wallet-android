@@ -31,14 +31,10 @@
 package com.ledger.ledgerwallet.app.m2fa
 
 
-import java.text.{SimpleDateFormat, DecimalFormat, NumberFormat}
-import java.util.Locale
-
-import android.app.AlertDialog.Builder
-import android.app.{AlertDialog, Dialog}
 import android.content.DialogInterface.OnClickListener
-import android.content.{DialogInterface, Context, Intent}
+import android.content.{Context, DialogInterface, Intent}
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageButton
@@ -48,7 +44,7 @@ import com.ledger.ledgerwallet.base.{BaseActivity, BigIconAlertDialog}
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
 import com.ledger.ledgerwallet.utils.TR
-import com.ledger.ledgerwallet.widget.{TextView, Toolbar}
+import com.ledger.ledgerwallet.widget.TextView
 
 class PairedDonglesActivity extends BaseActivity {
 
@@ -132,7 +128,7 @@ class PairedDonglesActivity extends BaseActivity {
       ui.dongleName.setText(dongle.name.get)
       ui.pairingDate.setText(String.format(TR(R.string.paired_dongle_paired_on).as[String], DateFormat.format(dongle.createdAt.get)))
       ui.deleteButton onClick {
-        new Builder(PairedDonglesActivity.this)
+        new AlertDialog.Builder(PairedDonglesActivity.this)
         .setMessage(R.string.delete_pairing_dialog_message)
         .setPositiveButton(android.R.string.yes, new OnClickListener {
           override def onClick(dialog: DialogInterface, which: Int): Unit = {
