@@ -32,7 +32,7 @@ package com.ledger.ledgerwallet.remote.api.m2fa
 
 import java.util.concurrent.TimeoutException
 
-import android.content.Context
+import android.content.{Intent, Context}
 import android.net.Uri
 import android.os.Handler
 import com.ledger.ledgerwallet.app.{InstallationInfo, Config}
@@ -230,11 +230,18 @@ class PairingAPI(context: Context, websocketUri: Uri = Config.WebSocketChannelsU
     }
   }
 
-  private[this] def finalizePairing(dongleName: String): Unit = {
+  private[this] def finalizePairing(dongleName: String, attemptNumber: Int = 0): Unit = {
     implicit val context = this.context
     Future {
       val dongle = PairedDongle.create(_pairingId.get, dongleName, pairingKey)
-      runOnUiThread(success(dongle))
+      success(dongle)
+    } onFailure {
+      case throwable: Throwable =>
+        if (attemptNumber == 0) {
+          context.startActivity(new Intent("com.android.credentials.UNLOCK"))
+          finalizePairing(dongleName, attemptNumber + 1)
+        } else
+          failure(throwable)
     }
   }
 

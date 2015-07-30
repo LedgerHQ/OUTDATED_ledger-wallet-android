@@ -38,8 +38,7 @@ import com.ledger.ledgerwallet.crypto.SecretKey
 import com.ledger.ledgerwallet.remote.api.m2fa.GcmAPI
 import com.ledger.ledgerwallet.utils.{Benchmark, GooglePlayServiceHelper}
 import org.json.JSONObject
-
-import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConversions._
 
 import android.content.Context
@@ -95,20 +94,18 @@ object PairedDongle extends Collection[PairedDongle] {
 
   def create(id: String, name: String, pairingKey: Array[Byte])(implicit context: Context): PairedDongle = {
     implicit val LogTag = "PairedDongle Creation"
-    Benchmark {
-      val dongle = new PairedDongle(id, name, new Date())
-      context
-        .getSharedPreferences(PreferencesName, Context.MODE_PRIVATE)
-        .edit()
-        .putString(id, dongle.toJson.toString)
-        .commit()
-      storePairingKey(context, id, pairingKey)
-      GooglePlayServiceHelper.getGcmRegistrationId onComplete {
-        case Success(regId) => GcmAPI.defaultInstance.updateDonglesToken(regId)
-        case _ =>
-      }
-      dongle
+    val dongle = new PairedDongle(id, name, new Date())
+    context
+      .getSharedPreferences(PreferencesName, Context.MODE_PRIVATE)
+      .edit()
+      .putString(id, dongle.toJson.toString)
+      .commit()
+    storePairingKey(context, id, pairingKey)
+    GooglePlayServiceHelper.getGcmRegistrationId onComplete {
+      case Success(regId) => GcmAPI.defaultInstance.updateDonglesToken(regId)
+      case _ =>
     }
+    dongle
   }
 
   def delete(dongle: PairedDongle)(implicit context: Context): Unit = {

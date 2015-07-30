@@ -37,7 +37,7 @@ import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.ImageButton
+import android.widget.{ImageView, ImageButton}
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
 import com.ledger.ledgerwallet.base.{BaseActivity, BigIconAlertDialog}
@@ -48,7 +48,7 @@ import com.ledger.ledgerwallet.widget.TextView
 
 class PairedDonglesActivity extends BaseActivity {
 
-  lazy val addPairingButton = TR(R.id.add_pairing_btn).as[ImageButton]
+  lazy val addPairingButton = TR(R.id.add_pairing_btn).as[ImageView]
   lazy val pairedDevicesList = TR(R.id.paired_devices_recycler_view).as[RecyclerView]
   private lazy val pairedDevicesAdapter = new PairedDonglesAdapter(this)
 

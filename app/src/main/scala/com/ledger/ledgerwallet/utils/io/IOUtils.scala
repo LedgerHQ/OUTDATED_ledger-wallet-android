@@ -53,7 +53,6 @@ object IOUtils {
     read = source.read(buffer)
     if (read == -1)
       return
-    Logger.d(s"Just read $read")
     destination.write(buffer, 0, read)
     progress(read)
     copy(source, destination, buffer, progress)

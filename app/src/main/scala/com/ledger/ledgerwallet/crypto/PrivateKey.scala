@@ -40,6 +40,7 @@ import javax.security.auth.x500.X500Principal
 
 import android.content.Context
 import android.security.KeyPairGeneratorSpec
+import com.ledger.ledgerwallet.utils.logs.Logger
 import org.spongycastle.util.encoders.Hex
 
 import scala.util.Try
@@ -100,7 +101,9 @@ object SecretKey {
         .setSubject(new X500Principal("CN=test1"))
         .build()
     )
+
     kpg.generateKeyPair()
+    Logger.d("After generate keypair")
     val entry = keystore().getEntry(alias, null)
     entry match {
       case privateKeyEntry: PrivateKeyEntry =>

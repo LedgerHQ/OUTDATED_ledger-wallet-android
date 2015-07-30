@@ -12,9 +12,9 @@
     <dimen name="medium_font_size">14sp</dimen>
     <dimen name="small_font_size">12sp</dimen>
 
-    <dimen name="extra_large_font_spacing">-1.25dp</dimen>
-    <dimen name="large_font_spacing">-1.20dp</dimen>
-    <dimen name="medium_font_spacing">-1dp</dimen>
+    <dimen name="extra_large_font_spacing">-0.80dp</dimen>
+    <dimen name="large_font_spacing">-0.60dp</dimen>
+    <dimen name="medium_font_spacing">-0.40dp</dimen>
     <dimen name="small_font_spacing">-0.2dp</dimen>
 
     <dimen name="action_bar_default_elevation">2dp</dimen>

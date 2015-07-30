@@ -78,7 +78,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
       }
     }
     pairingApi.future.get onComplete {
-      case Success(pairedDongle) => runOnUiThread(postResult(CreateDonglePairingActivity.ResultOk))
+      case Success(pairedDongle) => this.runOnUiThread(postResult(CreateDonglePairingActivity.ResultOk))
       case Failure(ex) => runOnUiThread {
         ex match {
           case disconnect: PairingAPI.ClientCancelledException => postResult(CreateDonglePairingActivity.ResultPairingCancelled)
