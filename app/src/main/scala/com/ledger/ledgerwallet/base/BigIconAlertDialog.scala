@@ -35,7 +35,7 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.{View, ViewGroup, LayoutInflater}
 import android.widget.ImageView
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.v2.R
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.view.DialogActionBarController
 import com.ledger.ledgerwallet.widget.TextView

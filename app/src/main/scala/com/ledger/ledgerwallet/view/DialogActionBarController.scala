@@ -32,7 +32,7 @@ package com.ledger.ledgerwallet.view
 
 import android.support.v4.app.DialogFragment
 import android.view.{View, ViewGroup}
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.v2.R
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.TextView
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._

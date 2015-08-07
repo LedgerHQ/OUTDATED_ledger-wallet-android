@@ -38,7 +38,7 @@ import android.text.style.ScaleXSpan
 import android.text.{SpannableString, Spannable, SpannableStringBuilder, Spanned}
 import android.util.AttributeSet
 import android.view.View
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.v2.R
 import com.ledger.ledgerwallet.utils.logs.Logger
 
 import scala.collection.mutable

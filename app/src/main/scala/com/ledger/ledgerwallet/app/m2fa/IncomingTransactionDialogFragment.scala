@@ -36,7 +36,7 @@ import java.util.Locale
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.{View, ViewGroup, LayoutInflater}
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.v2.R
 import com.ledger.ledgerwallet.base.BaseDialogFragment
 import com.ledger.ledgerwallet.bitcoin.AmountFormatter
 import com.ledger.ledgerwallet.remote.api.m2fa.IncomingTransactionAPI

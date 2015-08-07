@@ -34,7 +34,7 @@ import android.os.Bundle
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view._
 import android.view.inputmethod.EditorInfo
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.v2.R
 import com.ledger.ledgerwallet.base.{ContractFragment, BaseFragment}
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.utils.{Convert, TR}

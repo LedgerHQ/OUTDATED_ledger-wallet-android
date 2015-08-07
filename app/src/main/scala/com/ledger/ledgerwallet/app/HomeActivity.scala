@@ -33,7 +33,7 @@ package com.ledger.ledgerwallet.app
 import android.content.{DialogInterface, Intent}
 import android.os.Bundle
 import android.view.{View, ViewGroup, LayoutInflater}
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.v2.R
 import com.ledger.ledgerwallet.app.m2fa.{IncomingTransactionDialogFragment, PairedDonglesActivity}
 import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
 import com.ledger.ledgerwallet.base.{BigIconAlertDialog, BaseFragment, BaseActivity}

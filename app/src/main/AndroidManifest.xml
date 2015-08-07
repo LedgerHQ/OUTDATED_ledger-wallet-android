@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.ledger.ledgerwallet">
+    package="com.ledger.ledgerwallet.v2">
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -16,7 +16,7 @@
         android:icon="@drawable/ic_launcher" android:theme="@style/AppTheme">
 
         <activity
-            android:name=".app.HomeActivity"
+            android:name="com.ledger.ledgerwallet.app.HomeActivity"
             android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:launchMode="singleTask">
@@ -28,38 +28,38 @@
         </activity>
 
         <activity
-            android:name=".app.m2fa.PairedDonglesActivity"
+            android:name="com.ledger.ledgerwallet.app.m2fa.PairedDonglesActivity"
             android:screenOrientation="portrait"
             android:label="@string/paired_dongle_activity_name"
-            android:parentActivityName=".app.HomeActivity">
+            android:parentActivityName="com.ledger.ledgerwallet.app.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.HomeActivity" />
+                android:value="com.ledger.ledgerwallet.app.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.m2fa.pairing.CreateDonglePairingActivity"
+            android:name="com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity"
             android:screenOrientation="portrait"
             android:label="@string/create_dongle_title"
             android:windowSoftInputMode="adjustResize"
-            android:parentActivityName=".app.m2fa.PairedDonglesActivity"
+            android:parentActivityName="com.ledger.ledgerwallet.app.m2fa.PairedDonglesActivity"
             >
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.m2fa.PairedDonglesActivity" />
+                android:value="com.ledger.ledgerwallet.app.m2fa.PairedDonglesActivity" />
         </activity>
 
         <receiver
-            android:name=".app.GcmBroadcastReceiver"
+            android:name="com.ledger.ledgerwallet.app.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <category android:name="com.ledger.ledgerwallet.gcm" />
             </intent-filter>
         </receiver>
-        <service android:name=".app.GcmIntentService" />
+        <service android:name="com.ledger.ledgerwallet.app.GcmIntentService" />
     </application>
 
 </manifest>

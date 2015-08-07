@@ -38,7 +38,7 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.inputmethod.{EditorInfo, InputMethodManager}
 import android.view._
 import android.widget.RelativeLayout
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.v2.R
 import com.ledger.ledgerwallet.base.{BaseFragment, ContractFragment}
 import com.ledger.ledgerwallet.utils.{Convert, TR}
 import com.ledger.ledgerwallet.widget.traits.FontView

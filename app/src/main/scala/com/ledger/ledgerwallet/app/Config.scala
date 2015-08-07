@@ -32,7 +32,7 @@ package com.ledger.ledgerwallet.app
 
 import android.content.Context
 import android.net.Uri
-import com.ledger.ledgerwallet.BuildConfig
+import com.ledger.ledgerwallet.v2.BuildConfig
 
 object Config extends Config{
 

@@ -42,7 +42,7 @@ import android.os.Bundle
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageButton
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.v2.R
 import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
 import com.ledger.ledgerwallet.base.{BaseActivity, BigIconAlertDialog}
 import com.ledger.ledgerwallet.models.PairedDongle

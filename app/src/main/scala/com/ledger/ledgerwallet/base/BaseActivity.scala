@@ -38,7 +38,7 @@ import com.ledger.ledgerwallet.widget.Toolbar
 import android.view.ViewGroup.LayoutParams
 import android.view.{MenuItem, LayoutInflater, View}
 import android.widget.FrameLayout
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.v2.R
 import com.ledger.ledgerwallet.utils.{AndroidUtils, TR}
 import com.ledger.ledgerwallet.utils.logs.Loggable
 import com.ledger.ledgerwallet.app.GcmIntentService

@@ -35,7 +35,7 @@ import java.util
 import android.os.Bundle
 import android.view.ViewGroup.LayoutParams
 import android.view.{View, ViewGroup, LayoutInflater}
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.v2.R
 import com.ledger.ledgerwallet.base.{BaseFragment, ContractFragment}
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.utils.logs.Logger

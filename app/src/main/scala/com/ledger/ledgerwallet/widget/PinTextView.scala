@@ -36,7 +36,7 @@ import android.os.Build
 import android.text.InputFilter
 import android.util.AttributeSet
 import android.view.View.MeasureSpec
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.v2.R
 import com.ledger.ledgerwallet.utils.Convert
 
 class PinTextView(context: Context, attrs: AttributeSet) extends EditText(context, attrs) {

@@ -35,7 +35,7 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
 import android.view.Window
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.v2.R
 import com.ledger.ledgerwallet.utils.TR
 
 class BaseDialogFragment extends DialogFragment with RichFragment {

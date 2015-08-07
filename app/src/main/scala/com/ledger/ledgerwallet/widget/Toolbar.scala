@@ -36,7 +36,7 @@ import android.support.v7.app.ActionBar
 import android.util.AttributeSet
 import android.view.ViewGroup.LayoutParams
 import android.view.{ViewGroup, View, LayoutInflater}
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.v2.R
 import com.ledger.ledgerwallet.base.BaseActivity
 import com.ledger.ledgerwallet.utils.TR
 
