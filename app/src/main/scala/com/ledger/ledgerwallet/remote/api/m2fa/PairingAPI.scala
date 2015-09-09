@@ -45,7 +45,7 @@ import org.json.{JSONException, JSONObject}
 import org.spongycastle.util.encoders.Hex
 
 import scala.concurrent.{Promise, Future}
-import scala.util.{Failure, Success}
+import scala.util.{Try, Failure, Success}
 import com.ledger.ledgerwallet.common._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -232,16 +232,23 @@ class PairingAPI(context: Context, websocketUri: Uri = Config.WebSocketChannelsU
 
   private[this] def finalizePairing(dongleName: String, attemptNumber: Int = 0): Unit = {
     implicit val context = this.context
-    Future {
+    val createDongle = () => {
       val dongle = PairedDongle.create(_pairingId.get, dongleName, pairingKey)
       success(dongle)
-    } onFailure {
-      case throwable: Throwable =>
-        if (attemptNumber == 0) {
+    }
+    if (attemptNumber > 0) {
+      Try(createDongle).recover {
+        case throwable: Throwable => failure(throwable)
+      }
+    } else {
+      Future(createDongle).onFailure {
+        case throwable: Throwable =>
+          Logger.e("Unable to create a paired dongle: " + throwable.getMessage())
           context.startActivity(new Intent("com.android.credentials.UNLOCK"))
-          finalizePairing(dongleName, attemptNumber + 1)
-        } else
-          failure(throwable)
+          runOnUiThread {
+            finalizePairing(dongleName, attemptNumber + 1)
+          }
+      }
     }
   }
 
@@ -280,7 +287,8 @@ class PairingAPI(context: Context, websocketUri: Uri = Config.WebSocketChannelsU
       "public_key" -> publicKey,
       "name" -> AndroidUtils.getModelName,
       "platform" -> "android",
-      "uuid" -> InstallationInfo.uuid(context)
+      "uuid" -> InstallationInfo.uuid(context),
+      "protocol" -> 1
     )
   )
 

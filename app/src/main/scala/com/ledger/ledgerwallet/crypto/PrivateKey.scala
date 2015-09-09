@@ -55,19 +55,19 @@ sealed trait SecretKey {
 
 object SecretKey {
 
-  private[this] def keystore(): KeyStore = {
+  private[this] lazy val keystore: KeyStore = {
     val keystore = KeyStore.getInstance("AndroidKeyStore")
     keystore.load(null)
     keystore
   }
 
   def get(context: Context, alias: String): Option[SecretKey] = {
-    val store = keystore()
+    val store = keystore
     val hexWrappedSecret = context.getSharedPreferences(PreferenceName, Context.MODE_PRIVATE).getString(alias, null)
     if (!store.containsAlias(alias) || hexWrappedSecret == null)
       return None
     val raw = Hex.decode(hexWrappedSecret)
-    val entry = keystore().getEntry(alias, null)
+    val entry = keystore.getEntry(alias, null)
     entry match {
       case privateKeyEntry: PrivateKeyEntry =>
         Some(new SecretKeyImpl(alias, raw, new KeyPair(privateKeyEntry.getCertificate.getPublicKey, privateKeyEntry.getPrivateKey)))
@@ -76,7 +76,7 @@ object SecretKey {
   }
 
   def remove(context: Context, alias: String): Boolean = {
-    val store = keystore()
+    val store = keystore
     if (store.containsAlias(alias)) {
       store.deleteEntry(alias)
       true
@@ -104,7 +104,7 @@ object SecretKey {
 
     kpg.generateKeyPair()
     Logger.d("After generate keypair")
-    val entry = keystore().getEntry(alias, null)
+    val entry = keystore.getEntry(alias, null)
     entry match {
       case privateKeyEntry: PrivateKeyEntry =>
         val kp = new KeyPair(privateKeyEntry.getCertificate.getPublicKey, privateKeyEntry.getPrivateKey)
@@ -121,7 +121,7 @@ object SecretKey {
   }
 
   def delete(context: Context, alias: String): Unit = {
-    keystore().deleteEntry(alias)
+    keystore.deleteEntry(alias)
     context.getSharedPreferences(PreferenceName, Context.MODE_PRIVATE)
       .edit()
       .remove(alias)
