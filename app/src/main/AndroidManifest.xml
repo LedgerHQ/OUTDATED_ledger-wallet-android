@@ -51,6 +51,17 @@
                 android:value=".app.m2fa.PairedDonglesActivity" />
         </activity>
 
+        <activity
+            android:name=".app.unplugged.UnpluggedHomeActivity"
+            android:screenOrientation="portrait"
+            android:label="Unplugged">
+        </activity>
+        <activity
+            android:name=".app.unplugged.UnpluggedPINChoiceActivity"
+            android:screenOrientation="portrait"
+            android:label="Unplugged">
+        </activity>
+
         <receiver
             android:name=".app.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >

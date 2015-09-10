@@ -60,6 +60,15 @@
             style="@style/RoundedGreenButtonStyle"
             android:layout_gravity="center_horizontal" />
 
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/extra_large_margin"
+            android:text="Unplugged"
+            android:id="@+id/unplugged_button"
+            style="@style/RoundedGreyButtonStyle"
+            android:layout_gravity="center_horizontal" />
+
     </LinearLayout>
 
     <com.ledger.ledgerwallet.widget.TextView

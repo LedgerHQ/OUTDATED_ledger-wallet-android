@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:clipChildren="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:orientation="vertical" android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical|center_horizontal"
+        android:layout_centerVertical="true"
+        android:clipToPadding="false"
+        android:clipChildren="false"
+        android:layout_centerHorizontal="true">
+
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nouveau portefeuille"
+            android:id="@+id/textView1"
+            android:textSize="@dimen/very_extra_large_font_size"
+            app:kerning="@dimen/extra_large_font_spacing"
+            android:layout_marginLeft="@dimen/huge_margin"
+            android:layout_marginRight="@dimen/huge_margin"
+            android:layout_marginBottom="@dimen/almost_very_small_margin"
+            android:gravity="center"
+            android:textColor="@color/black"
+            app:fontStyle="light"
+            android:layout_gravity="center_horizontal" />
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ledger Wallet"
+            android:id="@+id/textView2"
+            android:textSize="@dimen/very_extra_large_font_size"
+            app:kerning="@dimen/extra_large_font_spacing"
+            android:layout_marginLeft="@dimen/huge_margin"
+            android:layout_marginRight="@dimen/huge_margin"
+            android:layout_marginBottom="@dimen/extra_large_margin"
+            android:gravity="center"
+            android:textColor="@color/dark_grey"
+            app:fontStyle="light"
+            android:layout_gravity="center_horizontal" />
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bienvenue dans votre nouveau Ledger Wallet !"
+            android:id="@+id/textView3"
+            android:textSize="@dimen/small_font_size"
+            app:kerning="@dimen/extra_large_font_spacing"
+            android:layout_marginLeft="@dimen/huge_margin"
+            android:layout_marginRight="@dimen/huge_margin"
+            android:layout_marginBottom="@dimen/almost_very_small_margin"
+            android:gravity="center"
+            android:textColor="@color/black"
+            app:fontStyle="light"
+            android:layout_gravity="center_horizontal" />
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Souhaitez-vous créer un nouveau portefeuille ou en restaurer un existant ?"
+            android:id="@+id/textView4"
+            android:textSize="@dimen/small_font_size"
+            app:kerning="@dimen/extra_large_font_spacing"
+            android:layout_marginLeft="@dimen/huge_margin"
+            android:layout_marginRight="@dimen/huge_margin"
+            android:layout_marginBottom="@dimen/extra_large_margin"
+            android:gravity="center"
+            android:textColor="@color/dark_grey"
+            app:fontStyle="light"
+            android:layout_gravity="center_horizontal" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/medium_margin"
+            android:paddingBottom="@dimen/medium_margin"
+            android:paddingLeft="@dimen/activity_border_margin"
+            android:paddingRight="@dimen/activity_border_margin"
+            android:layout_marginBottom="@dimen/extra_large_margin"
+            android:background="@color/extra_light_grey"
+            android:gravity="center_horizontal"
+            android:id="@+id/linear1"
+            >
+            <com.ledger.ledgerwallet.widget.TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:fontStyle="light"
+                android:text="1."
+                android:textSize="45sp"
+                android:id="@+id/step_number1"
+                app:kerning="@dimen/large_font_spacing"
+                android:textColor="@color/dark_grey"
+                android:layout_marginRight="@dimen/large_margin"
+                android:layout_gravity="center_vertical" />
+
+            <com.ledger.ledgerwallet.widget.TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Créer un nouveau portefeuille"
+                android:id="@+id/create_wallet_button"
+                android:textColor="@color/dark_grey"
+                android:textSize="@dimen/medium_font_size"
+                app:kerning="@dimen/medium_font_spacing"
+                android:maxWidth="300dp"
+                android:lineSpacingExtra="5dp"
+                android:layout_gravity="center_vertical" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/medium_margin"
+            android:paddingBottom="@dimen/medium_margin"
+            android:paddingLeft="@dimen/activity_border_margin"
+            android:paddingRight="@dimen/activity_border_margin"
+            android:background="@color/extra_light_grey"
+            android:gravity="center_horizontal"
+            android:id="@+id/linear2"
+            >
+            <com.ledger.ledgerwallet.widget.TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:fontStyle="light"
+                android:text="2."
+                android:textSize="45sp"
+                android:id="@+id/step_number2"
+                app:kerning="@dimen/large_font_spacing"
+                android:textColor="@color/dark_grey"
+                android:layout_marginRight="@dimen/large_margin"
+                android:layout_gravity="center_vertical" />
+
+            <com.ledger.ledgerwallet.widget.TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Restaurer un portefeuille existant"
+                android:id="@+id/restaure_wallet_button"
+                android:textColor="@color/dark_grey"
+                android:textSize="@dimen/medium_font_size"
+                app:kerning="@dimen/medium_font_spacing"
+                android:maxWidth="300dp"
+                android:lineSpacingExtra="5dp"
+                android:layout_gravity="center_vertical" />
+        </LinearLayout>
+
+        <com.ledger.ledgerwallet.widget.TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Unplugged"
+        android:id="@+id/unppluged_button"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+
+
+
+    </LinearLayout>
+</RelativeLayout>

@@ -45,6 +45,8 @@ import com.ledger.ledgerwallet.utils.logs.LogCatReader
 import com.ledger.ledgerwallet.utils.{GooglePlayServiceHelper, TR}
 import com.ledger.ledgerwallet.widget.TextView
 
+import com.ledger.ledgerwallet.app.unplugged.UnpluggedHomeActivity  //TODO: DELETE
+
 import scala.util.{Failure, Success}
 
 class HomeActivity extends BaseActivity {
@@ -173,6 +175,8 @@ class HomeActivityContentFragment extends BaseFragment {
   lazy val isInPairedDeviceMode = if (getTag == HomeActivityContentFragment.PairedDeviceFragmentTag) true else false
   lazy val isInNoPairedDeviceMode = !isInPairedDeviceMode
 
+  lazy val unpluggedButton = TR(R.id.unplugged_button).as[TextView]  //TODO : DELETE
+
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     val layoutId = if (isInPairedDeviceMode) R.layout.home_activity_paired_device_fragment else R.layout.home_activity_no_paired_device_fragment
     inflater.inflate(layoutId, container, false)
@@ -191,6 +195,12 @@ class HomeActivityContentFragment extends BaseFragment {
     }
     helpLink onClick {
       val intent = new Intent(Intent.ACTION_VIEW, Config.HelpCenterUri)
+      startActivity(intent)
+    }
+
+    //TODO : DELETE
+    unpluggedButton onClick {
+      val intent = new Intent(getActivity, classOf[UnpluggedHomeActivity])
       startActivity(intent)
     }
   }
