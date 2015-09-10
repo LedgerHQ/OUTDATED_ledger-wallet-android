@@ -30,7 +30,10 @@
  */
 package com.ledger.ledgerwallet.app
 
+import java.io.IOException
+
 import android.content.Intent
+import android.nfc.Tag
 import android.os.Bundle
 import android.view._
 import com.ledger.ledgerwallet.R
@@ -48,22 +51,28 @@ import com.ledger.ledgerwallet.widget.TextView
 import com.ledger.ledgerwallet.app.unplugged.UnpluggedHomeActivity  //TODO: DELETE
 
 import scala.util.{Failure, Success}
+import android.util.Log;
 
-class HomeActivity extends BaseActivity {
+// Nordpol TagDispatcher (Fidesmo) and general NFC support
+import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
+import com.ledger.ledgerwallet.nfc.Unplugged
 
+class HomeActivity extends BaseActivity with OnDiscoveredTagListener{
+  var dispatcher: TagDispatcher = null
   lazy val api = IncomingTransactionAPI.defaultInstance(context)
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.single_fragment_holder_activity)
     ensureFragmentIsSetup()
+
+    dispatcher = TagDispatcher.get(this, this)
   }
 
   override def onCreateOptionsMenu(menu: Menu): Boolean = {
     getMenuInflater().inflate(R.menu.home_activity_menu, menu);
     true
   }
-
 
   override def onOptionsItemSelected(item: MenuItem): Boolean = {
     super.onOptionsItemSelected(item)
@@ -73,6 +82,23 @@ class HomeActivity extends BaseActivity {
         exportLogs()
         true
       case somethingElse => false
+    }
+  }
+
+  def tagDiscovered(tag: Tag) {
+    Log.v("LedgerNFC", "Found NFC Tag !")
+    try {
+      val unplugged: Unplugged = new Unplugged()
+      if(unplugged.isLedgerUnplugged(tag)){
+        Log.v("LedgerNFC", "It's a Ledger Unplugged!")
+        //val intent = new Intent(getActivity, classOf[UnpluggedHomeActivity])
+        //startActivity(intent)
+      }
+    }
+    catch {
+      case ioe: IOException => {
+        // Nothing
+      }
     }
   }
 
@@ -95,12 +121,14 @@ class HomeActivity extends BaseActivity {
         }
       case _ => // Nothing to do
     }
+    dispatcher.enableExclusiveNfc()
   }
 
   override def onPause(): Unit = {
     super.onPause()
     api.stop()
     api onIncomingTransaction null
+    dispatcher.disableExclusiveNfc()
   }
 
   private[this] def openIncomingTransactionDialog(tx: IncomingTransactionAPI#IncomingTransaction): Unit = {
@@ -160,7 +188,6 @@ class HomeActivity extends BaseActivity {
         ex.printStackTrace()
     }
   }
-
 }
 
 object HomeActivityContentFragment {
