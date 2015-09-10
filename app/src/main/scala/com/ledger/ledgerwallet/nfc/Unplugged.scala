@@ -10,6 +10,7 @@ import android.util.Log
 class Unplugged extends OnDiscoveredTagListener {
   val TAG: String = "LedgerUnpluggedHelper"
   val APPLICATION_APDU: String = "00a404000ca0000006170054bf6aa94901"
+  val successfulAPDU = Array[Byte](0x90.toByte, 0x00);
 
   def tagDiscovered(tag: Tag) {
     try {
@@ -24,16 +25,27 @@ class Unplugged extends OnDiscoveredTagListener {
   }
 
   def isLedgerUnplugged(tag: Tag): Boolean = {
+    /*val response = sendAPDU(AndroidCard.get(tag), APPLICATION_APDU)
+    if (response != null && Arrays.equals(Utils.statusBytes(response), successfulSelectApdu)) {
+      return true
+    }else{
+      return false
+    }*/
+
     if(sendAPDU(AndroidCard.get(tag), APPLICATION_APDU) == "9000"){ return true } else { return false }
   }
 
-  def sendAPDU (card: IsoCard, APDU: String) {
+  def sendAPDU (card: IsoCard, APDU: String): String = {
     Log.v(TAG, "Sending APDU " + APDU)
     var response: Array[Byte] = null
     try {
+      Log.v(TAG, "Card connect")
       card.connect
+      Log.v(TAG, "Card transceive")
       response = card.transceive(Utils.decodeHex(APDU))
+      Log.v(TAG, "Card close")
       card.close
+      Log.v(TAG, "Response: " + Utils.encodeHex(response))
     }
     catch {
       case e: IOException => {
