@@ -232,19 +232,21 @@ class PairingAPI(context: Context, websocketUri: Uri = Config.WebSocketChannelsU
 
   private[this] def finalizePairing(dongleName: String, attemptNumber: Int = 0): Unit = {
     implicit val context = this.context
+    Logger.d("Request dongle pairing")
     val createDongle = () => {
+      Logger.d("Create dongle pairing")
       val dongle = PairedDongle.create(_pairingId.get, dongleName, pairingKey)
       success(dongle)
     }
     if (attemptNumber > 0) {
-      Try(createDongle).recover {
+      Try({createDongle()}).recover {
         case throwable: Throwable => failure(throwable)
       }
     } else {
-      Future(createDongle).onFailure {
+      Future({createDongle()}).onFailure {
         case throwable: Throwable =>
           Logger.e("Unable to create a paired dongle: " + throwable.getMessage())
-          context.startActivity(new Intent("com.android.credentials.UNLOCK"))
+          // context.startActivity(new Intent("com.android.credentials.UNLOCK"))
           runOnUiThread {
             finalizePairing(dongleName, attemptNumber + 1)
           }

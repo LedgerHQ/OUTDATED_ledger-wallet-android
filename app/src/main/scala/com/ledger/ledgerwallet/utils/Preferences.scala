@@ -30,6 +30,16 @@
  */
 package com.ledger.ledgerwallet.utils
 
-class Preferences {
+import android.content.Context
+
+class Preferences(name: String, c: Context) extends Preferenceable {
+  implicit val context = c
+  override def PreferencesName: String = name
+}
+
+object Preferences {
+
+  def apply(preferencesName: String)(implicit context: Context): Preferences =
+    new Preferences(preferencesName, context)
 
 }

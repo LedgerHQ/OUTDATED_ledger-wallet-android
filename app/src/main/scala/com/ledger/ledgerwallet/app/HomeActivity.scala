@@ -41,6 +41,7 @@ import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.api.TeeAPI
 import com.ledger.ledgerwallet.remote.api.m2fa.{GcmAPI, IncomingTransactionAPI}
+import com.ledger.ledgerwallet.security.Keystore
 import com.ledger.ledgerwallet.utils.logs.LogCatReader
 import com.ledger.ledgerwallet.utils.{GooglePlayServiceHelper, TR}
 import com.ledger.ledgerwallet.widget.TextView
@@ -93,6 +94,8 @@ class HomeActivity extends BaseActivity {
         }
       case _ => // Nothing to do
     }
+
+    refreshPairedDongleList()
   }
 
   override def onPause(): Unit = {
@@ -118,6 +121,25 @@ class HomeActivity extends BaseActivity {
         .replace(R.id.fragment_container, new HomeActivityContentFragment, HomeActivityContentFragment.PairedDeviceFragmentTag)
         .commitAllowingStateLoss()
     }
+  }
+
+  private[this] def refreshPairedDongleList(): Unit = {
+    if (Keystore.defaultInstance.isLocked) {
+      // Display Unlock dialog
+      return
+    }
+    var notifyDongleLost = false
+    PairedDongle.all.foreach((dongle) => {
+      if (dongle.pairingKey.isEmpty) {
+        notifyDongleLost = true
+        dongle.delete()
+      }
+    })
+
+    if (notifyDongleLost) {
+      // Display lost dongles warning dialog
+    }
+
   }
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {

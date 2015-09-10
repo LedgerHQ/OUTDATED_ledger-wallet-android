@@ -31,8 +31,7 @@
 package com.ledger.ledgerwallet.crypto
 
 import java.math.BigInteger
-import java.security.{KeyPair, KeyPairGenerator, KeyStore}
-import java.security.KeyStore.PrivateKeyEntry
+import java.security.KeyPair
 import java.util.{Calendar, Date}
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
@@ -41,6 +40,7 @@ import javax.security.auth.x500.X500Principal
 import android.content.Context
 import android.security.KeyPairGeneratorSpec
 import com.ledger.ledgerwallet.utils.logs.Logger
+import com.ledger.ledgerwallet.security.Keystore
 import org.spongycastle.util.encoders.Hex
 
 import scala.util.Try
@@ -55,16 +55,24 @@ sealed trait SecretKey {
 
 object SecretKey {
 
-  private[this] lazy val keystore: KeyStore = {
-    val keystore = KeyStore.getInstance("AndroidKeyStore")
-    keystore.load(null)
-    keystore
+  private type JavaKeystore = java.security.KeyStore
+  private type JavaKeyPair = java.security.KeyPair
+  private type JavaKeyGenerator = java.security.KeyPairGenerator
+  private type PrivateKeyEntry = java.security.KeyStore.PrivateKeyEntry
+
+  private val JavaKeyGenerator = java.security.KeyPairGenerator
+
+  private[this] implicit var context: Context = null;
+
+  private[this] lazy val keystore: Keystore = {
+    Keystore.defaultInstance
   }
 
   def get(context: Context, alias: String): Option[SecretKey] = {
+    this.context = context.getApplicationContext
     val store = keystore
     val hexWrappedSecret = context.getSharedPreferences(PreferenceName, Context.MODE_PRIVATE).getString(alias, null)
-    if (!store.containsAlias(alias) || hexWrappedSecret == null)
+    if (!store.containsAlias(alias).getOrElse(false) || hexWrappedSecret == null)
       return None
     val raw = Hex.decode(hexWrappedSecret)
     val entry = keystore.getEntry(alias, null)
@@ -76,8 +84,9 @@ object SecretKey {
   }
 
   def remove(context: Context, alias: String): Boolean = {
+    this.context = context.getApplicationContext
     val store = keystore
-    if (store.containsAlias(alias)) {
+    if (store.containsAlias(alias).getOrElse(false)) {
       store.deleteEntry(alias)
       true
     } else {
@@ -86,8 +95,9 @@ object SecretKey {
   }
 
   def create(context: Context, alias: String, secret: Array[Byte]): Try[SecretKey] = {
+    this.context = context.getApplicationContext
     Crypto.ensureSpongyIsRemoved()
-    val kpg = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore")
+    val kpg = JavaKeyGenerator.getInstance("RSA", keystore.getProvider.get)
     val calendar = Calendar.getInstance()
     val now = calendar.getTime
     calendar.add(Calendar.YEAR, 100)
