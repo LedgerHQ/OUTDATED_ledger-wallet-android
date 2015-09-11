@@ -39,8 +39,6 @@ import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.widget.{Toolbar, TextView}
 
 class UnpluggedSecurityActivity extends BaseActivity {
-  lazy val textViewLine2 = TR(R.id.textViewLine2).as[TextView]
-  lazy val continueButton = TR(R.id.button).as[TextView]
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -48,6 +46,8 @@ class UnpluggedSecurityActivity extends BaseActivity {
 
     getSupportActionBar.setHomeButtonEnabled(true)
     getSupportActionBar.setDisplayHomeAsUpEnabled(true)
+    val textViewLine2 = TR(R.id.textViewLine2).as[TextView]
+    val continueButton = TR(R.id.button).as[TextView]
 
     val wallet_mode = getIntent().getStringExtra("wallet_mode")
     val toolbar = TR(R.id.toolbar).as[Toolbar]
