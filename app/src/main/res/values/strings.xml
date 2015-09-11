@@ -41,6 +41,20 @@
     <string name="create_dongle_instruction_step_5_error_message">This name is used by another paired Ledger Wallet.</string>
     <string name="create_dongle_instruction_step_5_bottom">Choose a name to assign to this Ledger Wallet.</string>
 
+    <!-- Unplugged Security Activity -->
+    <string name="unplugged_security_title_create">Create my Wallet</string>
+    <string name="unplugged_security_title_restore">Restore my Wallet</string>
+    <string name="unplugged_security_security_informations"><b>Security</b> information</string>
+    <string name="unplugged_security_trusted_smartphone_required">A trusted smartphone is required to configure your Ledger Wallet</string>
+    <string name="unplugged_security_line1">This configuration wizard handles highly sensitive data about your wallet.</string>
+    <string name="unplugged_security_line2_create">It is very important to continue the creation process from a private (or trusted) smartphone to prevent someone from accessing these information illicitly.</string>
+    <string name="unplugged_security_line2_other">It is very important to continue the recovery process from a private (or trusted) smartphone to prevent someone from accessing these information illicitly.</string>
+    <string name="unplugged_security_line3">In case of doubt, we recommend that you remove your Ledger Wallet from the USB port of the smartphone and reopen this wizard from another more secure smartphone.</string>
+    <string name="unplugged_security_by_clicking_continue">By clicking CONTINUE, you confirm to use a trusted smartphone to configure your Ledger Wallet.</string>
+
+    <!-- Unplugged Actions -->
+    <string name="unplugged_management_continue">CONTINUE</string>
+
     <!-- Delete Pairing Dialog -->
     <string name="delete_pairing_dialog_message">By deleting this Ledger Wallet, you will no longer be able to manually validate transaction from this smartphone. Do you want to continue?</string>
 
