@@ -4,7 +4,6 @@
 /.idea/libraries
 .DS_Store
 /build
-.idea/encodings.xml
-.idea/gradle.xml
-.idea/misc.xml
+.idea
 app/app.iml
+ledger-wallet-android.iml
