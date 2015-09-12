@@ -41,10 +41,19 @@
     <string name="create_dongle_instruction_step_5_error_message">Ce nom est déjà utilisé par un autre Ledger Wallet associé.</string>
     <string name="create_dongle_instruction_step_5_bottom">Choisissez un nom pour ce Ledger Wallet.</string>
 
+    <!-- Unplugged Welcome Activity -->
+    <string name="unplugged_welcome_title">Unplugged - Nouveau portefeuille</string>
+    <string name="unplugged_welcome_welcome_to_your_new_wallet">Bienvenue dans votre nouveau Ledger Wallet !</string>
+    <string name="unplugged_welcome_create_or_recover">Souhaitez-vous créer un nouveau portefeuille\nou en restaurer un existant ?</string>
+    <string name="unplugged_welcome_use_as_new">Créer un nouveau portefeuille</string>
+    <string name="unplugged_welcome_if_its_your_first_wallet">Configurez votre nouveau Ledger Wallet s\'il s\'agit de votre premier achat</string>
+    <string name="unplugged_welcome_recover_wallet">Restaurer un portefeuille existant</string>
+    <string name="unplugged_welcome_if_you_lost_your_wallet">Retrouvez l\'accès à vos comptes et bitcoins si vous avez bloqué ou perdu votre Ledger Wallet</string>
+
     <!-- Unplugged Security Activity -->
-    <string name="unplugged_security_title_create">Créer mon portefeuille</string>
+    <string name="unplugged_security_title_create">Unplugged - Créer mon portefeuille</string>
     <string name="unplugged_security_title_restore">Restaurer mon portefeuille</string>
-    <string name="unplugged_security_security_informations">Informations de <b>sécurité</b></string>
+    <string name="unplugged_security_security_informations">Informations de sécurité</string>
     <string name="unplugged_security_trusted_smartphone_required">Un smartphone de confiance est requis pour configurer votre Ledger Wallet</string>
     <string name="unplugged_security_line1">Cet assistant de configuration manipule des données sensibles concernant votre portefeuille.</string>
     <string name="unplugged_security_line2_create">Il est très important de continuer la procédure de création depuis un smartphone privé (ou de confiance) afin d\'empêcher que quelqu\'un accède à ces informations de façon illicite.</string>

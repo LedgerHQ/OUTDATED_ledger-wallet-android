@@ -33,16 +33,19 @@ package com.ledger.ledgerwallet.app.unplugged
 import android.content.Intent
 import android.os.Bundle
 import android.view._
+import android.widget.LinearLayout
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{BaseActivity, BaseFragment}
 import com.ledger.ledgerwallet.utils.{TR}
 import com.ledger.ledgerwallet.common._
-import com.ledger.ledgerwallet.widget.TextView
 
 class UnpluggedHomeActivity extends BaseActivity {
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.single_fragment_holder_activity)
+
+    getSupportActionBar.setHomeButtonEnabled(true)
+    getSupportActionBar.setDisplayHomeAsUpEnabled(true)
 
     getSupportFragmentManager
         .beginTransaction()
@@ -53,8 +56,8 @@ class UnpluggedHomeActivity extends BaseActivity {
 
 class UnpluggedHomeActivityContentFragment extends BaseFragment {
 
-	lazy val createWalletButton = TR(R.id.create_wallet_button).as[TextView]
-	lazy val restaureWalletButton = TR(R.id.restaure_wallet_button).as[TextView]
+	lazy val createWalletButton = TR(R.id.create_wallet_button).as[LinearLayout]
+	lazy val restoreWalletButton = TR(R.id.restore_wallet_button).as[LinearLayout]
 
 
 	override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
@@ -69,7 +72,7 @@ class UnpluggedHomeActivityContentFragment extends BaseFragment {
       intent.putExtra("wallet_mode", "create")
       startActivity(intent)
     }
-    restaureWalletButton onClick {
+    restoreWalletButton onClick {
       val intent = new Intent(getActivity, classOf[UnpluggedSecurityActivity])
       intent.putExtra("wallet_mode", "restore")
       startActivity(intent)

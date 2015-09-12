@@ -55,7 +55,7 @@
         <activity
             android:name=".app.unplugged.UnpluggedHomeActivity"
             android:screenOrientation="portrait"
-            android:label="Unplugged">
+            android:label="@string/unplugged_welcome_title">
         </activity>
 
         <activity

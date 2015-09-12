@@ -41,10 +41,19 @@
     <string name="create_dongle_instruction_step_5_error_message">This name is used by another paired Ledger Wallet.</string>
     <string name="create_dongle_instruction_step_5_bottom">Choose a name to assign to this Ledger Wallet.</string>
 
+    <!-- Unplugged Welcome Activity -->
+    <string name="unplugged_welcome_title">Unplugged - New wallet</string>
+    <string name="unplugged_welcome_welcome_to_your_new_wallet">Welcome to your new Ledger Wallet!</string>          
+    <string name="unplugged_welcome_create_or_recover">Would you like to create a new wallet\nor restore an existing one?</string>
+    <string name="unplugged_welcome_use_as_new">Create a new wallet</string>
+    <string name="unplugged_welcome_if_its_your_first_wallet">Configure your new Ledger Wallet if it\'s your first purchase</string>
+    <string name="unplugged_welcome_recover_wallet">Recover an existing wallet</string>
+    <string name="unplugged_welcome_if_you_lost_your_wallet">Regain access to your accounts and bitcoins if you froze or lost your Ledger Wallet</string>
+
     <!-- Unplugged Security Activity -->
-    <string name="unplugged_security_title_create">Create my Wallet</string>
+    <string name="unplugged_security_title_create">Unplugged - Create my Wallet</string>
     <string name="unplugged_security_title_restore">Restore my Wallet</string>
-    <string name="unplugged_security_security_informations"><b>Security</b> information</string>
+    <string name="unplugged_security_security_informations">Security information</string>
     <string name="unplugged_security_trusted_smartphone_required">A trusted smartphone is required to configure your Ledger Wallet</string>
     <string name="unplugged_security_line1">This configuration wizard handles highly sensitive data about your wallet.</string>
     <string name="unplugged_security_line2_create">It is very important to continue the creation process from a private (or trusted) smartphone to prevent someone from accessing these information illicitly.</string>
