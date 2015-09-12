@@ -57,6 +57,13 @@
             android:screenOrientation="portrait"
             android:label="Unplugged">
         </activity>
+
+        <activity
+            android:name=".app.unplugged.UnpluggedSecurityActivity"
+            android:screenOrientation="portrait"
+            android:label="Unplugged">
+        </activity>
+
         <activity
             android:name=".app.unplugged.UnpluggedPINChoiceActivity"
             android:screenOrientation="portrait"

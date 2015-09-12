@@ -1,9 +1,7 @@
 /**
  *
- * HomeActivity
+ * UnpluggedSecurityActivity
  * Ledger wallet
- *
- * Created by Pierre Pollastri on 10/02/15.
  *
  * The MIT License (MIT)
  *
@@ -32,46 +30,39 @@ package com.ledger.ledgerwallet.app.unplugged
 
 import android.content.Intent
 import android.os.Bundle
-import android.view._
+import android.view.View
+import android.view.View.OnClickListener
 import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.base.{BaseActivity, BaseFragment}
-import com.ledger.ledgerwallet.utils.{TR}
+import com.ledger.ledgerwallet.base.BaseActivity
+import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.common._
-import com.ledger.ledgerwallet.widget.TextView
+import com.ledger.ledgerwallet.widget.{Toolbar, TextView}
 
-class UnpluggedHomeActivity extends BaseActivity {
+class UnpluggedSecurityActivity extends BaseActivity {
+
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.single_fragment_holder_activity)
+    setContentView(R.layout.unplugged_security_activity)
 
-    getSupportFragmentManager
-        .beginTransaction()
-        .replace(R.id.fragment_container, new UnpluggedHomeActivityContentFragment())
-        .commitAllowingStateLoss()
-  }
-}
+    getSupportActionBar.setHomeButtonEnabled(true)
+    getSupportActionBar.setDisplayHomeAsUpEnabled(true)
+    val textViewLine2 = TR(R.id.textViewLine2).as[TextView]
+    val continueButton = TR(R.id.button).as[TextView]
 
-class UnpluggedHomeActivityContentFragment extends BaseFragment {
+    val wallet_mode = getIntent().getStringExtra("wallet_mode")
+    val toolbar = TR(R.id.toolbar).as[Toolbar]
 
-	lazy val createWalletButton = TR(R.id.create_wallet_button).as[TextView]
-	lazy val restaureWalletButton = TR(R.id.restaure_wallet_button).as[TextView]
-
-
-	override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
-    inflater.inflate(R.layout.unplugged_home_fragment, container, false)
-  }
-
-  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    super.onViewCreated(view, savedInstanceState)
-
-    createWalletButton onClick {
-      val intent = new Intent(getActivity, classOf[UnpluggedSecurityActivity])
-      intent.putExtra("wallet_mode", "create")
-      startActivity(intent)
+    if(wallet_mode == "create"){
+      toolbar.setTitle(R.string.unplugged_security_title_create)
+      textViewLine2.setText(R.string.unplugged_security_line2_create)
+    } else {
+      toolbar.setTitle(R.string.unplugged_security_title_restore)
+      textViewLine2.setText(R.string.unplugged_security_line2_other)
     }
-    restaureWalletButton onClick {
-      val intent = new Intent(getActivity, classOf[UnpluggedSecurityActivity])
-      intent.putExtra("wallet_mode", "restore")
+
+    continueButton onClick {
+      val intent = new Intent(getBaseContext(), classOf[UnpluggedPINChoiceActivity])
+      intent.putExtra("wallet_mode", "create")
       startActivity(intent)
     }
   }
