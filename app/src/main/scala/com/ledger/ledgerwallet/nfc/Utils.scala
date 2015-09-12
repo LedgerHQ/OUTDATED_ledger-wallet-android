@@ -2,6 +2,9 @@ package com.ledger.ledgerwallet.nfc
 
 import java.util.Arrays
 import java.util.Locale
+import android.util.Log
+import com.ledger.ledgerwallet.bitlib.crypto.Bip39
+
 import scala.collection.JavaConversions._
 
 object Utils {
@@ -33,6 +36,10 @@ object Utils {
       i += 2
     }
     result
+  }
+
+  def stringToHex(s: String): Int ={
+    Integer.decode(s)
   }
 
   def bytesToHex(bytes: Array[Byte]): String = {
