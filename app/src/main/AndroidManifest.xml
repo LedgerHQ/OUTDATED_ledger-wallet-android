@@ -70,6 +70,19 @@
             android:label="Unplugged">
         </activity>
 
+        <activity
+            android:name=".app.unplugged.UnpluggedRecoveryActivity"
+            android:screenOrientation="portrait"
+            android:label="Unplugged">
+        </activity>
+
+        <activity
+            android:name=".app.unplugged.UnpluggedReadyToInstallActivity"
+            android:screenOrientation="portrait"
+            android:label="Unplugged">
+        </activity>
+
+
         <receiver
             android:name=".app.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >

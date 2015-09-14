@@ -61,8 +61,12 @@
     <string name="unplugged_security_line3">In case of doubt, we recommend that you remove your Ledger Wallet from the USB port of the smartphone and reopen this wizard from another more secure smartphone.</string>
     <string name="unplugged_security_by_clicking_continue">By clicking CONTINUE, you confirm to use a trusted smartphone to configure your Ledger Wallet.</string>
 
+    <!-- Unplugged PIN Choice Activity -->
+    <string name="unplugged_pin_choice">Choose your PIN code</string>
+
     <!-- Unplugged Actions -->
     <string name="unplugged_management_continue">CONTINUE</string>
+    <string name="unplugged_management_finish">FINISH</string>
 
     <!-- Delete Pairing Dialog -->
     <string name="delete_pairing_dialog_message">By deleting this Ledger Wallet, you will no longer be able to manually validate transaction from this smartphone. Do you want to continue?</string>

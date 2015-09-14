@@ -37,32 +37,27 @@ import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{BaseActivity, BaseFragment}
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.common._
-import com.ledger.ledgerwallet.widget.{TextView, PinTextView}
+import com.ledger.ledgerwallet.widget.{EditText, TextView}
 import android.view.inputmethod.EditorInfo
 import android.util.Log
 
 
-class UnpluggedPINChoiceActivity extends BaseActivity {
+class UnpluggedReadyToInstallActivity extends BaseActivity {
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
 
     val intent = getIntent()
-
     val bundle = new Bundle()
-
-    intent.hasExtra("pinCode") match {
-      case true =>
-        val pinCode = intent.getStringExtra("pinCode")
-        Log.v("PIN Code", pinCode)
-        bundle.putString("pinCode", pinCode)
-        bundle.putString("pinChoiceStep", "confirmPIN")
-      case _ =>
-        bundle.putString("pinChoiceStep", "enterPIN")
-    }
+    (intent.hasExtra("pinCode"), intent.hasExtra("recovery")) match {
+       case (true, true) =>
+         bundle.putString("pinCode", intent.getStringExtra("pinCode"))
+         bundle.putString("recovery", intent.getStringExtra("recovery"))
+       case _ => /* Error */
+     }
 
     setContentView(R.layout.single_fragment_holder_activity)
 
-    val fragment = new UnpluggedPINChoiceActivityContentFragment()
+    val fragment = new UnpluggedReadyToInstallActivityContentFragment()
     fragment.setArguments(bundle)
 
     getSupportFragmentManager
@@ -74,57 +69,26 @@ class UnpluggedPINChoiceActivity extends BaseActivity {
 
 
 
-class UnpluggedPINChoiceActivityContentFragment extends BaseFragment {
+class UnpluggedReadyToInstallActivityContentFragment extends BaseFragment {
 
-  lazy val pinTextView = TR(R.id.pin_view).as[PinTextView]
   lazy val button = TR(R.id.button).as[TextView]
-  lazy val alert = TR(R.id.alert).as[TextView]
 
-  lazy val pinChoiceStep = getArguments().getString("pinChoiceStep");
+  lazy val pinCode = getArguments().getString("pinCode")
+  lazy val recovery = getArguments().getString("recovery")
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
-    inflater.inflate(R.layout.unplugged_pin_choice_fragment, container, false)
+    inflater.inflate(R.layout.unplugged_ready_to_install_fragment, container, false)
   }
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     super.onViewCreated(view, savedInstanceState)
 
-    pinTextView.requestFocus()
-    pinTextView.setFocusableInTouchMode(true)
-    pinTextView.setOnEditorActionListener((actionId: Int, event: KeyEvent) => {
-      actionId match {
-        case EditorInfo.IME_ACTION_NEXT =>
-          if (pinTextView.getText().length() == 4) {
-            pinChoiceStep match {
-              case "enterPIN" =>
-                button onClick {
-                  val intent = new Intent(getActivity, classOf[UnpluggedPINChoiceActivity])
-                  intent.putExtra("pinCode", pinTextView.getText().toString)
-                  startActivity(intent)
-                }
-                button.setVisibility(View.VISIBLE)
-
-              case _ =>
-                if (pinTextView.getText().toString == getArguments().getString("pinCode")) {
-                  alert.setVisibility(View.INVISIBLE)
-
-                  button onClick {
-                    val intent = new Intent(getActivity, classOf[UnpluggedRecoveryActivity])
-                    intent.putExtra("pinCode", pinTextView.getText().toString)
-                    startActivity(intent)
-                  }
-                  button.setVisibility(View.VISIBLE)
-                } else {
-                  alert.setVisibility(View.VISIBLE)
-                }
-            }
-          }else{
-            button.setVisibility(0)
-          }
-          true
-        case _ => false
-      }
-    })
+    button onClick {
+      val intent = new Intent(getActivity, classOf[UnpluggedPINChoiceActivity])
+      intent.putExtra("pinCode", pinCode)
+      intent.putExtra("recovery", recovery.toString)
+      startActivity(intent)
+    }
 
   }
 
