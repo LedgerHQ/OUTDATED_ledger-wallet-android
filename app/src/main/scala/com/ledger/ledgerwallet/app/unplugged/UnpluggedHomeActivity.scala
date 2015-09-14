@@ -31,26 +31,41 @@
 package com.ledger.ledgerwallet.app.unplugged
 
 import android.content.Intent
+import android.nfc.Tag
 import android.os.Bundle
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view._
-import android.widget.{ImageView, LinearLayout}
+import android.widget.ImageView
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{BaseActivity, BaseFragment}
-import com.ledger.ledgerwallet.utils.logs.Logger
-import com.ledger.ledgerwallet.utils.{TR}
 import com.ledger.ledgerwallet.common._
+import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.{SpacerItemDecoration, TextView}
+import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
 
-class UnpluggedHomeActivity extends BaseActivity {
+class UnpluggedHomeActivity extends BaseActivity with OnDiscoveredTagListener {
+  private[this] lazy val dispatcher: TagDispatcher = TagDispatcher.get(this, this)
+
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-
     getSupportActionBar.setHomeButtonEnabled(true)
     getSupportActionBar.setDisplayHomeAsUpEnabled(true)
 
     setContentFragment(new ContentFragment())
+  }
 
+  override def onResume(): Unit = {
+    super.onResume()
+    dispatcher.enableExclusiveNfc()
+  }
+
+  override def onPause(): Unit = {
+    super.onPause()
+    dispatcher.disableExclusiveNfc()
+  }
+
+  def tagDiscovered(tag: Tag) {
+    // Useless for now
   }
 
   private class ContentFragment extends BaseFragment {

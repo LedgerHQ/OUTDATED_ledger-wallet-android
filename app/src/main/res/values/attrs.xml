@@ -26,6 +26,10 @@
         <attr name="numberOfDigits" format="integer" />
     </declare-styleable>
 
+    <declare-styleable name="RecoveryTextView">
+        <attr name="numberOfDigits2" format="integer" />
+    </declare-styleable>
+
     <declare-styleable name="EditText">
         <attr name="fontStyle"/>
         <attr name="fontFamily"/>

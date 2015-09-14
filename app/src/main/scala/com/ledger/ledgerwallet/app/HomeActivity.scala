@@ -49,8 +49,6 @@ import com.ledger.ledgerwallet.utils.{GooglePlayServiceHelper, TR}
 import com.ledger.ledgerwallet.widget.TextView
 
 import com.ledger.ledgerwallet.app.unplugged.UnpluggedHomeActivity  //TODO: DELETE
-import com.ledger.ledgerwallet.bitlib.crypto.Bip39
-import android.util.Log
 
 import scala.util.{Failure, Success}
 
@@ -68,9 +66,6 @@ class HomeActivity extends BaseActivity with OnDiscoveredTagListener{
     ensureFragmentIsSetup()
 
     dispatcher = TagDispatcher.get(this, this)
-
-    val unplugged = new Unplugged
-    unplugged.setup("1337", "wolf head green plug blush pig oppose brisk brown year parent vibrant attract session okay ladder tower decrease paddle walnut master loud stamp define")
   }
 
   override def onCreateOptionsMenu(menu: Menu): Boolean = {
