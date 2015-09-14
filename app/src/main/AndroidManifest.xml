@@ -28,6 +28,14 @@
         </activity>
 
         <activity
+            android:name=".app.SettingsActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/settings_activity_name"
+            android:launchMode="standard">
+
+        </activity>
+
+        <activity
             android:name=".app.m2fa.PairedDonglesActivity"
             android:screenOrientation="portrait"
             android:label="@string/paired_dongle_activity_name"

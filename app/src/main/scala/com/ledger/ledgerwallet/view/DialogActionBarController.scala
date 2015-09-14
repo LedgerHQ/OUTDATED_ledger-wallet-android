@@ -30,7 +30,7 @@
  */
 package com.ledger.ledgerwallet.view
 
-import android.support.v4.app.DialogFragment
+import android.app.DialogFragment
 import android.view.{View, ViewGroup}
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.utils.TR

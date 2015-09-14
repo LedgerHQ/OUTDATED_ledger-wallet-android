@@ -30,7 +30,8 @@
  */
 package com.ledger.ledgerwallet.base
 
-import android.support.v4.app.{FragmentActivity, Fragment}
+import android.app.Fragment
+import android.support.v4.app.FragmentActivity
 
 trait RichFragment extends Fragment {
 

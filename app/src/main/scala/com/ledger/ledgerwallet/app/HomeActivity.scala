@@ -30,19 +30,30 @@
  */
 package com.ledger.ledgerwallet.app
 
+import java.math.BigInteger
+import java.security.KeyStore
+import java.security.KeyStore.{PasswordProtection, PrivateKeyEntry}
+import java.security.cert.X509Certificate
+import java.security.spec.RSAKeyGenParameterSpec
+import java.util.Calendar
+import javax.net.ssl.{TrustManagerFactory, TrustManager}
+import javax.security.auth.x500.X500Principal
+
 import android.content.Intent
 import android.os.Bundle
+import android.security.KeyPairGeneratorSpec
 import android.view._
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
 import com.ledger.ledgerwallet.app.m2fa.{IncomingTransactionDialogFragment, PairedDonglesActivity}
 import com.ledger.ledgerwallet.base.{BaseActivity, BaseFragment, BigIconAlertDialog}
 import com.ledger.ledgerwallet.common._
+import com.ledger.ledgerwallet.crypto.Crypto
 import com.ledger.ledgerwallet.models.PairedDongle
 import com.ledger.ledgerwallet.remote.api.TeeAPI
 import com.ledger.ledgerwallet.remote.api.m2fa.{GcmAPI, IncomingTransactionAPI}
-import com.ledger.ledgerwallet.security.Keystore
-import com.ledger.ledgerwallet.utils.logs.LogCatReader
+import com.ledger.ledgerwallet.security.{ApplicationKeystore, AndroidKeystore, Keystore}
+import com.ledger.ledgerwallet.utils.logs.{Logger, LogCatReader}
 import com.ledger.ledgerwallet.utils.{GooglePlayServiceHelper, TR}
 import com.ledger.ledgerwallet.widget.TextView
 
@@ -71,6 +82,9 @@ class HomeActivity extends BaseActivity {
       case R.id.export_logs =>
         exportLogs()
         true
+      case R.id.settings =>
+        startSettingsActivity()
+        true
       case somethingElse => false
     }
   }
@@ -89,13 +103,32 @@ class HomeActivity extends BaseActivity {
     TrustletPromotionDialog.isShowable.onSuccess {
       case true =>
         TeeAPI.defaultInstance.isDeviceEligible.onSuccess {
-          case true => runOnUiThread(TrustletPromotionDialog.show(getSupportFragmentManager))
+          case true => runOnUiThread(TrustletPromotionDialog.show(getFragmentManager))
           case _ => // Nothing to do
         }
       case _ => // Nothing to do
     }
 
     refreshPairedDongleList()
+
+
+    val ak = new AndroidKeystore(this)
+    val ik = new ApplicationKeystore(this, s"toto${System.currentTimeMillis()}.keystore")
+    ak.load(null).andThen({
+      case Success(keystore) =>
+        ik.install(new PasswordProtection("toto".toCharArray))
+    }).andThen({
+      case Success(_) =>
+        for (alias <- ak.aliases) {
+          Logger.d(s"Got alias(AK) $alias")
+          ik.generateKey(alias)
+        }
+        for (alias <- ak.aliases) {
+          Logger.d(s"Got alias(IK) $alias")
+        }
+    })
+
+
   }
 
   override def onPause(): Unit = {
@@ -105,18 +138,18 @@ class HomeActivity extends BaseActivity {
   }
 
   private[this] def openIncomingTransactionDialog(tx: IncomingTransactionAPI#IncomingTransaction): Unit = {
-    new IncomingTransactionDialogFragment(tx).show(getSupportFragmentManager, IncomingTransactionDialogFragment.DefaultTag)
+    new IncomingTransactionDialogFragment(tx).show(getFragmentManager, IncomingTransactionDialogFragment.DefaultTag)
   }
 
   private[this] def ensureFragmentIsSetup(): Unit = {
     val dongleCount = PairedDongle.all.length
-    if (dongleCount == 0 && getSupportFragmentManager.findFragmentByTag(HomeActivityContentFragment.NoPairedDeviceFragmentTag) == null) {
-      getSupportFragmentManager
+    if (dongleCount == 0 && getFragmentManager.findFragmentByTag(HomeActivityContentFragment.NoPairedDeviceFragmentTag) == null) {
+      getFragmentManager
         .beginTransaction()
         .replace(R.id.fragment_container, new HomeActivityContentFragment, HomeActivityContentFragment.NoPairedDeviceFragmentTag)
         .commitAllowingStateLoss()
-    } else if (dongleCount > 0 && getSupportFragmentManager.findFragmentByTag(HomeActivityContentFragment.PairedDeviceFragmentTag) == null) {
-      getSupportFragmentManager
+    } else if (dongleCount > 0 && getFragmentManager.findFragmentByTag(HomeActivityContentFragment.PairedDeviceFragmentTag) == null) {
+      getFragmentManager
         .beginTransaction()
         .replace(R.id.fragment_container, new HomeActivityContentFragment, HomeActivityContentFragment.PairedDeviceFragmentTag)
         .commitAllowingStateLoss()
@@ -124,7 +157,8 @@ class HomeActivity extends BaseActivity {
   }
 
   private[this] def refreshPairedDongleList(): Unit = {
-    if (Keystore.defaultInstance.isLocked) {
+   /*
+    if (Keystore.defaultInstance) {
       // Display Unlock dialog
       return
     }
@@ -139,7 +173,7 @@ class HomeActivity extends BaseActivity {
     if (notifyDongleLost) {
       // Display lost dongles warning dialog
     }
-
+  */
   }
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
@@ -161,7 +195,7 @@ class HomeActivity extends BaseActivity {
       .setTitle(R.string.pairing_failure_dialog_title)
       .setContentText(contentTextId)
       .setIcon(R.drawable.ic_big_red_failure)
-      .create().show(getSupportFragmentManager, "ErrorDialog")
+      .create().show(getFragmentManager, "ErrorDialog")
   }
 
   private[this] def showSuccessDialog(dongleName: String): Unit = {
@@ -169,7 +203,7 @@ class HomeActivity extends BaseActivity {
       .setTitle(R.string.pairing_success_dialog_title)
       .setContentText(TR(R.string.pairing_success_dialog_content).as[String].format(dongleName))
       .setIcon(R.drawable.ic_big_green_success)
-      .create().show(getSupportFragmentManager, "SuccessDialog")
+      .create().show(getFragmentManager, "SuccessDialog")
   }
 
   private[this] def exportLogs(): Unit = {
@@ -180,6 +214,8 @@ class HomeActivity extends BaseActivity {
         ex.printStackTrace()
     }
   }
+
+  private[this] def startSettingsActivity(): Unit = startActivity(new Intent(this, classOf[SettingsActivity]))
 
 }
 

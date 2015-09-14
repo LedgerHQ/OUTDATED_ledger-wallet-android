@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="Application"
+        >
+        <!-- This PreferenceScreen tag sends the user to a new fragment of
+           preferences.  If running in a large screen, they can be embedded
+           inside of the overall preferences UI. -->
+        <Preference
+            android:title="Licence"
+            android:summary="The MIT License (MIT)">
+        </Preference>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Libraries"
+        >
+        <!-- This PreferenceScreen tag sends the user to a new fragment of
+           preferences.  If running in a large screen, they can be embedded
+           inside of the overall preferences UI. -->
+        <Preference
+            android:title="ZXing"
+            android:summary="QRCode scanner">
+        </Preference>
+    </PreferenceCategory>
+
+</PreferenceScreen>

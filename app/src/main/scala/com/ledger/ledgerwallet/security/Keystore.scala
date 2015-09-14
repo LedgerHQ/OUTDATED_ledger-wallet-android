@@ -37,119 +37,78 @@ import java.security.KeyStore.{Entry, ProtectionParameter, PasswordProtection, P
 import android.content.Context
 import android.preference.PreferenceManager
 import com.ledger.ledgerwallet.security.Keystore.{KeystoreNotInstalledException, LockedKeystoreException}
-import scala.util.Try
+import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
+import scala.concurrent.ExecutionContext.Implicits.global
 
+abstract class Keystore(c: Context) {
 
-class Keystore(c: Context) {
+  type JavaKeyStore = java.security.KeyStore
+  type JavaKeyPair = java.security.KeyPair
 
-  private type JavaKeystore = java.security.KeyStore
-  private val JavaKeystore = java.security.KeyStore
-
-  private[this] var _keystore: Option[JavaKeystore] = None
-  private[this] lazy val _preferences = PreferenceManager.getDefaultSharedPreferences(c)
-  private[this] var _keystorePassword: Option[String] = None
-
-  private[this] var _internalKeystoreFileOutput: Option[FileOutputStream] = None
-
-  def unlock(password: String): Boolean = {
-    _keystorePassword = Option(password)
-    Try(getInternalKeystore).isSuccess
+  def containsAlias(alias: String): Boolean = {
+    ensureKeyStoreIsLoaded
+    _javaKeystore.get.containsAlias(alias)
   }
 
-  def isLocked = Try(_keystore).failed.map({case e: LockedKeystoreException => null}).isSuccess
-  def isOpen = _keystore.isDefined
-
-
-  def containsAlias(alias: String): Try[Boolean] = Try {
-    keystore.containsAlias(alias)
-  }
-
-  def getEntry(alias: String, protectionParameter: ProtectionParameter): Try[Entry] = Try {
-    keystore.getEntry(alias, protectionParameter)
-  }
-
-  def getProvider: Try[Provider] = Try {
-    keystore.getProvider
-  }
-
-  def deleteEntry(alias: String): Try[Unit] = Try {
-    keystore.deleteEntry(alias)
-  }
-
-  /// Reset the currently used keystore
-  def reset(): Unit = {
-    _internalKeystoreFileOutput.foreach(_.close())
-    _internalKeystoreFileOutput = None
-    _keystorePassword = None
-    _keystore = None
-  }
-
-  def installInternalKeystore(password: String): Unit = {
-    val keystore = JavaKeystore.getInstance(JavaKeystore.getDefaultType)
-    if (_keystoreFile.exists()) {
-      throw new IllegalStateException("Keystore file already installed")
-    }
-    keystore.load(null, null)
-    keystore.store(c.openFileOutput(_keystoreFile.getName, Context.MODE_PRIVATE), password.toCharArray)
-    _keystore = Option(keystore)
-  }
-
-  def changeInternalKeystorePassword(oldPassword: String, newPassword: String): Unit = {
-
-    reset()
-  }
-
-  def deleteInternalKeystore: Unit = {
-    _keystoreFile.delete()
-    _keystore = None
-  }
-
-  private[this] def keystore: JavaKeystore = {
-    _keystore.getOrElse {
-      if (_preferences.getBoolean(Keystore.Preferences.UseLocalKeystore, false)) {
-        _keystore = Option(getInternalKeystore)
-      } else {
-        _keystore = Option(KeyStore.getInstance("AndroidKeyStore"))
-        _keystore.get.load(null)
-      }
-      _keystore.get
+  def aliases: Iterator[String] = {
+    ensureKeyStoreIsLoaded
+    val it = _javaKeystore.get.aliases()
+    new Iterator[String]() {
+      def next = it.nextElement()
+      def hasNext = it.hasMoreElements
     }
   }
 
-  private[this] def getInternalKeystore: java.security.KeyStore = {
-    val keyStoreFile = new File(c.getFilesDir, "internal.keystore")
-    if (!keyStoreFile.exists()) {
-      throw new KeystoreNotInstalledException()
-    }
-    val keystore = JavaKeystore.getInstance(JavaKeystore.getDefaultType)
-    _internalKeystoreFileOutput = Option(c.openFileOutput(_keystoreFile.getName, Context.MODE_PRIVATE))
-    val input = c.openFileInput(_keystoreFile.getName)
-    keystore.load(input, _keystorePassword.getOrElse("").toCharArray)
-    input.close()
-    keystore
+  def deleteEntry(alias: String): Unit = {
+    ensureKeyStoreIsLoaded
+    _javaKeystore.get.deleteEntry(alias)
   }
 
-  private[this] def _keystoreFile = new File(c.getFilesDir, "internal.keystore")
-
-  private[this] def _store(): Unit = {
-    _internalKeystoreFileOutput.foreach(_keystore.get.store(_, _keystorePassword.get.toCharArray))
+  def getEntry(alias: String, protectionParameter: ProtectionParameter): KeyStore.Entry = {
+    ensureKeyStoreIsLoaded
+    _javaKeystore.get.getEntry(alias, protectionParameter)
   }
 
+  def generateKey(alias: String): JavaKeyPair
+
+  def load(passwordProtection: PasswordProtection): Future[Keystore] = {
+    loadJavaKeyStore(passwordProtection).map((keystore) => {
+      _javaKeystore = Option(keystore)
+      this
+    })
+  }
+
+  def unload(): Unit = {
+    _javaKeystore = None
+  }
+
+  protected def loadJavaKeyStore(passwordProtection: PasswordProtection): Future[JavaKeyStore]
+
+  def isLoaded = _javaKeystore.isDefined
+  private[this] var _javaKeystore: Option[JavaKeyStore] = None
+  protected def javaKeystore = _javaKeystore
+
+  @inline private[this] def ensureKeyStoreIsLoaded = assert(isLoaded, "Keystore is lock")
 }
 
 object Keystore {
 
+  type Mode = Int
+
+  val InternalMode = 0x01
+  val AndroidMode = 0x02
+  val PreferenceMode = 0x03
+
+
   private[this] var _defaultInstance: Option[Keystore] = None
 
   def defaultInstance(implicit context: Context) = {
-    _defaultInstance.getOrElse {
-      _defaultInstance = Option(new Keystore(context.getApplicationContext))
-      _defaultInstance.get
-    }
+    null
   }
 
   object Preferences {
-    val UseLocalKeystore = "UseLocalKeystore"
+    val UseInternalKeystore = "use_internal_keystore"
   }
 
   sealed class KeystoreNotInstalledException extends Exception("The keystore needs to be installed")

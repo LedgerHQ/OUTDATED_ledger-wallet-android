@@ -18,6 +18,7 @@
 
     <!-- Home Activity Menu -->
     <string name="home_activity_menu_export_logs">Exporter les logs</string>
+    <string name="home_activity_menu_settings">Paramètres</string>
 
     <!-- Paired Dongle Activity -->
     <string name="paired_dongle_activity_name">Ledger Wallet Associés</string>

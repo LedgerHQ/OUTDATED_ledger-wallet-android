@@ -18,6 +18,7 @@
 
     <!-- Home Activity Menu -->
     <string name="home_activity_menu_export_logs">Export logs</string>
+    <string name="home_activity_menu_settings">Settings</string>
 
     <!-- Paired Dongle Activity -->
     <string name="paired_dongle_activity_name">Paired Ledger Wallets</string>
@@ -63,6 +64,20 @@
     <string name="trustlet_promotion_dialog_title">LEDGER TRUSTLET</string>
     <string name="trustlet_promotion_dialog_main_message">Your smartphone is compatible with Ledger Trustlet, our new Trusted Execution Environment technology.</string>
     <string name="trustlet_promotion_dialog_bottom_message">Would you like to know more about it?</string>
+
+    <!-- Settings -->
+    <string name="settings_activity_name">Settings</string>
+    <string name="settings_pref_internal_keystore_name">Use internal keystore</string>
+    <string name="settings_pref_internal_keystore_summary">This will force you to unlock the application with a password each time.</string>
+    <string name="settings_pref_change_password_name">Change the keystore password</string>
+    <string name="settings_pref_change_password_summary">Change the keystore password</string>
+    <string name="settings_pref_licences_name">Licences</string>
+    <string name="settings_pref_licences_summary">Application licence and libraries information</string>
+    <string name="settings_category_security">Security</string>
+    <string name="settings_category_about">About</string>
+    <string name="settings_category_application">Application</string>
+    <string name="settings_category_libraries">Libraries</string>
+
 
     <!-- Actions -->
     <string name="action_done">Done</string>

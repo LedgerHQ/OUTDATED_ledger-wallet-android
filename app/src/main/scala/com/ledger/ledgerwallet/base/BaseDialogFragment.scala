@@ -30,10 +30,9 @@
  */
 package com.ledger.ledgerwallet.base
 
-import android.app.Dialog
+import android.app.{DialogFragment, Dialog}
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.support.v4.app.DialogFragment
 import android.view.Window
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.utils.TR

@@ -90,7 +90,7 @@ class PairedDonglesActivity extends BaseActivity {
       .setTitle(R.string.pairing_failure_dialog_title)
       .setContentText(contentTextId)
       .setIcon(R.drawable.ic_big_red_failure)
-      .create().show(getSupportFragmentManager, "ErrorDialog")
+      .create().show(getFragmentManager, "ErrorDialog")
   }
 
   private[this] def showSuccessDialog(dongleName: String): Unit = {
@@ -98,7 +98,7 @@ class PairedDonglesActivity extends BaseActivity {
       .setTitle(R.string.pairing_success_dialog_title)
       .setContentText(TR(R.string.pairing_success_dialog_content).as[String].format(dongleName))
       .setIcon(R.drawable.ic_big_green_success)
-      .create().show(getSupportFragmentManager, "SuccessDialog")
+      .create().show(getFragmentManager, "SuccessDialog")
   }
 
   class PairedDonglesAdapter(c: Context) extends RecyclerView.Adapter[ViewHolder] {

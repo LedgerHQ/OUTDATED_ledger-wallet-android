@@ -31,7 +31,7 @@
 
 package com.ledger.ledgerwallet.base
 
-import android.app.NotificationManager
+import android.app.{Fragment, NotificationManager}
 import android.os.Bundle
 import android.support.v7.app.{AppCompatActivity, ActionBar, ActionBarActivity}
 import com.ledger.ledgerwallet.widget.Toolbar
@@ -88,8 +88,8 @@ abstract class BaseActivity extends AppCompatActivity with Loggable {
     setContentView(view, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
   }
 
-  def setContentFragment(baseFragment: BaseFragment): Unit = {
-    val ft = getSupportFragmentManager.beginTransaction()
+  def setContentFragment(baseFragment: Fragment): Unit = {
+    val ft = getFragmentManager.beginTransaction()
     ft.replace(R.id.content_view, baseFragment)
     ft.commit()
   }

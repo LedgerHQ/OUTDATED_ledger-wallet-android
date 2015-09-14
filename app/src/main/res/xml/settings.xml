@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="@string/settings_category_security"
+        >
+        <SwitchPreference
+            android:key="use_internal_keystore"
+            android:title="@string/settings_pref_internal_keystore_name"
+            android:summary="@string/settings_pref_internal_keystore_summary"
+            />
+
+        <EditTextPreference
+            android:key="change_password"
+            android:dependency="use_internal_keystore"
+            android:title="@string/settings_pref_change_password_name"
+            android:summary="@string/settings_pref_change_password_summary"
+            />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/settings_category_about"
+        >
+        <!-- This PreferenceScreen tag sends the user to a new fragment of
+           preferences.  If running in a large screen, they can be embedded
+           inside of the overall preferences UI. -->
+        <Preference
+            android:key="licenses"
+            android:title="@string/settings_pref_licences_name"
+            android:summary="@string/settings_pref_licences_summary">
+        </Preference>
+    </PreferenceCategory>
+
+</PreferenceScreen>

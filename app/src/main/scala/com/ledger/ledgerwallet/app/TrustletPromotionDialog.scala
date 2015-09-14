@@ -30,9 +30,9 @@
  */
 package com.ledger.ledgerwallet.app
 
+import android.app.FragmentManager
 import android.content.{Intent, Context}
 import android.os.Bundle
-import android.support.v4.app.FragmentManager
 import android.view.{View, ViewGroup, LayoutInflater}
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.BaseDialogFragment

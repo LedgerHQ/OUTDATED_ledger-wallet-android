@@ -30,15 +30,11 @@
  */
 package com.ledger.ledgerwallet.crypto
 
-import java.math.BigInteger
 import java.security.KeyPair
-import java.util.{Calendar, Date}
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
-import javax.security.auth.x500.X500Principal
 
 import android.content.Context
-import android.security.KeyPairGeneratorSpec
 import com.ledger.ledgerwallet.utils.logs.Logger
 import com.ledger.ledgerwallet.security.Keystore
 import org.spongycastle.util.encoders.Hex
@@ -60,8 +56,6 @@ object SecretKey {
   private type JavaKeyGenerator = java.security.KeyPairGenerator
   private type PrivateKeyEntry = java.security.KeyStore.PrivateKeyEntry
 
-  private val JavaKeyGenerator = java.security.KeyPairGenerator
-
   private[this] implicit var context: Context = null;
 
   private[this] lazy val keystore: Keystore = {
@@ -72,7 +66,7 @@ object SecretKey {
     this.context = context.getApplicationContext
     val store = keystore
     val hexWrappedSecret = context.getSharedPreferences(PreferenceName, Context.MODE_PRIVATE).getString(alias, null)
-    if (!store.containsAlias(alias).getOrElse(false) || hexWrappedSecret == null)
+    if (!store.containsAlias(alias) || hexWrappedSecret == null)
       return None
     val raw = Hex.decode(hexWrappedSecret)
     val entry = keystore.getEntry(alias, null)
@@ -86,7 +80,7 @@ object SecretKey {
   def remove(context: Context, alias: String): Boolean = {
     this.context = context.getApplicationContext
     val store = keystore
-    if (store.containsAlias(alias).getOrElse(false)) {
+    if (store.containsAlias(alias)) {
       store.deleteEntry(alias)
       true
     } else {
@@ -96,23 +90,7 @@ object SecretKey {
 
   def create(context: Context, alias: String, secret: Array[Byte]): Try[SecretKey] = {
     this.context = context.getApplicationContext
-    Crypto.ensureSpongyIsRemoved()
-    val kpg = JavaKeyGenerator.getInstance("RSA", keystore.getProvider.get)
-    val calendar = Calendar.getInstance()
-    val now = calendar.getTime
-    calendar.add(Calendar.YEAR, 100)
-    val end = calendar.getTime
-    kpg.initialize(
-      new KeyPairGeneratorSpec.Builder(context.getApplicationContext)
-        .setAlias(alias)
-        .setStartDate(now)
-        .setEndDate(end)
-        .setSerialNumber(BigInteger.valueOf(1))
-        .setSubject(new X500Principal("CN=test1"))
-        .build()
-    )
-
-    kpg.generateKeyPair()
+    keystore.generateKey(alias)
     Logger.d("After generate keypair")
     val entry = keystore.getEntry(alias, null)
     entry match {

@@ -31,7 +31,7 @@
 
 package com.ledger.ledgerwallet.base
 
-import android.support.v4.app.{FragmentActivity, Fragment}
+import android.app.Fragment
 import com.ledger.ledgerwallet.utils.logs.Loggable
 
 class BaseFragment extends Fragment with Loggable with RichFragment {
