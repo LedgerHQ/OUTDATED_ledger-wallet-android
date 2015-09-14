@@ -68,9 +68,6 @@ class HomeActivity extends BaseActivity with OnDiscoveredTagListener{
     ensureFragmentIsSetup()
 
     dispatcher = TagDispatcher.get(this, this)
-
-    val unplugged = new Unplugged
-    unplugged.setup("1337", "wolf head green plug blush pig oppose brisk brown year parent vibrant attract session okay ladder tower decrease paddle walnut master loud stamp define")
   }
 
   override def onCreateOptionsMenu(menu: Menu): Boolean = {
