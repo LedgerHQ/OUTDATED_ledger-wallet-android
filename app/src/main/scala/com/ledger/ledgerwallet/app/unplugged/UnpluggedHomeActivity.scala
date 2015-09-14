@@ -31,6 +31,7 @@
 package com.ledger.ledgerwallet.app.unplugged
 
 import android.content.Intent
+import android.nfc.Tag
 import android.os.Bundle
 import android.view._
 import android.widget.LinearLayout
@@ -38,8 +39,11 @@ import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.{BaseActivity, BaseFragment}
 import com.ledger.ledgerwallet.utils.{TR}
 import com.ledger.ledgerwallet.common._
+import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
 
-class UnpluggedHomeActivity extends BaseActivity {
+class UnpluggedHomeActivity extends BaseActivity with OnDiscoveredTagListener {
+  var dispatcher: TagDispatcher = null
+
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.single_fragment_holder_activity)
@@ -51,6 +55,22 @@ class UnpluggedHomeActivity extends BaseActivity {
         .beginTransaction()
         .replace(R.id.fragment_container, new UnpluggedHomeActivityContentFragment())
         .commitAllowingStateLoss()
+
+    dispatcher = TagDispatcher.get(this, this)
+  }
+
+  override def onResume(): Unit = {
+    super.onResume()
+    dispatcher.enableExclusiveNfc()
+  }
+
+  override def onPause(): Unit = {
+    super.onPause()
+    dispatcher.disableExclusiveNfc()
+  }
+
+  def tagDiscovered(tag: Tag) {
+    // Useless for now
   }
 }
 

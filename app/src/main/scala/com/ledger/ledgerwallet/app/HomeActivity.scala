@@ -49,8 +49,6 @@ import com.ledger.ledgerwallet.utils.{GooglePlayServiceHelper, TR}
 import com.ledger.ledgerwallet.widget.TextView
 
 import com.ledger.ledgerwallet.app.unplugged.UnpluggedHomeActivity  //TODO: DELETE
-import com.ledger.ledgerwallet.bitlib.crypto.Bip39
-import android.util.Log
 
 import scala.util.{Failure, Success}
 

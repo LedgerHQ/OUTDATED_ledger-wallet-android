@@ -29,6 +29,7 @@
 package com.ledger.ledgerwallet.app.unplugged
 
 import android.content.Intent
+import android.nfc.Tag
 import android.os.Bundle
 import android.view.View
 import android.view.View.OnClickListener
@@ -37,8 +38,10 @@ import com.ledger.ledgerwallet.base.BaseActivity
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.widget.{Toolbar, TextView}
+import nordpol.android.{TagDispatcher, OnDiscoveredTagListener}
 
-class UnpluggedSecurityActivity extends BaseActivity {
+class UnpluggedSecurityActivity extends BaseActivity  with OnDiscoveredTagListener {
+  var dispatcher: TagDispatcher = null
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -65,5 +68,21 @@ class UnpluggedSecurityActivity extends BaseActivity {
       intent.putExtra("wallet_mode", "create")
       startActivity(intent)
     }
+
+    dispatcher = TagDispatcher.get(this, this)
+  }
+
+  override def onResume(): Unit = {
+    super.onResume()
+    dispatcher.enableExclusiveNfc()
+  }
+
+  override def onPause(): Unit = {
+    super.onPause()
+    dispatcher.disableExclusiveNfc()
+  }
+
+  def tagDiscovered(tag: Tag) {
+    // Useless for now
   }
 }
