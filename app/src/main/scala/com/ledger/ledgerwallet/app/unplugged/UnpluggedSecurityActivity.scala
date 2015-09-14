@@ -30,8 +30,6 @@ package com.ledger.ledgerwallet.app.unplugged
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
-import android.view.View.OnClickListener
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.BaseActivity
 import com.ledger.ledgerwallet.utils.TR
@@ -52,7 +50,7 @@ class UnpluggedSecurityActivity extends BaseActivity {
     val wallet_mode = getIntent().getStringExtra("wallet_mode")
     val toolbar = TR(R.id.toolbar).as[Toolbar]
 
-    if(wallet_mode == "create"){
+    if (wallet_mode == "create") {
       toolbar.setTitle(R.string.unplugged_security_title_create)
       textViewLine2.setText(R.string.unplugged_security_line2_create)
     } else {
@@ -66,4 +64,11 @@ class UnpluggedSecurityActivity extends BaseActivity {
       startActivity(intent)
     }
   }
+}
+
+object UnpluggedSecurityActivity {
+
+  val CreateWalletSetupMode = 0x01
+  val RestoreWalletSetupMode = 0x02
+  val ExtraSetupMode = "EXTRA_SETUP_MODE"
 }
