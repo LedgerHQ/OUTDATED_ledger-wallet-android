@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/medium_margin"
+        android:paddingBottom="@dimen/medium_margin"
+        android:paddingLeft="@dimen/activity_border_margin"
+        android:paddingRight="@dimen/activity_border_margin"
+        android:layout_marginBottom="@dimen/extra_large_margin"
+        android:background="@color/extra_light_grey"
+        android:gravity="center_horizontal"
+        android:id="@+id/linear1"
+        >
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fontStyle="light"
+            android:text="6."
+            android:textSize="45sp"
+            android:id="@+id/step_number1"
+            app:kerning="@dimen/large_font_spacing"
+            android:textColor="@color/dark_grey"
+            android:layout_marginRight="@dimen/large_margin"
+            android:layout_gravity="center_vertical" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            >
+
+            <com.ledger.ledgerwallet.widget.TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/unplugged_security_security_informations"
+                android:id="@+id/step_text1"
+                android:textColor="@color/dark_grey"
+                android:textSize="@dimen/large_font_size"
+                app:kerning="@dimen/large_font_spacing"
+                android:maxWidth="300dp"
+                android:lineSpacingExtra="5dp"
+                android:layout_gravity="center_vertical" />
+
+            <com.ledger.ledgerwallet.widget.TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/unplugged_security_trusted_smartphone_required"
+                android:id="@+id/step_text2"
+                android:textColor="@color/dark_grey"
+                android:textSize="@dimen/medium_font_size"
+                app:kerning="@dimen/medium_font_spacing"
+                android:maxWidth="300dp"
+                android:lineSpacingExtra="5dp"
+                android:layout_gravity="center_vertical" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:paddingBottom="@dimen/medium_margin"
+        android:paddingLeft="@dimen/activity_border_margin"
+        android:paddingRight="@dimen/activity_border_margin"
+        android:gravity="center_horizontal"
+        android:id="@+id/linear2"
+        android:layout_below="@+id/linear1">
+
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/unplugged_security_line1"
+            android:id="@+id/textViewLine1"
+            android:textColor="@color/black"
+            android:textSize="@dimen/medium_font_size"
+            app:kerning="@dimen/medium_font_spacing"
+            android:maxWidth="300dp"
+            android:lineSpacingExtra="5dp"
+            android:layout_gravity="center_horizontal"
+            android:textAllCaps="false" />
+
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textViewLine2"
+            android:textColor="@color/soft_grey"
+            android:textSize="@dimen/medium_font_size"
+            app:kerning="@dimen/medium_font_spacing"
+            app:fontStyle="light"
+            android:layout_marginTop="@dimen/medium_margin"
+            android:maxWidth="300dp"
+            android:lineSpacingExtra="5dp"
+            android:layout_gravity="center_horizontal" />
+
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/unplugged_security_line3"
+            android:id="@+id/textViewLine3"
+            android:textColor="@color/soft_grey"
+            android:textSize="@dimen/medium_font_size"
+            app:kerning="@dimen/medium_font_spacing"
+            app:fontStyle="light"
+            android:layout_marginTop="@dimen/medium_margin"
+            android:maxWidth="300dp"
+            android:lineSpacingExtra="5dp"
+            android:layout_gravity="center_horizontal" />
+
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/unplugged_security_by_clicking_continue"
+            android:id="@+id/textViewLine4"
+            android:textColor="@color/dark_grey"
+            android:textSize="@dimen/medium_font_size"
+            app:kerning="@dimen/medium_font_spacing"
+            android:layout_marginTop="@dimen/medium_margin"
+            android:maxWidth="300dp"
+            android:lineSpacingExtra="5dp"
+            android:layout_gravity="center_horizontal"/>
+
+    </LinearLayout>
+
+    <com.ledger.ledgerwallet.widget.TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/unplugged_management_finish"
+        android:id="@+id/button"
+        style="@style/RoundedGreenButtonStyle"
+        android:layout_marginBottom="@dimen/medium_margin"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"/>
+</RelativeLayout>

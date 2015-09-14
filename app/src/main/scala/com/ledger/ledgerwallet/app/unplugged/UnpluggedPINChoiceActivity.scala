@@ -127,7 +127,7 @@ class UnpluggedPINChoiceActivityContentFragment extends BaseFragment {
                   alert.setVisibility(View.INVISIBLE)
 
                   button onClick {
-                    val intent = new Intent(getActivity, classOf[UnpluggedPINChoiceActivity])
+                    val intent = new Intent(getActivity, classOf[UnpluggedRecoveryActivity])
                     intent.putExtra("pinCode", pinTextView.getText().toString)
                     startActivity(intent)
                   }
