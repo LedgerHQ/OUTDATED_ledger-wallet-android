@@ -43,12 +43,14 @@
 
     <!-- Unplugged Welcome Activity -->
     <string name="unplugged_welcome_title">Unplugged - New wallet</string>
-    <string name="unplugged_welcome_welcome_to_your_new_wallet">Welcome to your new Ledger Wallet!</string>          
-    <string name="unplugged_welcome_create_or_recover">Would you like to create a new wallet\nor restore an existing one?</string>
+    <string name="unplugged_welcome_welcome_to_your_new_wallet">CREATE OR RESTORE A WALLET</string>
+    <string name="unplugged_welcome_create_or_recover">Would you like to create a new wallet or restore an existing one from a BIP 39 seed?</string>
     <string name="unplugged_welcome_use_as_new">Create a new wallet</string>
-    <string name="unplugged_welcome_if_its_your_first_wallet">Configure your new Ledger Wallet if it\'s your first purchase</string>
+    <string name="unplugged_welcome_if_its_your_first_wallet">By generating a new BIP 39 seed</string>
     <string name="unplugged_welcome_recover_wallet">Recover an existing wallet</string>
-    <string name="unplugged_welcome_if_you_lost_your_wallet">Regain access to your accounts and bitcoins if you froze or lost your Ledger Wallet</string>
+    <string name="unplugged_welcome_if_you_lost_your_wallet">By entering your BIP 39 seed</string>
+    <string name="unplugged_welcome_cancel_title">Cancel and quit</string>
+    <string name="unplugged_welcome_cancel_subtitle">Return to the app</string>
 
     <!-- Unplugged Security Activity -->
     <string name="unplugged_security_title_create">Unplugged - Create my Wallet</string>

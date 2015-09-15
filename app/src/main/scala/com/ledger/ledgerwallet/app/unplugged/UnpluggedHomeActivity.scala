@@ -31,71 +31,99 @@
 package com.ledger.ledgerwallet.app.unplugged
 
 import android.content.Intent
-import android.nfc.Tag
 import android.os.Bundle
+import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view._
-import android.widget.LinearLayout
+import android.widget.ImageView
 import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.base.{BaseActivity, BaseFragment}
-import com.ledger.ledgerwallet.utils.{TR}
+import com.ledger.ledgerwallet.base.BaseFragment
 import com.ledger.ledgerwallet.common._
-import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
+import com.ledger.ledgerwallet.utils.TR
+import com.ledger.ledgerwallet.widget.{SpacerItemDecoration, TextView}
 
-class UnpluggedHomeActivity extends BaseActivity with OnDiscoveredTagListener {
-  var dispatcher: TagDispatcher = null
+class UnpluggedHomeActivity extends UnpluggedSetupActivity {
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.single_fragment_holder_activity)
-
     getSupportActionBar.setHomeButtonEnabled(true)
     getSupportActionBar.setDisplayHomeAsUpEnabled(true)
 
-    getSupportFragmentManager
-        .beginTransaction()
-        .replace(R.id.fragment_container, new UnpluggedHomeActivityContentFragment())
-        .commitAllowingStateLoss()
-
-    dispatcher = TagDispatcher.get(this, this)
+    setContentFragment(new ContentFragment())
   }
 
-  override def onResume(): Unit = {
-    super.onResume()
-    dispatcher.enableExclusiveNfc()
+  private class ContentFragment extends BaseFragment {
+
+    val CreateActionId = 0x01
+    val RestoreActionId = 0x02
+
+    val Actions = Array(
+      new Action(
+        id = CreateActionId,
+        title = R.string.unplugged_welcome_use_as_new,
+        subtitle = R.string.unplugged_welcome_if_its_your_first_wallet,
+        icon = R.drawable.ic_wallet
+      ),
+      new Action(
+        id = RestoreActionId,
+        title = R.string.unplugged_welcome_recover_wallet,
+        subtitle = R.string.unplugged_welcome_if_you_lost_your_wallet,
+        icon = R.drawable.ic_restore
+      )
+    )
+
+    lazy val actionsView = findView[RecyclerView](R.id.actions)
+
+    override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+      inflater.inflate(R.layout.unplugged_home_fragment, container, false)
+    }
+
+    def onActionClick(actionId: Int): Unit = {
+      setupMode = actionId match {
+        case CreateActionId => UnpluggedSetupActivity.CreateWalletSetupMode
+        case RestoreActionId => UnpluggedSetupActivity.RestoreWalletSetupMode
+      }
+      startNextActivity(classOf[UnpluggedSecurityActivity])
+    }
+
+    override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+      super.onViewCreated(view, savedInstanceState)
+      actionsView.setAdapter(new ActionsAdapter)
+      actionsView.setLayoutManager(new LinearLayoutManager(this))
+      actionsView.setItemAnimator(new DefaultItemAnimator)
+      actionsView.addItemDecoration(new SpacerItemDecoration(TR(R.dimen.very_large_margin).as[Float].toInt))
+    }
+
+    case class Action(id: Int, title: Int, subtitle: Int, icon: Int)
+
+    private[this] class ActionsAdapter extends RecyclerView.Adapter[ViewHolder] {
+
+      lazy val inflater = LayoutInflater.from(getActivity)
+
+      override def getItemCount: Int = Actions.length
+
+      override def onBindViewHolder(holder: ViewHolder, position: Int): Unit = {
+        val action = Actions(position)
+        holder.title.setText(action.title)
+        holder.subtitle.setText(action.subtitle)
+        holder.icon.setImageResource(action.icon)
+        holder.view.onClick {
+          onActionClick(action.id)
+        }
+      }
+
+      override def onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = {
+        new ViewHolder(inflater.inflate(R.layout.action_list_item, parent, false))
+      }
+    }
+
+    private[this] class ViewHolder(val view: View) extends RecyclerView.ViewHolder(view) {
+      lazy val title = view.findViewById(R.id.title).asInstanceOf[TextView]
+      lazy val subtitle = view.findViewById(R.id.subtitle).asInstanceOf[TextView]
+      lazy val icon = view.findViewById(R.id.icon).asInstanceOf[ImageView]
+
+    }
+
   }
 
-  override def onPause(): Unit = {
-    super.onPause()
-    dispatcher.disableExclusiveNfc()
-  }
-
-  def tagDiscovered(tag: Tag) {
-    // Useless for now
-  }
 }
 
-class UnpluggedHomeActivityContentFragment extends BaseFragment {
-
-	lazy val createWalletButton = TR(R.id.create_wallet_button).as[LinearLayout]
-	lazy val restoreWalletButton = TR(R.id.restore_wallet_button).as[LinearLayout]
-
-
-	override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
-    inflater.inflate(R.layout.unplugged_home_fragment, container, false)
-  }
-
-  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    super.onViewCreated(view, savedInstanceState)
-
-    createWalletButton onClick {
-      val intent = new Intent(getActivity, classOf[UnpluggedSecurityActivity])
-      intent.putExtra("wallet_mode", "create")
-      startActivity(intent)
-    }
-    restoreWalletButton onClick {
-      val intent = new Intent(getActivity, classOf[UnpluggedSecurityActivity])
-      intent.putExtra("wallet_mode", "restore")
-      startActivity(intent)
-    }
-  }
-}
