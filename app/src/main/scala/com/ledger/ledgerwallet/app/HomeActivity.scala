@@ -88,8 +88,15 @@ class HomeActivity extends BaseActivity with OnDiscoveredTagListener{
     try {
       val unplugged: Unplugged = new Unplugged()
       if(unplugged.isLedgerUnplugged(tag)){
+        // Open the Ledger Unplugged activity
         val intent = new Intent(this, classOf[UnpluggedHomeActivity])
         startActivity(intent)
+      }else{
+        if(unplugged.isFidesmoInstalled(this)){
+
+        }else{
+
+        }
       }
     }
     catch {

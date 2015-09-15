@@ -2,10 +2,6 @@ package com.ledger.ledgerwallet.nfc
 
 import java.util.Arrays
 import java.util.Locale
-import android.util.Log
-import com.ledger.ledgerwallet.bitlib.crypto.Bip39
-
-import scala.collection.JavaConversions._
 
 object Utils {
   private val hexArray = "0123456789ABCDEF".toCharArray()
@@ -50,13 +46,6 @@ object Utils {
       hexChars(j * 2 + 1) = hexArray(v & 0x0F)
     }
     new String(hexChars)
-  }
-
-  def selectApdu(appId: String): Array[Byte] = {
-    val cardletAid = AID_PREFIX + appId + AID_SUFFIX
-    val aidLength = Array((cardletAid.length / 2).toByte)
-    val selectApdu = SELECT_HEADER + Utils.encodeHex(aidLength) + cardletAid
-    decodeHex(selectApdu)
   }
 
   def statusBytes(response: Array[Byte]): Array[Byte] = {
