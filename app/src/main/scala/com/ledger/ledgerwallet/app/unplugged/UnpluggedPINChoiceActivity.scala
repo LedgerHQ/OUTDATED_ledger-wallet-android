@@ -90,8 +90,6 @@ class UnpluggedPINChoiceActivity extends UnpluggedSetupActivity {
       if (pin.get != pinTextView.getEditableText.toString) {
         Toast.makeText(this, R.string.unplugged_pin_choice_dont_match_error, Toast.LENGTH_LONG).show()
       } else {
-        val imm = getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
-        imm.hideSoftInputFromInputMethod(pinTextView.getWindowToken, 0)
         startNextActivity(classOf[UnpluggedBip39MnemonicPhraseActivity])
       }
     } else {

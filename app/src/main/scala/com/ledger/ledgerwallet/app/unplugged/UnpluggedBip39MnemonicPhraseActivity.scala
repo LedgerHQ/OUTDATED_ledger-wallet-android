@@ -30,7 +30,10 @@
  */
 package com.ledger.ledgerwallet.app.unplugged
 
+import android.content.Context
 import android.os.Bundle
+import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import com.ledger.ledgerwallet.bitcoin.Bip39Helper
 import com.ledger.ledgerwallet.common._
@@ -52,6 +55,9 @@ class UnpluggedBip39MnemonicPhraseActivity extends UnpluggedSetupActivity {
       stepInstructionTextView.setText(R.string.unplugged_seed_header_step_text_create)
       seedEditText.setText(Bip39Helper.generateMnemonicPhrase())
       seedEditText.setEnabled(false)
+      getWindow().setSoftInputMode(
+        WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+      );
     } else {
       stepNumberTextView.setText(R.string.unplugged_seed_header_step_number_restore)
       stepInstructionTextView.setText(R.string.unplugged_seed_header_step_text_restore)
