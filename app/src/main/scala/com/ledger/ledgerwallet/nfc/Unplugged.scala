@@ -146,4 +146,8 @@ class Unplugged extends OnDiscoveredTagListener {
     selectApplication(card)
     sendAPDU(card, APDU)
   }
+
+
+
+
 }
