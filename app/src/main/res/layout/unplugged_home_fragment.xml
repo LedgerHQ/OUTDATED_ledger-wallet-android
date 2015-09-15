@@ -20,7 +20,7 @@
         android:layout_marginBottom="@dimen/large_margin"
         android:layout_marginTop="@dimen/huge_margin"
         android:textColor="@color/black"
-        app:fontStyle="semiBold"  />
+        app:fontStyle="regular"  />
 
     <com.ledger.ledgerwallet.widget.TextView
         android:layout_width="match_parent"

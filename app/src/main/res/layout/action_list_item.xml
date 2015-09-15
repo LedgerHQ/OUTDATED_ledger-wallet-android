@@ -6,8 +6,8 @@
     android:layout_height="wrap_content"
     android:paddingTop="@dimen/extra_large_margin"
     android:paddingBottom="@dimen/extra_large_margin"
-    android:paddingLeft="@dimen/extra_extra_large_margin"
-    android:paddingRight="@dimen/extra_extra_large_margin"
+    android:paddingLeft="@dimen/extra_large_margin"
+    android:paddingRight="@dimen/extra_large_margin"
     android:background="@drawable/bg_action_list_item"
     android:gravity="center_vertical"
     android:clipChildren="true">
@@ -50,6 +50,6 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/very_large_margin"
+        android:layout_marginLeft="@dimen/large_margin"
         android:src="@drawable/ic_arrow_left" />
 </LinearLayout>
