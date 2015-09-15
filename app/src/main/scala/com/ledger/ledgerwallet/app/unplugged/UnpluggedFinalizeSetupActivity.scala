@@ -1,6 +1,6 @@
 /**
  *
- * Bip39Hekper
+ * UnpluggedFinalizeSetupActivity
  * Ledger wallet
  *
  * Created by Pierre Pollastri on 15/09/15.
@@ -28,26 +28,8 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.bitcoin
+package com.ledger.ledgerwallet.app.unplugged
 
-import java.security.SecureRandom
-
-import com.ledger.ledgerwallet.bitlib.crypto.{RandomSource, Bip39}
-
-object Bip39Helper {
-
-  val EnglishWords = Bip39.ENGLISH_WORD_LIST // Temporary solution before refactoring
-
-  private[this] lazy val _secureRandom = new SecureRandom()
-
-  def generateMnemonicPhrase(dictionary: Array[String] = EnglishWords): String = {
-    Bip39.createRandomMasterSeed(new RandomSource() {
-      override def nextBytes(bytes: Array[Byte]): Unit = _secureRandom.nextBytes(bytes)
-    }).getBip39WordList.toArray.mkString(" ")
-  }
-
-  def isMnemomicPhraseValid(mnemonicPhrase: String): Boolean = {
-    Bip39.isValidWordList(mnemonicPhrase.split(' '))
-  }
+class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
 
 }

@@ -44,7 +44,7 @@ trait UnpluggedSetupActivity extends BaseActivity {
   protected lazy val stepNumberTextView = TR(R.id.step_number).as[TextView]
   protected lazy val stepInstructionTextView = TR(R.id.instruction_text).as[TextView]
 
-  private lazy val _nextExtra = getIntent.getExtras.clone().asInstanceOf[Bundle]
+  private lazy val _nextExtra = Option(getIntent.getExtras).getOrElse(new Bundle()).clone().asInstanceOf[Bundle]
   private lazy val _dispatcher = TagDispatcher.get(this, new OnDiscoveredTagListener {
     override def tagDiscovered(tag: Tag): Unit = onTagDiscovered(tag)
   })

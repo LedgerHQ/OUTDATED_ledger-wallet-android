@@ -68,7 +68,8 @@
 
     <!-- Unplugged Seed Activity -->
     <string name="unplugged_seed_activity_title">Recovery phrase</string>
-    <string name="unplugged_seed_header_step_number_create">4</string>
+    <string name="unplugged_seed_invalid_seed">Your recovery phrase does not seem to be valid.</string>
+    <string name="unplugged_seed_header_step_number_create">4.</string>
     <string name="unplugged_seed_header_step_text_create">Write down your recovery phrase\nin the provided recovery sheet</string>
     <string name="unplugged_seed_bottom_text_create">Your recovery phrase won\'t be displayed again. Without it, you will not be able to access your bitcoins in case of loss or your Ledger Wallet.</string>
     <string name="unplugged_seed_button_text_create">I WROTE MY RECOVERY PHRASE</string>

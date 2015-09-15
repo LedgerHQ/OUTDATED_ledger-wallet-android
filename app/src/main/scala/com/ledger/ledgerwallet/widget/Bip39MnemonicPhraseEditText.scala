@@ -31,26 +31,42 @@
 package com.ledger.ledgerwallet.widget
 
 import android.content.Context
+import android.graphics.Typeface
 import android.support.v7.widget.AppCompatMultiAutoCompleteTextView
 import android.text._
 import android.text.style.{CharacterStyle, ForegroundColorSpan, SuggestionSpan}
 import android.util.AttributeSet
 import android.view.View
 import android.widget.AdapterView.OnItemClickListener
+import android.widget.TextView.BufferType
 import android.widget.{AdapterView, ArrayAdapter, MultiAutoCompleteTextView}
 import android.widget.MultiAutoCompleteTextView.Tokenizer
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.bitcoin.Bip39Helper
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.utils.logs.Logger
-import com.rockymadden.stringmetric.similarity.{WeightedLevenshteinMetric, LevenshteinMetric}
+import com.ledger.ledgerwallet.widget.traits.FontView
 
 class Bip39MnemonicPhraseEditText(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int)
-  extends AppCompatMultiAutoCompleteTextView(context, attrs) {
+  extends AppCompatMultiAutoCompleteTextView(context, attrs) with FontView {
+  initializeFontView(context, attrs)
 
   def this(context: Context, attrs: AttributeSet, defStyleAttr: Int) = this(context, attrs, 0, 0)
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
+
+
+  override def setTypeface(tf: Typeface): Unit = {
+    super.setTypeface(tf)
+  }
+
+  override def setText(text: CharSequence, `type`: BufferType): Unit = {
+    requestCharacterStyleComputation(text)
+  }
+
+  override protected def onCharacterStyleChanged(span: Spannable): Unit = {
+    super.setText(span, BufferType.SPANNABLE)
+  }
 
   //setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD | InputType.TYPE_TEXT_FLAG_MULTI_LINE)
 

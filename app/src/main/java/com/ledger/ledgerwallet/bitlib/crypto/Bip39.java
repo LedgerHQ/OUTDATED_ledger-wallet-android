@@ -393,7 +393,7 @@ public class Bip39 {
      * @return a random master seed
      */
     public static MasterSeed createRandomMasterSeed(RandomSource randomSource) {
-        byte[] rawEntropy = new byte[128 / 8];
+        byte[] rawEntropy = new byte[256 / 8];
         randomSource.nextBytes(rawEntropy);
         String[] wordList = rawEntropyToWords(rawEntropy);
         return generateSeedFromWordList(wordList, "");

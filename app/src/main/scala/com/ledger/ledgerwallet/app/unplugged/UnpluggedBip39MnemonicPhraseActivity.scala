@@ -31,6 +31,7 @@
 package com.ledger.ledgerwallet.app.unplugged
 
 import android.os.Bundle
+import android.widget.Toast
 import com.ledger.ledgerwallet.{common, R}
 import com.ledger.ledgerwallet.bitcoin.Bip39Helper
 import com.ledger.ledgerwallet.bitlib.crypto.{RandomSource, Bip39}
@@ -48,8 +49,8 @@ class UnpluggedBip39MnemonicPhraseActivity extends UnpluggedSetupActivity {
     setContentView(R.layout.unplugged_bip39_phrase_fragment)
 
     if (isInCreationMode) {
-      //stepNumberTextView.setText(R.string.unplugged_seed_header_step_number_create)
-      //stepNumberTextView.setText(R.string.unplugged_seed_header_step_text_create)
+      stepNumberTextView.setText(R.string.unplugged_seed_header_step_number_create)
+      stepInstructionTextView.setText(R.string.unplugged_seed_header_step_text_create)
       seedEditText.setText(Bip39Helper.generateMnemonicPhrase())
       seedEditText.setEnabled(false)
     } else {
@@ -59,7 +60,12 @@ class UnpluggedBip39MnemonicPhraseActivity extends UnpluggedSetupActivity {
     }
 
     button onClick {
-
+      mnemonicPhrase = seedEditText.getEditableText.toString
+      if (!Bip39Helper.isMnemomicPhraseValid(mnemonicPhrase.get)) {
+        Toast.makeText(this, R.string.unplugged_seed_invalid_seed, Toast.LENGTH_LONG).show()
+      } else {
+        startNextActivity(classOf[UnpluggedFinalizeSetupActivity])
+      }
     }
 
   }
