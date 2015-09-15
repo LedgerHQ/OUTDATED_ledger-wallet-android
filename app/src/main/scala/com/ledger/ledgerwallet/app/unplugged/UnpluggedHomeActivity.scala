@@ -31,20 +31,17 @@
 package com.ledger.ledgerwallet.app.unplugged
 
 import android.content.Intent
-import android.nfc.Tag
 import android.os.Bundle
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view._
 import android.widget.ImageView
 import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.base.{BaseActivity, BaseFragment}
+import com.ledger.ledgerwallet.base.BaseFragment
 import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.{SpacerItemDecoration, TextView}
-import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
 
-class UnpluggedHomeActivity extends BaseActivity with OnDiscoveredTagListener {
-  private[this] lazy val dispatcher: TagDispatcher = TagDispatcher.get(this, this)
+class UnpluggedHomeActivity extends UnpluggedSetupActivity {
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -52,20 +49,6 @@ class UnpluggedHomeActivity extends BaseActivity with OnDiscoveredTagListener {
     getSupportActionBar.setDisplayHomeAsUpEnabled(true)
 
     setContentFragment(new ContentFragment())
-  }
-
-  override def onResume(): Unit = {
-    super.onResume()
-    dispatcher.enableExclusiveNfc()
-  }
-
-  override def onPause(): Unit = {
-    super.onPause()
-    dispatcher.disableExclusiveNfc()
-  }
-
-  def tagDiscovered(tag: Tag) {
-    // Useless for now
   }
 
   private class ContentFragment extends BaseFragment {
@@ -96,16 +79,11 @@ class UnpluggedHomeActivity extends BaseActivity with OnDiscoveredTagListener {
     }
 
     def onActionClick(actionId: Int): Unit = {
-      actionId match {
-        case CreateActionId =>
-          val intent = new Intent(getActivity, classOf[UnpluggedSecurityActivity])
-          intent.putExtra(UnpluggedSecurityActivity.ExtraSetupMode, UnpluggedSecurityActivity.CreateWalletSetupMode)
-          startActivity(intent)
-        case RestoreActionId =>
-          val intent = new Intent(getActivity, classOf[UnpluggedSecurityActivity])
-          intent.putExtra(UnpluggedSecurityActivity.ExtraSetupMode, UnpluggedSecurityActivity.RestoreWalletSetupMode)
-          startActivity(intent)
+      setupMode = actionId match {
+        case CreateActionId => UnpluggedSetupActivity.CreateWalletSetupMode
+        case RestoreActionId => UnpluggedSetupActivity.RestoreWalletSetupMode
       }
+      startNextActivity(classOf[UnpluggedSecurityActivity])
     }
 
     override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {

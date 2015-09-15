@@ -43,8 +43,7 @@ import android.view.inputmethod.EditorInfo
 import android.util.Log
 import nordpol.android.{TagDispatcher, OnDiscoveredTagListener}
 
-class UnpluggedPINChoiceActivity extends BaseActivity with OnDiscoveredTagListener {
-  var dispatcher: TagDispatcher = null
+class UnpluggedPINChoiceActivity extends UnpluggedSetupActivity {
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -72,22 +71,8 @@ class UnpluggedPINChoiceActivity extends BaseActivity with OnDiscoveredTagListen
       .beginTransaction()
       .replace(R.id.fragment_container, fragment)
       .commitAllowingStateLoss()
-    dispatcher = TagDispatcher.get(this, this)
   }
 
-  override def onResume(): Unit = {
-    super.onResume()
-    dispatcher.enableExclusiveNfc()
-  }
-
-  override def onPause(): Unit = {
-    super.onPause()
-    dispatcher.disableExclusiveNfc()
-  }
-
-  def tagDiscovered(tag: Tag) {
-    // Useless for now
-  }
 }
 
 
