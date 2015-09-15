@@ -30,105 +30,75 @@
  */
 package com.ledger.ledgerwallet.app.unplugged
 
-import android.content.Intent
-import android.nfc.Tag
+import android.content.Context
 import android.os.Bundle
-import android.view._
-import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.base.{BaseActivity, BaseFragment}
+import android.text.{Editable, TextWatcher}
+import android.view.KeyEvent
+import android.view.inputmethod.{InputMethodManager, EditorInfo}
+import android.widget.Toast
+import com.ledger.ledgerwallet.{common, R}
 import com.ledger.ledgerwallet.utils.TR
-import com.ledger.ledgerwallet.common._
-import com.ledger.ledgerwallet.widget.{TextView, PinTextView}
-import android.view.inputmethod.EditorInfo
-import android.util.Log
-import nordpol.android.{TagDispatcher, OnDiscoveredTagListener}
+import com.ledger.ledgerwallet.widget.{PinTextView, TextView}
+import common._
 
 class UnpluggedPINChoiceActivity extends UnpluggedSetupActivity {
 
+  lazy val pinTextView = TR(R.id.pin_view).as[PinTextView]
+  lazy val bottomTextView = TR(R.id.bottom_text).as[TextView]
+
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
+    setContentView(R.layout.unplugged_pin_choice_fragment)
 
-    val intent = getIntent()
-
-    val bundle = new Bundle()
-
-    intent.hasExtra("pinCode") match {
-      case true =>
-        val pinCode = intent.getStringExtra("pinCode")
-        Log.v("PIN Code", pinCode)
-        bundle.putString("pinCode", pinCode)
-        bundle.putString("pinChoiceStep", "confirmPIN")
-      case _ =>
-        bundle.putString("pinChoiceStep", "enterPIN")
+    if (hasPinSetup) {
+      // Confirm mode
+      setTitle(R.string.unplugged_pin_choice_title_confirm)
+      stepNumberTextView.setText(R.string.unplugged_pin_choice_step_number_confirm)
+      stepInstructionTextView.setText(R.string.unplugged_pin_choice_step_instruction_confirm)
+      bottomTextView.setText(R.string.unplugged_pin_choice_step_bottom_confirm)
+    } else {
+      // Enter mode
+      setTitle(R.string.unplugged_pin_choice_title_enter)
+      stepNumberTextView.setText(R.string.unplugged_pin_choice_step_number_enter)
+      stepInstructionTextView.setText(R.string.unplugged_pin_choice_step_instruction_enter)
+      bottomTextView.setText(R.string.unplugged_pin_choice_step_bottom_enter)
     }
-
-    setContentView(R.layout.single_fragment_holder_activity)
-
-    val fragment = new UnpluggedPINChoiceActivityContentFragment()
-    fragment.setArguments(bundle)
-
-    getSupportFragmentManager
-      .beginTransaction()
-      .replace(R.id.fragment_container, fragment)
-      .commitAllowingStateLoss()
-  }
-
-}
-
-
-
-class UnpluggedPINChoiceActivityContentFragment extends BaseFragment {
-
-  lazy val pinTextView = TR(R.id.pin_view).as[PinTextView]
-  lazy val button = TR(R.id.button).as[TextView]
-  lazy val alert = TR(R.id.alert).as[TextView]
-
-  lazy val pinChoiceStep = getArguments().getString("pinChoiceStep");
-
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
-    inflater.inflate(R.layout.unplugged_pin_choice_fragment, container, false)
-  }
-
-  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    super.onViewCreated(view, savedInstanceState)
 
     pinTextView.requestFocus()
     pinTextView.setFocusableInTouchMode(true)
     pinTextView.setOnEditorActionListener((actionId: Int, event: KeyEvent) => {
       actionId match {
         case EditorInfo.IME_ACTION_NEXT =>
-          if (pinTextView.getText().length() == 4) {
-            pinChoiceStep match {
-              case "enterPIN" =>
-                button onClick {
-                  val intent = new Intent(getActivity, classOf[UnpluggedPINChoiceActivity])
-                  intent.putExtra("pinCode", pinTextView.getText().toString)
-                  startActivity(intent)
-                }
-                button.setVisibility(View.VISIBLE)
-
-              case _ =>
-                if (pinTextView.getText().toString == getArguments().getString("pinCode")) {
-                  alert.setVisibility(View.INVISIBLE)
-
-                  button onClick {
-                    val intent = new Intent(getActivity, classOf[UnpluggedRecoveryActivity])
-                    intent.putExtra("pinCode", pinTextView.getText().toString)
-                    startActivity(intent)
-                  }
-                  button.setVisibility(View.VISIBLE)
-                } else {
-                  alert.setVisibility(View.VISIBLE)
-                }
-            }
-          }else{
-            button.setVisibility(0)
-          }
+          navigateNext()
           true
         case _ => false
       }
     })
 
+    pinTextView.addTextChangedListener(new TextWatcher {
+      override def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int): Unit = {}
+      override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit = {}
+      override def afterTextChanged(s: Editable): Unit = {
+        if (s.length() == 4)
+          navigateNext()
+      }
+    })
+  }
+
+  protected[this] def navigateNext(): Unit = {
+    if (hasPinSetup) {
+      if (pin.get != pinTextView.getEditableText.toString) {
+        Toast.makeText(this, R.string.unplugged_pin_choice_dont_match_error, Toast.LENGTH_LONG).show()
+      } else {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
+        imm.hideSoftInputFromInputMethod(pinTextView.getWindowToken, 0)
+        startNextActivity(classOf[UnpluggedBip39MnemonicPhraseActivity])
+      }
+    } else {
+      pin = pinTextView.getEditableText.toString
+      startNextActivity(classOf[UnpluggedPINChoiceActivity])
+    }
   }
 
 }
+

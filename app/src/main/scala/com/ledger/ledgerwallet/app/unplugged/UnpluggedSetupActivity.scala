@@ -80,6 +80,7 @@ trait UnpluggedSetupActivity extends BaseActivity {
   def pin_= (pinCode: String): Unit = {
     _nextExtra.putString(UnpluggedSetupActivity.ExtraPinCode, pinCode)
   }
+  def hasPinSetup = getIntent.getStringExtra(UnpluggedSetupActivity.ExtraPinCode) != null
 
   def setupMode = _nextExtra.getInt(UnpluggedSetupActivity.ExtraSetupMode, UnpluggedSetupActivity.CreateWalletSetupMode)
   def setupMode_= (setupMode: Int): Unit = _nextExtra.putInt(UnpluggedSetupActivity.ExtraSetupMode, setupMode)
