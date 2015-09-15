@@ -30,6 +30,16 @@
  */
 package com.ledger.ledgerwallet.app.unplugged
 
+import android.os.Bundle
+import com.ledger.ledgerwallet.R
+
 class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
+
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.unplugged_finalize_setup_activity)
+    stepNumberTextView.setText(R.string.unplugged_finalize_setup_step_number)
+    stepInstructionTextView.setText(R.string.unplugged_finalize_setup_step_text)
+  }
 
 }

@@ -82,6 +82,11 @@
     <string name="unplugged_tap_looking_for">Looking for your NFC wallet...</string>
     <string name="unplugged_tap_place_at_backside">Place your Ledger Unplugged card against the backside of your smartphone.</string>
 
+    <!-- Unplugged Finalize Setup Activity -->
+    <string name="unplugged_finalize_setup_few_moments">In a few moments, you will be able to use your bitcoins in the fastest possible way.</string>
+    <string name="unplugged_finalize_setup_step_text">Place your Ledger Unplugged card against the backside of your smartphone</string>
+    <string name="unplugged_finalize_setup_step_number">5.</string>
+
     <!-- Unplugged Actions -->
     <string name="unplugged_management_continue">CONTINUE</string>
     <string name="unplugged_management_finish">FINISH</string>
