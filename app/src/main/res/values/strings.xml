@@ -77,6 +77,10 @@
     <string name="unplugged_seed_bottom_text_restore">Your recovery phrase won\'t be displayed again. Without it, you will not be able to access your bitcoins in case of loss or your Ledger Wallet.</string>
     <string name="unplugged_seed_button_text_restore">I WROTE MY RECOVERY PHRASE</string>
 
+    <!-- Unplugged Tap Activity -->
+    <string name="unplugged_tap_looking_for">Looking for your NFC wallet...</string>
+    <string name="unplugged_tap_place_at_backside">Place your Ledger Unplugged card against the backside of your smartphone.</string>
+
     <!-- Unplugged Actions -->
     <string name="unplugged_management_continue">CONTINUE</string>
     <string name="unplugged_management_finish">FINISH</string>
