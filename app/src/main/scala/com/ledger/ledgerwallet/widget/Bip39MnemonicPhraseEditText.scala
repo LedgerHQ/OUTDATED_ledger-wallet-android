@@ -80,50 +80,61 @@ class Bip39MnemonicPhraseEditText(context: Context, attrs: AttributeSet, defStyl
 
   addTextChangedListener(new TextWatcher {
 
+    var _editing = false
+
     override def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int): Unit = {}
 
     override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit = {}
 
     override def afterTextChanged(s: Editable): Unit = {
+      if (_editing)
+        return
+      _editing = true
       val words = s.toString.split(' ')
       var reminder = 0
       val text = s.toString
       val selection = getSelectionStart
       for ((word, index) <- words.zipWithIndex) {
-        Logger.d(s"Got word  $word")
         // Check if we need to clean up the string
         if (word.length == 0) {
+          _editing = false
           cleanString(s, words)
           return
         }
+
         val start = text.indexOf(word, reminder)
         val end = start + word.length
+        var skipSpanify = false
         reminder = end
-
-        val spans = s.getSpans(start, end, classOf[CharacterStyle])
-
-        if ((selection < start || selection > end) &&
-            spans.indexWhere({_.isInstanceOf[Bip39WordErrorSpan]}) == -1 &&
-            !Bip39Helper.EnglishWords.contains(word)) {
-          s.setSpan(new Bip39WordErrorSpan, start, end, Spanned.SPAN_EXCLUSIVE_INCLUSIVE)
-        } else if (spans.indexWhere({_.isInstanceOf[Bip39WordErrorSpan]}) != -1) {
-          s.removeSpan(spans(spans.indexWhere({_.isInstanceOf[Bip39WordErrorSpan]})))
-        }
 
         // If last word followed by a space, try autocomplete
         if (index == words.length - 1 && s.charAt(s.length() - 1) == ' ') {
-          val bestMatch = Bip39Helper.EnglishWords
-            .map({(s: String) =>
-              val lev: Option[Double] = WeightedLevenshteinMetric(10, 0.1, 1).compare(s, word.toString)
-              (s, lev)
-          }).filter({ (tuple: (String, Option[Double])) =>
-              tuple._2.isDefined
-          }).sortWith(_._2.get < _._2.get).map(_._1).headOption
+          val bestMatch = Bip39Helper.EnglishWords.filter(_.startsWith(word)).sortWith(_.length < _.length).headOption
           if (bestMatch.isDefined && !bestMatch.get.equals(word)) {
             s.replace(start, end, bestMatch.get)
+            skipSpanify = true
           }
         }
 
+        if (!skipSpanify) {
+          val spans = s.getSpans(start, end, classOf[CharacterStyle])
+
+          if ((selection < start || selection > end) &&
+            spans.indexWhere({
+              _.isInstanceOf[Bip39WordErrorSpan]
+            }) == -1 &&
+            !Bip39Helper.EnglishWords.contains(word)) {
+            s.setSpan(new Bip39WordErrorSpan, start, end, Spanned.SPAN_EXCLUSIVE_INCLUSIVE)
+          } else if (spans.indexWhere({
+            _.isInstanceOf[Bip39WordErrorSpan]
+          }) != -1 && Bip39Helper.EnglishWords.contains(word)) {
+            s.removeSpan(spans(spans.indexWhere({
+              _.isInstanceOf[Bip39WordErrorSpan]
+            })))
+          }
+        }
+
+        _editing = false
       }
 
     }
