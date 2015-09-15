@@ -37,30 +37,19 @@ import com.ledger.ledgerwallet.widget.{TextView, Toolbar}
 
 class UnpluggedSecurityActivity extends UnpluggedSetupActivity {
 
+  lazy val textView = TR(R.id.textViewLine2).as[TextView]
+
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.unplugged_security_activity)
 
-    getSupportActionBar.setHomeButtonEnabled(true)
-    getSupportActionBar.setDisplayHomeAsUpEnabled(true)
-    val textViewLine2 = TR(R.id.textViewLine2).as[TextView]
-    val continueButton = TR(R.id.button).as[TextView]
-
-    val wallet_mode = getIntent().getStringExtra("wallet_mode")
-    val toolbar = TR(R.id.toolbar).as[Toolbar]
-
-    if (wallet_mode == "create" || true) {
-      toolbar.setTitle(R.string.unplugged_security_title_create)
-      textViewLine2.setText(R.string.unplugged_security_line2_create)
-    } else {
-      toolbar.setTitle(R.string.unplugged_security_title_restore)
-      textViewLine2.setText(R.string.unplugged_security_line2_other)
+    stepNumberTextView.setText(R.string.unplugged_security_step_number)
+    stepInstructionTextView.setText(R.string.unplugged_security_step_text)
+    if (isInCreationMode) {
+      textView.setText(R.string.unplugged_security_line_2_creation)
     }
-
-    continueButton onClick {
-      val intent = new Intent(getBaseContext(), classOf[UnpluggedPINChoiceActivity])
-      intent.putExtra("wallet_mode", "create")
-      startActivity(intent)
+    else {
+      textView.setText(R.string.unplugged_security_line_2_restore)
     }
   }
 

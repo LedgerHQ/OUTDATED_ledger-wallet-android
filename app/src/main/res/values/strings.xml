@@ -53,15 +53,14 @@
     <string name="unplugged_welcome_cancel_subtitle">Return to the app</string>
 
     <!-- Unplugged Security Activity -->
-    <string name="unplugged_security_title_create">Unplugged - Create my Wallet</string>
-    <string name="unplugged_security_title_restore">Restore my Wallet</string>
-    <string name="unplugged_security_security_informations">Security information</string>
-    <string name="unplugged_security_trusted_smartphone_required">A trusted smartphone is required to configure your Ledger Wallet</string>
-    <string name="unplugged_security_line1">This configuration wizard handles highly sensitive data about your wallet.</string>
-    <string name="unplugged_security_line2_create">It is very important to continue the creation process from a private (or trusted) smartphone to prevent someone from accessing these information illicitly.</string>
-    <string name="unplugged_security_line2_other">It is very important to continue the recovery process from a private (or trusted) smartphone to prevent someone from accessing these information illicitly.</string>
-    <string name="unplugged_security_line3">In case of doubt, we recommend that you remove your Ledger Wallet from the USB port of the smartphone and reopen this wizard from another more secure smartphone.</string>
-    <string name="unplugged_security_by_clicking_continue">By clicking CONTINUE, you confirm to use a trusted smartphone to configure your Ledger Wallet.</string>
+    <string name="unplugged_security_step_text">A trusted computer is required to configure your Ledger Unplugged</string>
+    <string name="unplugged_security_step_number">1.</string>
+    <string name="unplugged_security_line_1">This configuration wizard handles highly sensitive information about your wallet.</string>
+    <string name="unplugged_security_line_2_creation">It is very important to continue the creation process using a fully trusted smartphone to prevent anyone from accessing these data.</string>
+    <string name="unplugged_security_line_2_restore">It is very important to continue the recovery process using a fully trusted smartphone to prevent anyone from accessing these data.</string>
+    <string name="unplugged_security_line_3">In case of doubt, we recommend you close the application and reopen this wizard from another more secure smartphone.</string>
+    <string name="unplugged_security_line_4">By clicking CONTINUE, you confirm that you are currently using a trusted smartphone.</string>
+    <string name="unplugged_security_understood">I UNDERSTAND, CONTINUE</string>
 
     <!-- Unplugged PIN Choice Activity -->
     <string name="unplugged_pin_choice">Choose your PIN code</string>
