@@ -17,6 +17,7 @@
     <string name="home_np_bottom">Need help? Visit our help center.</string>
 
     <!-- Home Activity Menu -->
+    <string name="home_activity_menu_setup_unplugged">Ledger Unplugged</string>
     <string name="home_activity_menu_export_logs">Export logs</string>
 
     <!-- Paired Dongle Activity -->
@@ -90,6 +91,18 @@
     <!-- Unplugged Tap Activity -->
     <string name="unplugged_tap_looking_for">Looking for your NFC wallet...</string>
     <string name="unplugged_tap_place_at_backside">Place your Ledger Unplugged card against the backside of your smartphone.</string>
+
+    <!-- Unplugged Finalize Setup Activity -->
+    <string name="unplugged_finalize_setup_few_moments">In a few moments, you will be able to use your bitcoins in the fastest possible way.</string>
+    <string name="unplugged_finalize_setup_step_text">Place your Ledger Unplugged card against the backside of your smartphone</string>
+    <string name="unplugged_finalize_setup_step_number">5.</string>
+
+    <!-- Unplugged In Progress Activity -->
+    <string name="unplugged_in_progress_please_wait">Please wait, this operation may take a while.</string>
+    <string name="unplugged_in_progress_configuration">Configuration in progress...</string>
+    <string name="unplugged_in_progress_step_text_creation">Keep holding your card while the creation of your wallet is in progress</string>
+    <string name="unplugged_in_progress_step_text_restore">Keep holding your card while the recovery of your wallet is in progress</string>
+    <string name="unplugged_in_progress_step_number">6.</string>
 
     <!-- Unplugged Actions -->
     <string name="unplugged_management_continue">CONTINUE</string>

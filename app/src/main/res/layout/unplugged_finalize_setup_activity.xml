@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <include
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/workflow_header" />
+
+
+    <LinearLayout
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageView2"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/ic_wave_unplugged" />
+
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/unplugged_finalize_setup_few_moments"
+            android:id="@+id/bottom_text"
+            android:gravity="center"
+            android:textColor="@color/dark_grey"
+            app:kerning="@dimen/medium_font_spacing"
+            android:textSize="@dimen/small_font_size"
+            app:fontStyle="regular"
+            android:lineSpacingExtra="10dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="@dimen/extra_large_margin"
+            android:layout_marginRight="@dimen/extra_large_margin"
+            android:layout_marginTop="@dimen/large_margin"/>
+
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -12,7 +12,12 @@ import nordpol.IsoCard
 import nordpol.android.{AndroidCard, OnDiscoveredTagListener}
 import android.util.Log
 
+import scala.util.Try
+
 class Unplugged extends OnDiscoveredTagListener {
+
+  type ByteArray = Array[Byte]
+
   val TAG: String = "LedgerUnpluggedHelper"
   val APPLICATION_ID = "54BF6AA9"
   val SERVICE_ID = "test"
@@ -38,7 +43,9 @@ class Unplugged extends OnDiscoveredTagListener {
   }
 
   def isLedgerUnplugged(tag: Tag): Boolean = {
-    if(sendAPDU(AndroidCard.get(tag), Utils.decodeHex(APPLICATION_APDU)) == "9000"){ return true } else { return false }
+    sendAPDU(AndroidCard.get(tag), Utils.decodeHex(APPLICATION_APDU))
+      .map(Utils.encodeHex)
+      .getOrElse(null) == "9000"
   }
 
   def isFidesmoInstalled(activity: Activity): Boolean = {
@@ -89,34 +96,27 @@ class Unplugged extends OnDiscoveredTagListener {
     }
   }
 
-  def selectApplication(card: IsoCard): Array[Byte] = {
+  def selectApplication(card: IsoCard): Try[ByteArray] = {
     sendAPDU(card, Utils.decodeHex(APPLICATION_APDU))
   }
 
-  def sendAPDU (card: IsoCard, APDU: Array[Byte]): Array[Byte] = {
+  def sendAPDU (card: IsoCard, APDU: Array[Byte]): Try[ByteArray] = Try {
     Log.v(TAG, "Sending APDU " + Utils.encodeHex(APDU))
-    var response: Array[Byte] = null
-    try {
-      card.connect
-      response = card.transceive(APDU)
-      Log.v(TAG, "Response: " + Utils.encodeHex(response))
-      card.close
-    }
-    catch {
-      case e: IOException => {
-        Log.v(TAG, e.toString())
-      }
-    }
-
+    card.connect()
+    val response = card.transceive(APDU)
+    Log.v(TAG, "Response: " + Utils.encodeHex(response))
+    card.close()
     response
   }
+
+
 
   def getBip32FromSeed(bip39: String): String = {
     Utils.bytesToHex(Bip39.generateSeedFromWordList(bip39.split(" "), "").getBip32Seed)
   }
 
   // Dirt cheap code for now
-  def setup(card: IsoCard, PIN: String, seed: String): Array[Byte] ={ // This will be replaced by BTChip's Java code later
+  def setup(card: IsoCard, PIN: String, seed: String): Try[ByteArray] = { // This will be replaced by BTChip's Java code later
     val command = Array[Byte](0xe0.toByte, 0x20, 0x00, 0x00)
     val mode: Byte = 0x01
     val features: Byte = 0x0a
@@ -139,7 +139,7 @@ class Unplugged extends OnDiscoveredTagListener {
     sendAPDU(card, APDU)
   }
 
-  def setKeycard(card: IsoCard, keycard: String): Array[Byte] = {
+  def setKeycard(card: IsoCard, keycard: String): Try[ByteArray] = {
     val command = Array[Byte](0xd0.toByte, 0x26, 0x00, 0x00, 0x11, 0x04)
     val APDU = command ++ Utils.decodeHex(keycard)
 

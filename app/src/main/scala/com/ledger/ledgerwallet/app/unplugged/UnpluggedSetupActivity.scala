@@ -36,8 +36,11 @@ import android.os.Bundle
 import android.widget.TextView
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.BaseActivity
+import com.ledger.ledgerwallet.nfc.Unplugged
 import com.ledger.ledgerwallet.utils.TR
 import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
+
+import scala.util.Try
 
 trait UnpluggedSetupActivity extends BaseActivity {
 
@@ -52,6 +55,15 @@ trait UnpluggedSetupActivity extends BaseActivity {
   protected def dispatcher = _dispatcher
 
   protected def onTagDiscovered(tag: Tag): Unit = {
+    Try({
+      val unplugged  = new Unplugged()
+      if (unplugged.isLedgerUnplugged(tag)) {
+        onUnpluggedDiscovered(unplugged)
+      }
+    })
+  }
+
+  protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
 
   }
 

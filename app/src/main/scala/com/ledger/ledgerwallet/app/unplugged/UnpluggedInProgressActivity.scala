@@ -1,9 +1,9 @@
 /**
  *
- * UnpluggedTapActivity
- * ledger-wallet-android
+ * UnpluggedFinalizeSetupActivity
+ * Ledger wallet
  *
- * Created by Nicolas Bigot on 15/09/15.
+ * Created by Pierre Pollastri on 15/09/15.
  *
  * The MIT License (MIT)
  *
@@ -28,30 +28,22 @@
  * SOFTWARE.
  *
  */
-
 package com.ledger.ledgerwallet.app.unplugged
 
 import android.os.Bundle
 import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.nfc.Unplugged
-import com.ledger.ledgerwallet.utils.logs.Logger
 
-class UnpluggedTapActivity extends UnpluggedSetupActivity {
+class UnpluggedInProgressActivity extends UnpluggedSetupActivity {
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.unplugged_tap_activity)
-    getSupportActionBar.setHomeButtonEnabled(true)
-    getSupportActionBar.setDisplayHomeAsUpEnabled(true)
-  }
-
-  override protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
-    Logger.d("UNPLUGGED DISCOVERED")
-    super.onUnpluggedDiscovered(unplugged)
-    if (pin.isEmpty) {
-      startNextActivity(classOf[UnpluggedHomeActivity])
-    } else {
-      startNextActivity(classOf[UnpluggedInProgressActivity])
+    setContentView(R.layout.unplugged_in_progress_activity)
+    stepNumberTextView.setText(R.string.unplugged_in_progress_step_number)
+    if (isInCreationMode) {
+      stepInstructionTextView.setText(R.string.unplugged_in_progress_step_text_creation)
+    }
+    else {
+      stepInstructionTextView.setText(R.string.unplugged_in_progress_step_text_restore)
     }
   }
 
