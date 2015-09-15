@@ -31,15 +31,68 @@
 package com.ledger.ledgerwallet.app.unplugged
 
 import android.os.Bundle
+import android.view.{View, ViewGroup, LayoutInflater}
 import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.base.BaseFragment
+import com.ledger.ledgerwallet.nfc.Unplugged
+import com.ledger.ledgerwallet.utils.TR
+import com.ledger.ledgerwallet.widget.TextView
 
 class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
 
+  val TappingMode = 0x01
+  val LoadingMode = 0x02
+
+  private[this] var _mode = TappingMode
+  private[this] var _unplugged: Option[Unplugged] = None
+
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.unplugged_finalize_setup_activity)
-    stepNumberTextView.setText(R.string.unplugged_finalize_setup_step_number)
-    stepInstructionTextView.setText(R.string.unplugged_finalize_setup_step_text)
+    _mode = TappingMode
+    setContentFragment(new TapFragment)
+  }
+
+
+  override protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
+    super.onUnpluggedDiscovered(unplugged)
+    if (_mode == TappingMode) {
+      _mode = LoadingMode
+      _unplugged = Option(unplugged)
+      setContentFragment(new LoadingFragment)
+    }
+  }
+
+  class TapFragment extends BaseFragment {
+    override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+      inflater.inflate(R.layout.unplugged_finalize_setup_activity, container, false)
+    }
+
+    override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+      super.onViewCreated(view, savedInstanceState)
+      val stepNumberTextView = TR(view, R.id.step_number).as[TextView]
+      val stepInstructionTextView = TR(view, R.id.instruction_text).as[TextView]
+      stepNumberTextView.setText(R.string.unplugged_finalize_setup_step_number)
+      stepInstructionTextView.setText(R.string.unplugged_finalize_setup_step_text)
+    }
+  }
+
+  class LoadingFragment extends BaseFragment {
+    override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+      inflater.inflate(R.layout.unplugged_in_progress_activity, container, false)
+    }
+
+    override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+      super.onViewCreated(view, savedInstanceState)
+      val stepNumberTextView = TR(view, R.id.step_number).as[TextView]
+      val stepInstructionTextView = TR(view, R.id.instruction_text).as[TextView]
+      stepNumberTextView.setText(R.string.unplugged_in_progress_step_number)
+      if (isInCreationMode) {
+        stepInstructionTextView.setText(R.string.unplugged_in_progress_step_text_creation)
+      } else {
+        stepInstructionTextView.setText(R.string.unplugged_in_progress_step_text_restore)
+      }
+    }
+
   }
 
 }

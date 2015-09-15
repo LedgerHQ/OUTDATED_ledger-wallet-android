@@ -28,16 +28,16 @@
  */
 package com.ledger.ledgerwallet.app.unplugged
 
-import android.content.Intent
 import android.os.Bundle
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.utils.TR
-import com.ledger.ledgerwallet.widget.{TextView, Toolbar}
+import com.ledger.ledgerwallet.widget.TextView
 
 class UnpluggedSecurityActivity extends UnpluggedSetupActivity {
 
   lazy val textView = TR(R.id.textViewLine2).as[TextView]
+  lazy val button = TR(R.id.button).as[TextView]
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -51,6 +51,11 @@ class UnpluggedSecurityActivity extends UnpluggedSetupActivity {
     else {
       textView.setText(R.string.unplugged_security_line_2_restore)
     }
+
+    button onClick {
+      startNextActivity(classOf[UnpluggedPINChoiceActivity])
+    }
+
   }
 
 }

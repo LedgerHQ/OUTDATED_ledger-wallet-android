@@ -46,13 +46,8 @@ class UnpluggedTapActivity extends UnpluggedSetupActivity {
   }
 
   override protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
-    Logger.d("UNPLUGGED DISCOVERED")
     super.onUnpluggedDiscovered(unplugged)
-    if (pin.isEmpty) {
-      startNextActivity(classOf[UnpluggedHomeActivity])
-    } else {
-      startNextActivity(classOf[UnpluggedInProgressActivity])
-    }
+    startNextActivity(classOf[UnpluggedHomeActivity])
   }
 
 }
