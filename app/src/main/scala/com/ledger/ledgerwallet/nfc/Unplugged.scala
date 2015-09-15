@@ -58,16 +58,18 @@ class Unplugged extends OnDiscoveredTagListener {
   }
 
   def installFidesmo(activity: Activity) {
-//    activity.runOnUiThread(new Runnable() {
-//      def run {
-//        try {
-//          activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(MARKET_URI + FIDESMO_APP)))
-//        }
-//        catch {
-//          return false
-//        }
-//      }
-//    })
+    activity.runOnUiThread(new Runnable() {
+      def run {
+        try {
+          activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(MARKET_URI + FIDESMO_APP)))
+        }
+        catch {
+          case e: Exception => {
+
+          }
+        }
+      }
+    })
   }
 
   def launchCardletInstallation(activity: Activity) {
@@ -88,11 +90,12 @@ class Unplugged extends OnDiscoveredTagListener {
   }
 
   def sendAPDU (card: IsoCard, APDU: Array[Byte]): Array[Byte] = {
-    Log.v(TAG, "Sending APDU " + APDU)
+    Log.v(TAG, "Sending APDU " + Utils.encodeHex(APDU))
     var response: Array[Byte] = null
     try {
       card.connect
       response = card.transceive(APDU)
+      Log.v(TAG, "Response: " + Utils.encodeHex(response))
       card.close
     }
     catch {
