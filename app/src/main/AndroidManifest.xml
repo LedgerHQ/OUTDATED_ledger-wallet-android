@@ -21,7 +21,10 @@
             android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:launchMode="singleTask">
-
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <activity
@@ -66,8 +69,8 @@
 
         <activity
             android:name=".app.unplugged.UnpluggedPINChoiceActivity"
-            android:screenOrientation="portrait"
-            android:label="Unplugged">
+            android:screenOrientation="portrait">
+
         </activity>
 
         <activity
@@ -89,6 +92,7 @@
         <activity
             android:name=".app.unplugged.UnpluggedFinalizeSetupActivity"
             android:screenOrientation="portrait">
+
         </activity>
 
         <activity
@@ -99,10 +103,7 @@
         <receiver
             android:name=".app.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-                <category android:name="com.ledger.ledgerwallet.gcm" />
-            </intent-filter>
+
         </receiver>
         <service android:name=".app.GcmIntentService" />
         <provider

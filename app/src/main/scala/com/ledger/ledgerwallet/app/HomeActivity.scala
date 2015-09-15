@@ -39,6 +39,7 @@ import android.view._
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
 import com.ledger.ledgerwallet.app.m2fa.{IncomingTransactionDialogFragment, PairedDonglesActivity}
+import com.ledger.ledgerwallet.app.unplugged.{UnpluggedHomeActivity, UnpluggedTapActivity}
 import com.ledger.ledgerwallet.base.{BaseActivity, BaseFragment, BigIconAlertDialog}
 import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.models.PairedDongle
@@ -48,13 +49,13 @@ import com.ledger.ledgerwallet.utils.logs.LogCatReader
 import com.ledger.ledgerwallet.utils.{GooglePlayServiceHelper, TR}
 import com.ledger.ledgerwallet.widget.TextView
 
-import com.ledger.ledgerwallet.app.unplugged.UnpluggedHomeActivity  //TODO: DELETE
+//TODO: DELETE
 
 import scala.util.{Failure, Success}
 
 // Nordpol TagDispatcher (Fidesmo) and general NFC support
-import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
 import com.ledger.ledgerwallet.nfc.Unplugged
+import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
 
 class HomeActivity extends BaseActivity with OnDiscoveredTagListener{
   var dispatcher: TagDispatcher = null
@@ -80,6 +81,9 @@ class HomeActivity extends BaseActivity with OnDiscoveredTagListener{
       case R.id.export_logs =>
         exportLogs()
         true
+      case R.id.setup_unplugged =>
+        startActivity(new Intent(this, classOf[UnpluggedTapActivity]).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        true
       case somethingElse => false
     }
   }
@@ -87,14 +91,14 @@ class HomeActivity extends BaseActivity with OnDiscoveredTagListener{
   def tagDiscovered(tag: Tag) {
     try {
       val unplugged: Unplugged = new Unplugged()
-      if(unplugged.isLedgerUnplugged(tag)){
+      if (unplugged.isLedgerUnplugged(tag)) {
         // Open the Ledger Unplugged activity
-        val intent = new Intent(this, classOf[UnpluggedHomeActivity])
+        val intent = new Intent(this, classOf[UnpluggedHomeActivity]).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
-      }else{
-        if(unplugged.isFidesmoInstalled(this)){
+      } else {
+        if (unplugged.isFidesmoInstalled(this)) {
 
-        }else{
+        } else {
 
         }
       }

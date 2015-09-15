@@ -36,8 +36,11 @@ import android.os.Bundle
 import android.widget.TextView
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.BaseActivity
+import com.ledger.ledgerwallet.nfc.Unplugged
 import com.ledger.ledgerwallet.utils.TR
 import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
+
+import scala.util.Try
 
 trait UnpluggedSetupActivity extends BaseActivity {
 
@@ -52,6 +55,15 @@ trait UnpluggedSetupActivity extends BaseActivity {
   protected def dispatcher = _dispatcher
 
   protected def onTagDiscovered(tag: Tag): Unit = {
+    Try({
+      val unplugged  = new Unplugged()
+      if (unplugged.isLedgerUnplugged(tag)) {
+        onUnpluggedDiscovered(unplugged)
+      }
+    })
+  }
+
+  protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
 
   }
 
@@ -80,6 +92,7 @@ trait UnpluggedSetupActivity extends BaseActivity {
   def pin_= (pinCode: String): Unit = {
     _nextExtra.putString(UnpluggedSetupActivity.ExtraPinCode, pinCode)
   }
+  def hasPinSetup = getIntent.getStringExtra(UnpluggedSetupActivity.ExtraPinCode) != null
 
   def setupMode = _nextExtra.getInt(UnpluggedSetupActivity.ExtraSetupMode, UnpluggedSetupActivity.CreateWalletSetupMode)
   def setupMode_= (setupMode: Int): Unit = _nextExtra.putInt(UnpluggedSetupActivity.ExtraSetupMode, setupMode)

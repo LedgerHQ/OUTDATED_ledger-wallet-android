@@ -66,6 +66,11 @@ abstract class BaseActivity extends AppCompatActivity with Loggable {
     toolbar.setTitle(getTitle)
   }
 
+  override def setTitle(titleId: Int): Unit = {
+    super.setTitle(titleId)
+    toolbar.setTitle(getTitle)
+  }
+
   override def onResume(): Unit = {
     super.onResume()
     AndroidUtils.notifyActivityOnResume()

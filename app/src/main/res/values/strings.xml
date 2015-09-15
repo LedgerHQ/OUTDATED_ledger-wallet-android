@@ -17,6 +17,7 @@
     <string name="home_np_bottom">Need help? Visit our help center.</string>
 
     <!-- Home Activity Menu -->
+    <string name="home_activity_menu_setup_unplugged">Ledger Unplugged</string>
     <string name="home_activity_menu_export_logs">Export logs</string>
 
     <!-- Paired Dongle Activity -->
@@ -63,7 +64,16 @@
     <string name="unplugged_security_understood">I UNDERSTAND, CONTINUE</string>
 
     <!-- Unplugged PIN Choice Activity -->
-    <string name="unplugged_pin_choice">Choose your PIN code</string>
+    <string name="unplugged_pin_choice_title_enter">PIN Code</string>
+    <string name="unplugged_pin_choice_step_number_enter">2.</string>
+    <string name="unplugged_pin_choice_step_instruction_enter">Choose a 4 digits code to allow you to secure the access of your wallet</string>
+    <string name="unplugged_pin_choice_step_bottom_enter">Please note: your birth year or your debit/credit card pin are not secure PIN codes.</string>
+
+    <string name="unplugged_pin_choice_title_confirm">Confirmation</string>
+    <string name="unplugged_pin_choice_step_number_confirm">3.</string>
+    <string name="unplugged_pin_choice_step_instruction_confirm">Re-enter the PIN code chosen in the previous step</string>
+    <string name="unplugged_pin_choice_step_bottom_confirm">Your PIN code will be asked each time you to use your Ledger Unplugged.</string>
+    <string name="unplugged_pin_choice_dont_match_error">Your PIN code confirmation does not match.</string>
 
     <!-- Unplugged Seed Activity -->
     <string name="unplugged_seed_activity_title">Recovery phrase</string>

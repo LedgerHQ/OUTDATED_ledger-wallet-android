@@ -1,107 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:tag="normal"
-    android:id="@+id/frame"
-    android:gravity="top"
     >
 
-
-    <LinearLayout
-        android:orientation="vertical"
+    <include
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="top|center_horizontal"
-        android:clipToPadding="false"
-        android:clipChildren="false"
-        android:layout_centerHorizontal="true"
-        android:id="@+id/layout_title"
-        android:layout_marginBottom="@dimen/huge_margin">
+        layout="@layout/workflow_header"
+        />
 
-        <com.ledger.ledgerwallet.widget.TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Créer mon portefeuille"
-            android:id="@+id/textView1"
-            android:textSize="@dimen/very_extra_large_font_size"
-            app:kerning="@dimen/extra_large_font_spacing"
-            android:layout_marginLeft="@dimen/huge_margin"
-            android:textColor="@color/black"
-            app:fontStyle="light"
-            android:layout_gravity="left" />
-
-        <com.ledger.ledgerwallet.widget.TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Ledger Wallet"
-            android:id="@+id/textView2"
-            android:textSize="@dimen/very_extra_large_font_size"
-            app:kerning="@dimen/extra_large_font_spacing"
-            android:layout_marginLeft="@dimen/huge_margin"
-            android:layout_marginRight="@dimen/huge_margin"
-            android:gravity="center"
-            android:textColor="@color/dark_grey"
-            app:fontStyle="light"
-            android:layout_gravity="left" />
-
-    </LinearLayout>
-
-
-
-    <LinearLayout
-        android:orientation="vertical"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/layout_title"
-        android:layout_centerHorizontal="true"
-        android:id="@+id/layoutPIN1">
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbarStyle="insideOverlay">
 
-        <com.ledger.ledgerwallet.widget.TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Choisissez votre code PIN"
-            android:layout_gravity="center_horizontal"
-            android:id="@+id/textView3"
-            android:checked="true" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center">
 
-        <com.ledger.ledgerwallet.widget.PinTextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:id="@+id/pin_view"
-            android:imeOptions="actionNext"
-            android:digits="0123456789ABCDEFabcdef"
-            android:inputType="textNoSuggestions"
-            android:layout_centerHorizontal="true"
-            android:singleLine="true"
-            android:layout_centerInParent="true"/>
-
-        <com.ledger.ledgerwallet.widget.TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Le code PIN saisi ne correspond pas avec celui choisi lors de l'étape précédente."
-            android:layout_marginTop="@dimen/small_margin"
-            android:layout_gravity="center_horizontal"
-            android:textColor="@color/error_color"
-            android:id="@+id/alert"
-            android:visibility="invisible" />
-
-        <com.ledger.ledgerwallet.widget.TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/extra_large_margin"
-            android:text="CONTINUER"
-            android:id="@+id/button"
-            style="@style/RoundedGreenButtonStyle"
-            android:layout_gravity="center_horizontal"
-            android:visibility="invisible"/>
+            <com.ledger.ledgerwallet.widget.PinTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:id="@+id/pin_view"
+                android:imeOptions="actionNext"
+                android:digits="0123456789"
+                android:inputType="number"
+                android:singleLine="true"
+            />
 
 
-    </LinearLayout>
+
+            <com.ledger.ledgerwallet.widget.TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/unplugged_pin_choice_step_bottom_confirm"
+                android:id="@+id/bottom_text"
+                android:textSize="@dimen/small_font_size"
+                android:textColor="@color/soft_grey"
+                android:layout_marginTop="@dimen/large_margin"
+                android:gravity="center"
+                android:layout_marginLeft="@dimen/huge_margin"
+                android:layout_marginRight="@dimen/huge_margin"
+                app:kerning="@dimen/medium_font_spacing"
+            />
+
+        </LinearLayout>
+
+    </ScrollView>
 
 
-</RelativeLayout>
+
+</LinearLayout>
+

@@ -31,14 +31,28 @@
 
 package com.ledger.ledgerwallet.app.unplugged
 
-import com.ledger.ledgerwallet.R
 import android.os.Bundle
+import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.nfc.Unplugged
+import com.ledger.ledgerwallet.utils.logs.Logger
 
 class UnpluggedTapActivity extends UnpluggedSetupActivity {
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.unplugged_tap_activity)
+    getSupportActionBar.setHomeButtonEnabled(true)
+    getSupportActionBar.setDisplayHomeAsUpEnabled(true)
+  }
+
+  override protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
+    Logger.d("UNPLUGGED DISCOVERED")
+    super.onUnpluggedDiscovered(unplugged)
+    if (pin.isEmpty) {
+      startNextActivity(classOf[UnpluggedHomeActivity])
+    } else {
+      startNextActivity(classOf[UnpluggedInProgressActivity])
+    }
   }
 
 }
