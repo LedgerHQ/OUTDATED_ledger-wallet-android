@@ -74,12 +74,6 @@
         </activity>
 
         <activity
-            android:name=".app.unplugged.UnpluggedRecoveryActivity"
-            android:screenOrientation="portrait"
-            android:label="Unplugged">
-        </activity>
-
-        <activity
             android:name=".app.unplugged.UnpluggedBip39MnemonicPhraseActivity"
             android:screenOrientation="portrait">
         </activity>
