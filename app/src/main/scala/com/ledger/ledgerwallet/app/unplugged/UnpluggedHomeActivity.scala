@@ -73,7 +73,6 @@ class UnpluggedHomeActivity extends UnpluggedSetupActivity {
 
     lazy val actionsView = findView[RecyclerView](R.id.actions)
 
-
     override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
       inflater.inflate(R.layout.unplugged_home_fragment, container, false)
     }
