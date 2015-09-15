@@ -31,13 +31,37 @@
 package com.ledger.ledgerwallet.app.unplugged
 
 import android.os.Bundle
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.{common, R}
+import com.ledger.ledgerwallet.bitcoin.Bip39Helper
+import com.ledger.ledgerwallet.bitlib.crypto.{RandomSource, Bip39}
+import com.ledger.ledgerwallet.utils.TR
+import com.ledger.ledgerwallet.widget.{Bip39MnemonicPhraseEditText, TextView}
+import common._
 
 class UnpluggedBip39MnemonicPhraseActivity extends UnpluggedSetupActivity {
+
+  lazy val button = TR(R.id.button).as[TextView]
+  lazy val seedEditText = TR(R.id.phrase).as[Bip39MnemonicPhraseEditText]
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.unplugged_bip39_phrase_fragment)
+
+    if (isInCreationMode) {
+      //stepNumberTextView.setText(R.string.unplugged_seed_header_step_number_create)
+      //stepNumberTextView.setText(R.string.unplugged_seed_header_step_text_create)
+      seedEditText.setText(Bip39Helper.generateMnemonicPhrase())
+      seedEditText.setEnabled(false)
+    } else {
+      stepNumberTextView.setText(R.string.unplugged_seed_header_step_number_restore)
+      stepNumberTextView.setText(R.string.unplugged_seed_header_step_text_restore)
+      seedEditText.setText("")
+    }
+
+    button onClick {
+
+    }
+
   }
 
 }

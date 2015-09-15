@@ -30,14 +30,21 @@
  */
 package com.ledger.ledgerwallet.bitcoin
 
-import com.ledger.ledgerwallet.bitlib.crypto.Bip39
+import java.security.SecureRandom
+
+import com.ledger.ledgerwallet.bitlib.crypto.{RandomSource, Bip39}
 
 object Bip39Helper {
 
   val EnglishWords = Bip39.ENGLISH_WORD_LIST // Temporary solution before refactoring
 
-  def findClosestWords(word: CharSequence, numberOfWords: Int, dictionnary: Array[String] = EnglishWords): Array[String] = {
-    null
+  private[this] lazy val _secureRandom = new SecureRandom()
+
+  def generateMnemonicPhrase(dictionary: Array[String] = EnglishWords): String = {
+    Bip39.createRandomMasterSeed(new RandomSource() {
+      override def nextBytes(bytes: Array[Byte]): Unit = _secureRandom.nextBytes(bytes)
+    }).getBip39WordList.toArray.mkString(" ")
   }
+
 
 }

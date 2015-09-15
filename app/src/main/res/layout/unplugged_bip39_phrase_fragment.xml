@@ -1,12 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.ledger.ledgerwallet.widget.Bip39MnemonicPhraseEditText
+
+    <include
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/view"
-        android:gravity="top|left"
-        />
+        layout="@layout/workflow_header" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/background_color"
+        android:paddingLeft="@dimen/large_margin"
+        android:paddingRight="@dimen/large_margin"
+        android:scrollbarStyle="outsideInset"
+        android:id="@+id/scrollView"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:orientation="vertical">
+
+            <com.ledger.ledgerwallet.widget.Bip39MnemonicPhraseEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/phrase"
+                android:background="@drawable/bg_bip39_edittext"
+                android:gravity="top"
+                android:inputType="textMultiLine|textVisiblePassword|textImeMultiLine"
+                android:digits="qwertyuiopasdfghjklzxcvbnm "
+                android:lineSpacingExtra="10dp"
+                android:textSize="@dimen/medium_font_size"
+                android:textColor="@color/black"
+                android:text="beyond stage sleep clip because twist token leaf atom beauty genius food business side grid unable middle armed observe pair crouch tonight away coconut"
+                android:layout_marginTop="@dimen/huge_margin"
+                android:paddingLeft="@dimen/large_margin"
+                android:paddingRight="@dimen/large_margin"
+                android:paddingTop="@dimen/large_margin"
+                android:paddingBottom="@dimen/large_margin"
+                android:imeOptions="actionDone"
+                 />
+
+            <com.ledger.ledgerwallet.widget.TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/unplugged_seed_bottom_text_create"
+                android:id="@+id/bottom_text"
+                android:gravity="center"
+                android:textColor="@color/soft_grey"
+                app:kerning="@dimen/medium_font_spacing"
+                android:textSize="@dimen/small_font_size"
+                app:fontStyle="light"
+                android:lineSpacingExtra="10dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="@dimen/almost_small_margin"
+                android:layout_marginRight="@dimen/almost_small_margin"
+                android:layout_marginTop="@dimen/large_margin"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <com.ledger.ledgerwallet.widget.TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/unplugged_seed_button_text_create"
+                android:id="@+id/button"
+                style="@style/RoundedGreenButtonStyle"
+                android:layout_marginTop="@dimen/large_margin"
+                android:layout_marginBottom="@dimen/huge_margin"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
 </LinearLayout>

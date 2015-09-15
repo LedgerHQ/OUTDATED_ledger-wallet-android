@@ -35,7 +35,9 @@ import android.support.v7.widget.AppCompatMultiAutoCompleteTextView
 import android.text._
 import android.text.style.{CharacterStyle, ForegroundColorSpan, SuggestionSpan}
 import android.util.AttributeSet
-import android.widget.{ArrayAdapter, MultiAutoCompleteTextView}
+import android.view.View
+import android.widget.AdapterView.OnItemClickListener
+import android.widget.{AdapterView, ArrayAdapter, MultiAutoCompleteTextView}
 import android.widget.MultiAutoCompleteTextView.Tokenizer
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.bitcoin.Bip39Helper
@@ -50,7 +52,7 @@ class Bip39MnemonicPhraseEditText(context: Context, attrs: AttributeSet, defStyl
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
 
-  setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD)
+  //setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD | InputType.TYPE_TEXT_FLAG_MULTI_LINE)
 
   setTokenizer(new Tokenizer {
     override def findTokenStart(s: CharSequence, cursor: Int): Int = {
@@ -134,6 +136,10 @@ class Bip39MnemonicPhraseEditText(context: Context, attrs: AttributeSet, defStyl
           }
         }
 
+        while (words.length == 24 && s.charAt(s.length() - 1) == ' ') {
+          s.delete(s.length() - 1, s.length())
+        }
+
         _editing = false
       }
 
@@ -163,6 +169,13 @@ class Bip39MnemonicPhraseEditText(context: Context, attrs: AttributeSet, defStyl
     }
 
   })
+
+
+ setOnItemClickListener(new OnItemClickListener {
+   override def onItemClick(adapterView: AdapterView[_], view: View, i: Int, l: Long): Unit = {
+     getText.append(' ')
+   }
+ })
 
   private class Bip39WordSuggestionSpan(words: Array[String], flags: Int) extends SuggestionSpan(getContext, words, flags)
   private class Bip39WordErrorSpan extends ForegroundColorSpan(TR(getContext, R.color.invalid_red).asColor)

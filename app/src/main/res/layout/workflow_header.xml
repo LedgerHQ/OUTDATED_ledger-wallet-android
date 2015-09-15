@@ -1,6 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_color"
+    android:weightSum="1"
+    android:keepScreenOn="true"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/medium_margin"
+        android:paddingBottom="@dimen/medium_margin"
+        android:paddingLeft="@dimen/activity_border_margin"
+        android:paddingRight="@dimen/activity_border_margin"
+        android:background="@color/extra_light_grey"
+        android:gravity="center_horizontal"
+        >
+
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fontStyle="light"
+            android:text="1."
+            android:textSize="45sp"
+            android:id="@+id/step_number"
+            app:kerning="@dimen/large_font_spacing"
+            android:textColor="@color/dark_grey"
+            android:layout_marginRight="@dimen/large_margin"
+            android:layout_gravity="center_vertical" />
+
+        <com.ledger.ledgerwallet.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/create_dongle_instruction_step_1"
+            android:id="@+id/instruction_text"
+            android:textColor="@color/dark_grey"
+            android:textSize="@dimen/medium_font_size"
+            app:kerning="@dimen/medium_font_spacing"
+            android:maxWidth="300dp"
+            android:lineSpacingExtra="5dp"
+            android:layout_gravity="center_vertical" />
+    </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp" android:background="@color/very_light_grey"/>
 
 </LinearLayout>

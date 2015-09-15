@@ -33,10 +33,16 @@ package com.ledger.ledgerwallet.app.unplugged
 import android.content.Intent
 import android.nfc.Tag
 import android.os.Bundle
+import android.widget.TextView
+import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.BaseActivity
+import com.ledger.ledgerwallet.utils.TR
 import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
 
 trait UnpluggedSetupActivity extends BaseActivity {
+
+  protected lazy val stepNumberTextView = TR(R.id.step_number).as[TextView]
+  protected lazy val stepInstructionTextView = TR(R.id.instruction_text).as[TextView]
 
   private lazy val _nextExtra = getIntent.getExtras.clone().asInstanceOf[Bundle]
   private lazy val _dispatcher = TagDispatcher.get(this, new OnDiscoveredTagListener {
