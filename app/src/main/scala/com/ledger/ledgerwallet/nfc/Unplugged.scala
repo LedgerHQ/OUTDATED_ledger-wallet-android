@@ -89,6 +89,10 @@ class Unplugged extends OnDiscoveredTagListener {
     }
   }
 
+  def selectApplication(card: IsoCard): Array[Byte] = {
+    sendAPDU(card, Utils.decodeHex(APPLICATION_APDU))
+  }
+
   def sendAPDU (card: IsoCard, APDU: Array[Byte]): Array[Byte] = {
     Log.v(TAG, "Sending APDU " + Utils.encodeHex(APDU))
     var response: Array[Byte] = null
@@ -132,6 +136,14 @@ class Unplugged extends OnDiscoveredTagListener {
 
     APDU = (command :+ APDU.length.toByte) ++ APDU
 
+    sendAPDU(card, APDU)
+  }
+
+  def setKeycard(card: IsoCard, keycard: String): Array[Byte] = {
+    val command = Array[Byte](0xd0.toByte, 0x26, 0x00, 0x00, 0x11, 0x04)
+    val APDU = command ++ Utils.decodeHex(keycard)
+
+    selectApplication(card)
     sendAPDU(card, APDU)
   }
 }
