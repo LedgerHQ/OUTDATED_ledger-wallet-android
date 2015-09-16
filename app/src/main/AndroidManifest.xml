@@ -78,6 +78,13 @@
         </activity>
 
         <activity
+            android:name=".app.unplugged.UnpluggedInstallFidesmoActivity"
+            android:screenOrientation="portrait"
+            android:label="Unplugged">
+
+        </activity>
+
+        <activity
             android:name=".app.unplugged.UnpluggedBip39MnemonicPhraseActivity"
             android:screenOrientation="portrait">
         </activity>
