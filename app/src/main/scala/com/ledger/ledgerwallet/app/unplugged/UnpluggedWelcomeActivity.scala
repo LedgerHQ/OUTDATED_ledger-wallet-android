@@ -78,6 +78,7 @@ class UnpluggedWelcomeActivity extends UnpluggedSetupActivity {
     }
 
     def onActionClick(actionId: Int): Unit = {
+
       setupMode = actionId match {
         case CreateActionId => UnpluggedSetupActivity.CreateWalletSetupMode
         case RestoreActionId => UnpluggedSetupActivity.RestoreWalletSetupMode

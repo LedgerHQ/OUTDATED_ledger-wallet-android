@@ -63,4 +63,13 @@ class UnpluggedTapActivity extends UnpluggedSetupActivity {
     }
   }
 
+
+  override protected def onNotInstalledTagDiscovered(): Unit = {
+    startNextActivity(classOf[UnpluggedInstallFidesmoActivity])
+  }
+
+  override protected def onDiscoveredTagError(error: Throwable): Unit = {
+    super.onDiscoveredTagError(error)
+    Toast.makeText(this, R.string.unplugged_tap_error_occured, Toast.LENGTH_LONG).show()
+  }
 }

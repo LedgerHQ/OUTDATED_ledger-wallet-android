@@ -65,12 +65,20 @@
         </activity>
 
         <activity
+            android:name=".app.unplugged.UnpluggedInstallFidesmoActivity"
+            android:screenOrientation="portrait"
+            android:label="Unplugged">
+
+        </activity>
+
+        <activity
             android:name=".app.unplugged.UnpluggedBip39MnemonicPhraseActivity"
             android:screenOrientation="portrait">
         </activity>
 
         <activity
             android:name=".app.unplugged.UnpluggedTapActivity"
+            android:clearTaskOnLaunch="true"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -45,4 +45,7 @@ object Config {
   def Env = if (BuildConfig.DEBUG) "dev" else "prod"
   def TrustletWebPage = Uri.parse("https://ledgerwallet.com/trustlet")
   def DisableLogging = !BuildConfig.DEBUG
+
+  def GreenBitsPackageName = "com.greenaddress.greenbits_android_wallet"
+  def MyceliumPackageName = "com.mycelium.wallet"
 }

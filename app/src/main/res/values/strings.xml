@@ -110,6 +110,16 @@
     <string name="unplugged_in_progress_step_text_restore">Keep holding your card while the recovery of your wallet is in progress</string>
     <string name="unplugged_in_progress_step_number">6.</string>
 
+    <!-- Unplugged Install Fidesmo Activity -->
+    <string name="unplugged_fidesmo_activity_tiel">Blank card</string>
+    <string name="unplugged_fidesmo_top_text">Your Ledger Unplugged seems to be blank.</string>
+    <string name="unplugged_fidesmo_top_description">To configure your wallet, you need to install the Ledger Unplugged Fidesmo app on your NFC card.</string>
+    <string name="unplugged_fidesmo_install_apk_action_title">1. Install Fidesmo</string>
+    <string name="unplugged_fidesmo_install_apk_action_subtitle">View on Google Play Store</string>
+    <string name="unplugged_fidesmo_install_app_action_title">2. Install Ledger Unplugged</string>
+    <string name="unplugged_fidesmo_install_app_action_subtitle">View on Fidesmo app</string>
+    <string name="unplugged_fidesmo_error_not_installed">Fidesmo app does not seem to be installed. Please visit the Google Play Store and download the app first.</string>
+
     <!-- Unplugged Actions -->
     <string name="unplugged_management_continue">CONTINUE</string>
     <string name="unplugged_management_finish">FINISH</string>

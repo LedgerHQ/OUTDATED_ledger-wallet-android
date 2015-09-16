@@ -1,9 +1,9 @@
 /**
  *
- * HomeActivity
+ * UnpluggedInstallFidesmo
  * Ledger wallet
  *
- * Created by Nicolas Bigot on 10/02/15.
+ * Created by Pierre Pollastri on 16/09/15.
  *
  * The MIT License (MIT)
  *
@@ -30,18 +30,20 @@
  */
 package com.ledger.ledgerwallet.app.unplugged
 
+import android.app.Activity
+import android.content.{Context, Intent}
 import android.os.Bundle
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
-import android.view._
-import android.widget.ImageView
-import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.app.Config
+import android.view.{LayoutInflater, View, ViewGroup}
+import android.widget.{ImageView, Toast}
 import com.ledger.ledgerwallet.base.BaseFragment
 import com.ledger.ledgerwallet.common._
+import com.ledger.ledgerwallet.nfc.Unplugged
 import com.ledger.ledgerwallet.utils.{AndroidUtils, TR}
 import com.ledger.ledgerwallet.widget.{SpacerItemDecoration, TextView}
+import com.ledger.ledgerwallet.{R, common}
 
-class UnpluggedExistingActivity extends UnpluggedSetupActivity {
+class UnpluggedInstallFidesmoActivity extends UnpluggedSetupActivity {
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -53,21 +55,21 @@ class UnpluggedExistingActivity extends UnpluggedSetupActivity {
 
   private class ContentFragment extends BaseFragment {
 
-    val MyceliumActionId = 0x01
-    val GreenBitsActionId = 0x02
+    val InstallFidesmoActionId = 0x01
+    val InstallAppActionId = 0x02
 
     val Actions = Array(
       new Action(
-        id = MyceliumActionId,
-        title = R.string.unplugged_existing_install_mycelium,
-        subtitle = R.string.unplugged_existing_view_on_play_store,
-        icon = R.drawable.ic_mycelium
+        id = InstallFidesmoActionId,
+        title = R.string.unplugged_fidesmo_install_apk_action_title,
+        subtitle = R.string.unplugged_fidesmo_install_apk_action_subtitle,
+        icon = R.drawable.ic_fidesmo
       ),
       new Action(
-        id = GreenBitsActionId,
-        title = R.string.unplugged_existing_install_greenbits,
-        subtitle = R.string.unplugged_existing_view_on_play_store,
-        icon = R.drawable.ic_greenbits
+        id = InstallAppActionId,
+        title = R.string.unplugged_fidesmo_install_app_action_title,
+        subtitle = R.string.unplugged_fidesmo_install_app_action_subtitle,
+        icon = R.drawable.ic_ledgerwallet_small
       )
     )
 
@@ -79,8 +81,18 @@ class UnpluggedExistingActivity extends UnpluggedSetupActivity {
 
     def onActionClick(actionId: Int): Unit = {
       actionId match {
-        case MyceliumActionId => AndroidUtils.startMarketApplicationPage(Config.MyceliumPackageName)
-        case GreenBitsActionId => AndroidUtils.startMarketApplicationPage(Config.GreenBitsPackageName)
+        case InstallFidesmoActionId => AndroidUtils.startMarketApplicationPage(Unplugged.FidesmoAppPackageName)
+        case InstallAppActionId =>
+          if (AndroidUtils.isPackageInstalled(Unplugged.FidesmoAppPackageName)) {
+            val intent = new Intent(Unplugged.FidesmoServiceCardAction, Unplugged.FidesmoServiceUri
+              .buildUpon()
+              .appendPath(Unplugged.FidesmoAppId)
+              .appendPath(Unplugged.FidesmoServiceId)
+              .build())
+            startActivityForResult(intent, Unplugged.FidesmoServiceRequestCode)
+          } else {
+            Toast.makeText(this, R.string.unplugged_fidesmo_error_not_installed, Toast.LENGTH_LONG).show()
+          }
       }
     }
 
@@ -90,6 +102,22 @@ class UnpluggedExistingActivity extends UnpluggedSetupActivity {
       actionsView.setLayoutManager(new LinearLayoutManager(this))
       actionsView.setItemAnimator(new DefaultItemAnimator)
       actionsView.addItemDecoration(new SpacerItemDecoration(TR(R.dimen.very_large_margin).as[Float].toInt))
+    }
+
+
+    override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
+      super.onActivityResult(requestCode, resultCode, data)
+      if (requestCode == Unplugged.FidesmoServiceRequestCode) {
+        resultCode match {
+          case Activity.RESULT_OK =>
+            startActivity(
+              new Intent(this, classOf[UnpluggedTapActivity])
+                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            )
+          case anythingElse =>
+            // Do nothing
+        }
+      }
     }
 
     case class Action(id: Int, title: Int, subtitle: Int, icon: Int)
@@ -123,6 +151,4 @@ class UnpluggedExistingActivity extends UnpluggedSetupActivity {
     }
 
   }
-
 }
-

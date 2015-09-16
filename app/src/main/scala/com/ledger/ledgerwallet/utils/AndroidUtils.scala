@@ -30,12 +30,16 @@
  */
 package com.ledger.ledgerwallet.utils
 
-import android.content.Context
+import android.content.{Intent, Context}
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 
 import scala.util.Try
 
 object AndroidUtils {
+
+  val MarketDetailsUri = Uri.parse("market://details")
 
   private[this] var _isApplicationInForeground = 0
 
@@ -54,5 +58,17 @@ object AndroidUtils {
   def notifyActivityOnResume(): Unit = _isApplicationInForeground += 1
   def notifyActivityOnPause(): Unit = _isApplicationInForeground -= 1
   def isApplicationInForeground = _isApplicationInForeground > 0
+
+  def isPackageInstalled(packageName: String)(implicit context: Context): Boolean = {
+    Try(context.getPackageManager.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES) != null).getOrElse(false)
+  }
+
+  def startMarketApplicationPage(packageName: String)(implicit context: Context): Unit = {
+    context.startActivity(new Intent(Intent.ACTION_VIEW,
+      MarketDetailsUri.buildUpon()
+        .appendQueryParameter("id", packageName)
+        .build())
+    )
+  }
 
 }
