@@ -49,7 +49,7 @@ class UnpluggedTapActivity extends UnpluggedSetupActivity {
     Logger.d("UNPLUGGED DISCOVERED")
     super.onUnpluggedDiscovered(unplugged)
     if (pin.isEmpty) {
-      startNextActivity(classOf[UnpluggedHomeActivity])
+      startNextActivity(classOf[UnpluggedWelcomeActivity])
     } else {
       startNextActivity(classOf[UnpluggedInProgressActivity])
     }

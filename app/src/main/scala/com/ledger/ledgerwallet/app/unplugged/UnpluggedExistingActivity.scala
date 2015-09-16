@@ -3,7 +3,7 @@
  * HomeActivity
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 10/02/15.
+ * Created by Nicolas Bigot on 10/02/15.
  *
  * The MIT License (MIT)
  *
@@ -30,7 +30,6 @@
  */
 package com.ledger.ledgerwallet.app.unplugged
 
-import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view._
@@ -41,7 +40,7 @@ import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.{SpacerItemDecoration, TextView}
 
-class UnpluggedHomeActivity extends UnpluggedSetupActivity {
+class UnpluggedExistingActivity extends UnpluggedSetupActivity {
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -53,36 +52,32 @@ class UnpluggedHomeActivity extends UnpluggedSetupActivity {
 
   private class ContentFragment extends BaseFragment {
 
-    val CreateActionId = 0x01
-    val RestoreActionId = 0x02
+    val MyceliumActionId = 0x01
+    val GreenBitsActionId = 0x02
 
     val Actions = Array(
       new Action(
-        id = CreateActionId,
-        title = R.string.unplugged_welcome_use_as_new,
-        subtitle = R.string.unplugged_welcome_if_its_your_first_wallet,
-        icon = R.drawable.ic_wallet
+        id = MyceliumActionId,
+        title = R.string.unplugged_existing_install_mycelium,
+        subtitle = R.string.unplugged_existing_view_on_play_store,
+        icon = R.drawable.ic_mycelium
       ),
       new Action(
-        id = RestoreActionId,
-        title = R.string.unplugged_welcome_recover_wallet,
-        subtitle = R.string.unplugged_welcome_if_you_lost_your_wallet,
-        icon = R.drawable.ic_restore
+        id = GreenBitsActionId,
+        title = R.string.unplugged_existing_install_greenbits,
+        subtitle = R.string.unplugged_existing_view_on_play_store,
+        icon = R.drawable.ic_greenbits
       )
     )
 
     lazy val actionsView = findView[RecyclerView](R.id.actions)
 
     override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
-      inflater.inflate(R.layout.unplugged_home_fragment, container, false)
+      inflater.inflate(R.layout.unplugged_existing_activity, container, false)
     }
 
     def onActionClick(actionId: Int): Unit = {
-      setupMode = actionId match {
-        case CreateActionId => UnpluggedSetupActivity.CreateWalletSetupMode
-        case RestoreActionId => UnpluggedSetupActivity.RestoreWalletSetupMode
-      }
-      startNextActivity(classOf[UnpluggedSecurityActivity])
+
     }
 
     override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {

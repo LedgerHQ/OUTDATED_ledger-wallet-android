@@ -51,6 +51,14 @@
     <string name="unplugged_welcome_recover_wallet">Recover an existing wallet</string>
     <string name="unplugged_welcome_if_you_lost_your_wallet">By entering your recovery phrase</string>
 
+    <!-- Unplugged Welcome Activity -->
+    <string name="unplugged_existing_title">Existing wallet</string>
+    <string name="unplugged_existing_existing_wallet">Your wallet is already configured.</string>
+    <string name="unplugged_existing_compatible_wallets">Ledger Unplugged can be used with Mycelium and GreenBits Android bitcoin wallets.</string>
+    <string name="unplugged_existing_install_mycelium">Install Mycelium</string>
+    <string name="unplugged_existing_install_greenbits">Install GreenBits</string>
+    <string name="unplugged_existing_view_on_play_store">View on Google Play Store</string>
+
     <!-- Unplugged Security Activity -->
     <string name="unplugged_security_step_text">A trusted computer is required to configure your Ledger Unplugged</string>
     <string name="unplugged_security_step_number">1.</string>

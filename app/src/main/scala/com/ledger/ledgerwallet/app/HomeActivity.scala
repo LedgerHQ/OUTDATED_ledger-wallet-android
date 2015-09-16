@@ -39,7 +39,7 @@ import android.view._
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
 import com.ledger.ledgerwallet.app.m2fa.{IncomingTransactionDialogFragment, PairedDonglesActivity}
-import com.ledger.ledgerwallet.app.unplugged.{UnpluggedHomeActivity, UnpluggedTapActivity}
+import com.ledger.ledgerwallet.app.unplugged.{UnpluggedWelcomeActivity, UnpluggedTapActivity}
 import com.ledger.ledgerwallet.base.{BaseActivity, BaseFragment, BigIconAlertDialog}
 import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.models.PairedDongle
@@ -93,7 +93,7 @@ class HomeActivity extends BaseActivity with OnDiscoveredTagListener{
       val unplugged: Unplugged = new Unplugged()
       if (unplugged.isLedgerUnplugged(tag)) {
         // Open the Ledger Unplugged activity
-        val intent = new Intent(this, classOf[UnpluggedHomeActivity]).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val intent = new Intent(this, classOf[UnpluggedWelcomeActivity]).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
       } else {
         if (unplugged.isFidesmoInstalled(this)) {
