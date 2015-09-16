@@ -52,13 +52,13 @@ class UnpluggedPINChoiceActivity extends UnpluggedSetupActivity {
 
     if (hasPinSetup) {
       // Confirm mode
-      setTitle(R.string.unplugged_pin_choice_title_confirm)
+      setTitle(R.string.unplugged_pin_choice_activity_title_confirm)
       stepNumberTextView.setText(R.string.unplugged_pin_choice_step_number_confirm)
       stepInstructionTextView.setText(R.string.unplugged_pin_choice_step_instruction_confirm)
       bottomTextView.setText(R.string.unplugged_pin_choice_step_bottom_confirm)
     } else {
       // Enter mode
-      setTitle(R.string.unplugged_pin_choice_title_enter)
+      setTitle(R.string.unplugged_pin_choice_activity_title_enter)
       stepNumberTextView.setText(R.string.unplugged_pin_choice_step_number_enter)
       stepInstructionTextView.setText(R.string.unplugged_pin_choice_step_instruction_enter)
       bottomTextView.setText(R.string.unplugged_pin_choice_step_bottom_enter)

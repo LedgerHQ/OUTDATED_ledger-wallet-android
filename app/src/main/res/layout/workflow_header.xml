@@ -14,8 +14,8 @@
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/medium_margin"
         android:paddingBottom="@dimen/medium_margin"
-        android:paddingLeft="@dimen/activity_border_margin"
-        android:paddingRight="@dimen/activity_border_margin"
+        android:paddingLeft="@dimen/very_large_margin"
+        android:paddingRight="@dimen/very_large_margin"
         android:background="@color/extra_light_grey"
         android:gravity="center_horizontal"
         >

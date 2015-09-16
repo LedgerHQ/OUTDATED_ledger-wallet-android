@@ -45,12 +45,13 @@
                 android:text="@string/unplugged_pin_choice_step_bottom_confirm"
                 android:id="@+id/bottom_text"
                 android:textSize="@dimen/small_font_size"
-                android:textColor="@color/soft_grey"
+                android:textColor="@color/dark_grey"
                 android:layout_marginTop="@dimen/large_margin"
                 android:gravity="center"
                 android:layout_marginLeft="@dimen/huge_margin"
                 android:layout_marginRight="@dimen/huge_margin"
                 app:kerning="@dimen/medium_font_spacing"
+                android:lineSpacingExtra="5dp"
             />
 
         </LinearLayout>
