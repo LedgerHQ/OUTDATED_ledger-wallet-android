@@ -78,10 +78,7 @@ class UnpluggedExistingActivity extends UnpluggedSetupActivity {
     }
 
     def onActionClick(actionId: Int): Unit = {
-      actionId match {
-        case MyceliumActionId => AndroidUtils.startMarketApplicationPage(Config.MyceliumPackageName)
-        case GreenBitsActionId => AndroidUtils.startMarketApplicationPage(Config.GreenBitsPackageName)
-      }
+      // todo mofo
     }
 
     override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
@@ -89,7 +86,7 @@ class UnpluggedExistingActivity extends UnpluggedSetupActivity {
       actionsView.setAdapter(new ActionsAdapter)
       actionsView.setLayoutManager(new LinearLayoutManager(this))
       actionsView.setItemAnimator(new DefaultItemAnimator)
-      actionsView.addItemDecoration(new SpacerItemDecoration(TR(R.dimen.very_large_margin).as[Float].toInt))
+      actionsView.addItemDecoration(new SpacerItemDecoration(TR(R.dimen.large_margin).as[Float].toInt))
     }
 
     case class Action(id: Int, title: Int, subtitle: Int, icon: Int)
