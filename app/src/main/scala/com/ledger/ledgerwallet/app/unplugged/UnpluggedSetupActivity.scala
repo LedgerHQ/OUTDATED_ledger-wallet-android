@@ -38,11 +38,14 @@ import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.BaseActivity
 import com.ledger.ledgerwallet.nfc.Unplugged
 import com.ledger.ledgerwallet.utils.TR
+import com.ledger.ledgerwallet.utils.logs.Logger
 import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait UnpluggedSetupActivity extends BaseActivity {
+
+  implicit val LogTag = "UnpluggedSetupActivity"
 
   protected lazy val stepNumberTextView = TR(R.id.step_number).as[TextView]
   protected lazy val stepInstructionTextView = TR(R.id.instruction_text).as[TextView]
@@ -55,16 +58,29 @@ trait UnpluggedSetupActivity extends BaseActivity {
   protected def dispatcher = _dispatcher
 
   protected def onTagDiscovered(tag: Tag): Unit = {
-    Try({
-      val unplugged  = new Unplugged(tag)
-      if (unplugged.isLedgerUnplugged()) {
-        onUnpluggedDiscovered(unplugged)
-      }
-    })
+    val unplugged = new Unplugged(tag)
+    unplugged.checkIsLedgerUnplugged() onComplete {
+      case Success(isLedgerUnplugged) =>
+        if (isLedgerUnplugged) {
+          onUnpluggedDiscovered(unplugged)
+        } else {
+          onNotInstalledTagDiscovered()
+        }
+      case Failure(error) => onDiscoveredTagError(error)
+    }
+  }
+
+  protected def onNotInstalledTagDiscovered(): Unit = {
+
   }
 
   protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
 
+  }
+
+  protected def onDiscoveredTagError(error: Throwable): Unit = {
+    Logger.e(error.getMessage)
+    error.printStackTrace()
   }
 
   override def onResume(): Unit = {

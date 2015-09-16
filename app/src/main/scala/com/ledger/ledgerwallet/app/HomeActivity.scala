@@ -30,16 +30,13 @@
  */
 package com.ledger.ledgerwallet.app
 
-import java.io.IOException
-
 import android.content.Intent
-import android.nfc.Tag
 import android.os.Bundle
 import android.view._
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity
 import com.ledger.ledgerwallet.app.m2fa.{IncomingTransactionDialogFragment, PairedDonglesActivity}
-import com.ledger.ledgerwallet.app.unplugged.{UnpluggedHomeActivity, UnpluggedTapActivity}
+import com.ledger.ledgerwallet.app.unplugged.UnpluggedTapActivity
 import com.ledger.ledgerwallet.base.{BaseActivity, BaseFragment, BigIconAlertDialog}
 import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.models.PairedDongle
@@ -49,28 +46,20 @@ import com.ledger.ledgerwallet.utils.logs.LogCatReader
 import com.ledger.ledgerwallet.utils.{GooglePlayServiceHelper, TR}
 import com.ledger.ledgerwallet.widget.TextView
 
-//TODO: DELETE
-
 import scala.util.{Failure, Success}
 
-// Nordpol TagDispatcher (Fidesmo) and general NFC support
-import com.ledger.ledgerwallet.nfc.Unplugged
-import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
 
-class HomeActivity extends BaseActivity with OnDiscoveredTagListener{
-  var dispatcher: TagDispatcher = null
+class HomeActivity extends BaseActivity {
   lazy val api = IncomingTransactionAPI.defaultInstance(context)
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.single_fragment_holder_activity)
     ensureFragmentIsSetup()
-
-    dispatcher = TagDispatcher.get(this, this)
   }
 
   override def onCreateOptionsMenu(menu: Menu): Boolean = {
-    getMenuInflater().inflate(R.menu.home_activity_menu, menu);
+    getMenuInflater.inflate(R.menu.home_activity_menu, menu);
     true
   }
 
@@ -85,28 +74,6 @@ class HomeActivity extends BaseActivity with OnDiscoveredTagListener{
         startActivity(new Intent(this, classOf[UnpluggedTapActivity]).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         true
       case somethingElse => false
-    }
-  }
-
-  def tagDiscovered(tag: Tag) {
-    try {
-      val unplugged: Unplugged = new Unplugged()
-      if (unplugged.isLedgerUnplugged(tag)) {
-        // Open the Ledger Unplugged activity
-        val intent = new Intent(this, classOf[UnpluggedHomeActivity]).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(intent)
-      } else {
-        if (unplugged.isFidesmoInstalled(this)) {
-
-        } else {
-
-        }
-      }
-    }
-    catch {
-      case ioe: IOException => {
-        // Nothing
-      }
     }
   }
 
@@ -129,14 +96,12 @@ class HomeActivity extends BaseActivity with OnDiscoveredTagListener{
         }
       case _ => // Nothing to do
     }
-    dispatcher.enableExclusiveNfc()
   }
 
   override def onPause(): Unit = {
     super.onPause()
     api.stop()
     api onIncomingTransaction null
-    dispatcher.disableExclusiveNfc()
   }
 
   private[this] def openIncomingTransactionDialog(tx: IncomingTransactionAPI#IncomingTransaction): Unit = {

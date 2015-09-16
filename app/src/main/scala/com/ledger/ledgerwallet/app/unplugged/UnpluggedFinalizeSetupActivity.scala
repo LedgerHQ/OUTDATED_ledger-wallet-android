@@ -32,11 +32,17 @@ package com.ledger.ledgerwallet.app.unplugged
 
 import android.os.Bundle
 import android.view.{View, ViewGroup, LayoutInflater}
-import com.ledger.ledgerwallet.R
+import android.widget.Toast
+import com.ledger.ledgerwallet.{common, R}
 import com.ledger.ledgerwallet.base.BaseFragment
 import com.ledger.ledgerwallet.nfc.Unplugged
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.TextView
+import common._
+import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.ui
+
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
 
@@ -52,11 +58,9 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
     setContentFragment(new TapFragment)
   }
 
-
   override def onPause(): Unit = {
     super.onPause()
-    _mode = TappingMode
-    setContentFragment(new TapFragment)
+    _unplugged = None
   }
 
   override protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
@@ -102,13 +106,15 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
     override def onResume(): Unit = {
       super.onResume()
       if (_unplugged.isDefined) {
-        _unplugged.get.setup(pin.get, mnemonicPhrase.get) map ((result) => {
-          startNextActivity(classOf[UnpluggedSetupCompleteActivity])
-        }) orElse {
-          // Retry
-          _mode = TappingMode
-          setContentFragment(new TapFragment)
-          null
+
+        _unplugged.get.setup(pin.get, mnemonicPhrase.get) onComplete {
+          case Success(_) =>
+            startNextActivity(classOf[UnpluggedSetupCompleteActivity])
+          case Failure(error) =>
+            error.printStackTrace()
+            Toast.makeText(getActivity, R.string.unplugged_tap_error_occured, Toast.LENGTH_LONG).show()
+            _mode = TappingMode
+            setContentFragment(new TapFragment)
         }
       } else {
         // We need to tap again

@@ -1,19 +1,13 @@
 package com.ledger.ledgerwallet.nfc
 
-import java.io.IOException
-
-import android.app.Activity
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.nfc.Tag
 import com.ledger.ledgerwallet.bitlib.crypto.Bip39
 import com.ledger.ledgerwallet.utils.logs.Logger
 import nordpol.IsoCard
-import nordpol.android.{AndroidCard, OnDiscoveredTagListener}
-import android.util.Log
+import nordpol.android.AndroidCard
 
-import scala.util.Try
+import scala.concurrent.Future
+import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 
 class Unplugged(val tag: Tag)  {
 
@@ -35,16 +29,15 @@ class Unplugged(val tag: Tag)  {
 
   val card = AndroidCard.get(tag)
 
-  def isLedgerUnplugged(): Boolean = {
+  def checkIsLedgerUnplugged(): Future[Boolean] = {
     send(APPLICATION_APDU)
       .map(Utils.encodeHex)
-      .getOrElse(null) == "9000"
+      .map(_ == "9000")
   }
 
-  def send(apduString: String): Try[ByteArray] = send(Utils.decodeHex(apduString))
-  def send(apduInt: Int*): Try[ByteArray] = send(apduInt.map(_.toByte).toArray)
-  def send(apduByte: Byte*): Try[ByteArray] = send(apduByte.toArray)
-  def send(apdu: APDU): Try[ByteArray] = Try {
+  def send(apduString: String): Future[ByteArray] = send(Utils.decodeHex(apduString))
+  def send(apduInt: Int*): Future[ByteArray] = send(apduInt.map(_.toByte).toArray)
+  def send(apdu: APDU): Future[ByteArray] = Future {
     Logger.d(s"=> ${Utils.encodeHex(apdu)}")
     card.connect()
     val response = card.transceive(apdu)
@@ -53,12 +46,12 @@ class Unplugged(val tag: Tag)  {
     response
   }
 
-  def isSetup(): Boolean = {
+  def checkIsSetup(): Future[Boolean] = {
     send(0xE0, 0x40, 0x00, 0x00, 0x0d, 0x03, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00)
-    .map(_.slice(0, 4)).map(Utils.encodeHex).getOrElse(null) != "6985"
+    .map(_.slice(0, 4)).map(Utils.encodeHex).map(_ != "6985")
   }
 
-  def setup(PIN: String, seed: String): Try[ByteArray] = { // This will be replaced by BTChip's Java code later
+  def setup(PIN: String, seed: String): Future[Boolean] = { // This will be replaced by BTChip's Java code later
     def getBip32FromSeed(bip39: String): String = {
       Utils.bytesToHex(Bip39.generateSeedFromWordList(bip39.split(" "), "").getBip32Seed)
     }
@@ -82,16 +75,20 @@ class Unplugged(val tag: Tag)  {
 
     APDU = (command :+ APDU.length.toByte) ++ APDU
 
-    send(APDU)
+    send(APDU) map { (result) =>
+      true
+    }
   }
 
-  def setKeycard(card: IsoCard, keycard: String): Try[ByteArray] = {
+  def setKeycard(card: IsoCard, keycard: String): Future[Boolean] = {
     val command = Array[Byte](0xd0.toByte, 0x26, 0x00, 0x00, 0x11, 0x04)
     val APDU = command ++ Utils.decodeHex(keycard)
 
-    send(APPLICATION_APDU).flatMap({ (result) =>
+    send(APPLICATION_APDU) flatMap { (result) =>
       send(0xd0, 0x26, 0x00, 0x00, 0x11, 0x04)
-    })
+    } map { (result) =>
+      true
+    }
   }
 
 

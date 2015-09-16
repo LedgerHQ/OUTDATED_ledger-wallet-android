@@ -32,8 +32,12 @@
 package com.ledger.ledgerwallet.app.unplugged
 
 import android.os.Bundle
+import android.widget.Toast
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.nfc.Unplugged
+import com.ledger.ledgerwallet.utils.logs.Logger
+
+import scala.util.{Failure, Success}
 
 class UnpluggedTapActivity extends UnpluggedSetupActivity {
 
@@ -46,12 +50,16 @@ class UnpluggedTapActivity extends UnpluggedSetupActivity {
 
   override protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
     super.onUnpluggedDiscovered(unplugged)
-    if (unplugged.isSetup()) {
-      // Go to already installed
-      ???
-      startNextActivity(classOf[Unplugged])
-    } else {
-      startNextActivity(classOf[UnpluggedHomeActivity])
+    unplugged.checkIsSetup() onComplete {
+      case Success(isSetup) =>
+        if (isSetup) {
+          startNextActivity(classOf[UnpluggedExistingActivity])
+        } else {
+          startNextActivity(classOf[UnpluggedWelcomeActivity])
+        }
+      case Failure(error) =>
+        error.printStackTrace()
+        Toast.makeText(this, R.string.unplugged_tap_error_occured, Toast.LENGTH_LONG).show()
     }
   }
 

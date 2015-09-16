@@ -36,6 +36,7 @@ object ExecutionContext {
 
   object Implicits {
     implicit lazy val main = scala.concurrent.ExecutionContext.fromExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
+    implicit lazy val ui = new HandlerExecutionContext(new Handler(Looper.getMainLooper))
   }
 
   class HandlerExecutionContext(handler: Handler) extends scala.concurrent.ExecutionContextExecutor {
