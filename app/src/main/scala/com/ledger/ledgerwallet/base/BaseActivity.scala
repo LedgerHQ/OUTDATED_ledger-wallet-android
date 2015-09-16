@@ -48,7 +48,6 @@ import scala.concurrent.ExecutionContext
 
 abstract class BaseActivity extends AppCompatActivity with Loggable {
   implicit val context = this
-  implicit val executor: ExecutionContext = com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 
   lazy val toolbar = TR(R.id.toolbar).as[Toolbar]
   lazy val content = TR(R.id.content_view).as[FrameLayout]

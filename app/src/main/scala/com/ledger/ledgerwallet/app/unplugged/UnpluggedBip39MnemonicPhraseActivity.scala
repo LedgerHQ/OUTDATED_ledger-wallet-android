@@ -30,16 +30,14 @@
  */
 package com.ledger.ledgerwallet.app.unplugged
 
-import android.content.Context
 import android.os.Bundle
 import android.view.WindowManager
-import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.bitcoin.Bip39Helper
 import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.{Bip39MnemonicPhraseEditText, TextView}
-import com.ledger.ledgerwallet.R
 
 class UnpluggedBip39MnemonicPhraseActivity extends UnpluggedSetupActivity {
 
@@ -55,7 +53,7 @@ class UnpluggedBip39MnemonicPhraseActivity extends UnpluggedSetupActivity {
       stepInstructionTextView.setText(R.string.unplugged_seed_header_step_text_create)
       seedEditText.setText(Bip39Helper.generateMnemonicPhrase())
       seedEditText.setEnabled(false)
-      getWindow().setSoftInputMode(
+      getWindow.setSoftInputMode(
         WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
       );
     } else {
@@ -69,7 +67,7 @@ class UnpluggedBip39MnemonicPhraseActivity extends UnpluggedSetupActivity {
       if (!Bip39Helper.isMnemomicPhraseValid(mnemonicPhrase.get)) {
         Toast.makeText(this, R.string.unplugged_seed_invalid_seed, Toast.LENGTH_LONG).show()
       } else {
-        startNextActivity(classOf[UnpluggedFinalizeSetupActivity])
+        startNextActivity(classOf[UnpluggedSetupKeyCardActivity])
       }
     }
 

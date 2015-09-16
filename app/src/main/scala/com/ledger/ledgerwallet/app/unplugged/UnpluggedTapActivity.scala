@@ -36,6 +36,7 @@ import android.widget.Toast
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.nfc.Unplugged
 import com.ledger.ledgerwallet.utils.logs.Logger
+import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 
 import scala.util.{Failure, Success}
 

@@ -40,6 +40,7 @@ import com.ledger.ledgerwallet.nfc.Unplugged
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.utils.logs.Logger
 import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
+import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 
 import scala.util.{Failure, Success, Try}
 
@@ -116,6 +117,9 @@ trait UnpluggedSetupActivity extends BaseActivity {
   def mnemonicPhrase = Option(_nextExtra.getString(UnpluggedSetupActivity.ExtraMnemonicPhrase))
   def mnemonicPhrase_= (mnemonicPhrase: String): Unit = _nextExtra.putString(UnpluggedSetupActivity.ExtraMnemonicPhrase, mnemonicPhrase)
 
+  def keycardSeed = Option(_nextExtra.getString(UnpluggedSetupActivity.ExtraKeycardSeed))
+  def keycardSeed_= (mnemonicPhrase: String): Unit = _nextExtra.putString(UnpluggedSetupActivity.ExtraKeycardSeed, mnemonicPhrase)
+
 }
 
 
@@ -126,4 +130,5 @@ object UnpluggedSetupActivity {
   val ExtraSetupMode = "EXTRA_SETUP_MODE"
   val ExtraPinCode = "EXTRA_PIN_CODE"
   val ExtraMnemonicPhrase = "EXTRA_MNEMONIC_PHRASE"
+  val ExtraKeycardSeed = "EXTRA_KEYCARD_SEED"
 }

@@ -32,10 +32,16 @@ package com.ledger.ledgerwallet.widget
 
 import android.content.Context
 import android.graphics._
+import android.util.AttributeSet
 import android.view.View
 import com.ledger.ledgerwallet.utils.Convert
 
-class ScannerFrame(context: Context) extends View(context) {
+class ScannerFrame(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int)
+  extends View(context, attrs) {
+
+  def this(context: Context, attrs: AttributeSet, defStyleAttr: Int) = this(context, attrs, 0, 0)
+  def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
+  def this(context: Context) = this(context, null)
 
   private val _maskPaint = {
     val p = new Paint()

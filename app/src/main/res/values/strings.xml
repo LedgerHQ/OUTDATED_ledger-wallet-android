@@ -120,6 +120,13 @@
     <string name="unplugged_fidesmo_install_app_action_subtitle">View on Fidesmo app</string>
     <string name="unplugged_fidesmo_error_not_installed">Fidesmo app does not seem to be installed. Please visit the Google Play Store and download the app first.</string>
 
+    <!-- Unplugged Scan Keycard Activity -->
+    <string name="unplugged_scan_title">Security card</string>
+    <string name="unplugged_scan_step_number">5.</string>
+    <string name="unplugged_scan_step_instruction">Scan or type in your security card QR code from your recovery sheet</string>
+    <string name="unplugged_scan_manual_pincode">MANUALLY ENTER MY QR CODE</string>
+    <string name="unplugged_scan_create_keycard">I need a new security card</string>
+    
     <!-- Unplugged Actions -->
     <string name="unplugged_management_continue">CONTINUE</string>
     <string name="unplugged_management_finish">FINISH</string>

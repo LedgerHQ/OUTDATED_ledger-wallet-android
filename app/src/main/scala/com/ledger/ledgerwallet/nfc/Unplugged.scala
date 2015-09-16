@@ -3,12 +3,11 @@ package com.ledger.ledgerwallet.nfc
 import android.net.Uri
 import android.nfc.Tag
 import com.ledger.ledgerwallet.bitlib.crypto.Bip39
+import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 import com.ledger.ledgerwallet.utils.logs.Logger
-import nordpol.IsoCard
 import nordpol.android.AndroidCard
 
 import scala.concurrent.Future
-import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 
 class Unplugged(val tag: Tag)  {
 
@@ -81,12 +80,12 @@ class Unplugged(val tag: Tag)  {
     }
   }
 
-  def setKeycard(card: IsoCard, keycard: String): Future[Boolean] = {
+  def setKeycard(keycard: String): Future[Boolean] = {
     val command = Array[Byte](0xd0.toByte, 0x26, 0x00, 0x00, 0x11, 0x04)
     val APDU = command ++ Utils.decodeHex(keycard)
 
     send(ApplicationApdu) flatMap { (result) =>
-      send(0xd0, 0x26, 0x00, 0x00, 0x11, 0x04)
+      send(APDU)
     } map { (result) =>
       true
     }
@@ -203,6 +202,6 @@ object Unplugged {
   val FidesmoServiceUri = Uri.parse("https://api.fidesmo.com/service/")
   val FidesmoServiceRequestCode = 724
   val FidesmoServiceCardAction =  "com.fidesmo.sec.DELIVER_SERVICE"
-  val FidesmoServiceId = "test"
+  val FidesmoServiceId = "install"
 
 }

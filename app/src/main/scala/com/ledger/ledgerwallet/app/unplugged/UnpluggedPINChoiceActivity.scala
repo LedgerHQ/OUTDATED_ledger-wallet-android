@@ -69,7 +69,8 @@ class UnpluggedPINChoiceActivity extends UnpluggedSetupActivity {
     pinTextView.setOnEditorActionListener((actionId: Int, event: KeyEvent) => {
       actionId match {
         case EditorInfo.IME_ACTION_NEXT =>
-          navigateNext()
+          if (pinTextView.getText.toString.length == 4)
+            navigateNext()
           true
         case _ => false
       }
