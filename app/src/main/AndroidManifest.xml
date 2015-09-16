@@ -21,10 +21,6 @@
             android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:launchMode="singleTask">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
 
         <activity
@@ -52,12 +48,6 @@
         </activity>
 
         <activity
-            android:name=".app.unplugged.UnpluggedExistingActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/unplugged_welcome_title">
-        </activity>
-
-        <activity
             android:name=".app.unplugged.UnpluggedWelcomeActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_welcome_title">
@@ -67,14 +57,11 @@
             android:name=".app.unplugged.UnpluggedSecurityActivity"
             android:screenOrientation="portrait"
             android:label="Unplugged">
-
         </activity>
 
         <activity
             android:name=".app.unplugged.UnpluggedPINChoiceActivity"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="stateVisible">
-
+            android:screenOrientation="portrait">
         </activity>
 
         <activity
@@ -85,12 +72,15 @@
         <activity
             android:name=".app.unplugged.UnpluggedTapActivity"
             android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <activity
             android:name=".app.unplugged.UnpluggedFinalizeSetupActivity"
             android:screenOrientation="portrait">
-
         </activity>
 
         <activity
@@ -99,15 +89,13 @@
         </activity>
 
         <activity
-            android:name=".app.unplugged.UnpluggedSetupCompleteActivity"
+            android:name=".app.unplugged.UnpluggedExistingActivity"
             android:screenOrientation="portrait">
-
         </activity>
 
         <receiver
             android:name=".app.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
-
         </receiver>
         <service android:name=".app.GcmIntentService" />
         <provider
