@@ -1,5 +1,6 @@
 package com.ledger.ledgerwallet.nfc
 
+import android.net.Uri
 import android.nfc.Tag
 import com.ledger.ledgerwallet.bitlib.crypto.Bip39
 import com.ledger.ledgerwallet.utils.logs.Logger
@@ -18,7 +19,7 @@ class Unplugged(val tag: Tag)  {
 
   val APPLICATION_ID = "54BF6AA9"
   val SERVICE_ID = "test"
-  val APPLICATION_APDU: String = "00a404000ca0000006170054bf6aa94901"
+  val ApplicationApdu: String = "00a404000ca0000006170054bf6aa94901"
   val successfulAPDU = Array[Byte](0x90.toByte, 0x00);
   val FIDESMO_APP: String = "com.fidesmo.sec.android"
   val SERVICE_URI: String = "https://api.fidesmo.com/service/"
@@ -30,7 +31,7 @@ class Unplugged(val tag: Tag)  {
   val card = AndroidCard.get(tag)
 
   def checkIsLedgerUnplugged(): Future[Boolean] = {
-    send(APPLICATION_APDU)
+    send(ApplicationApdu)
       .map(Utils.encodeHex)
       .map(_ == "9000")
   }
@@ -84,7 +85,7 @@ class Unplugged(val tag: Tag)  {
     val command = Array[Byte](0xd0.toByte, 0x26, 0x00, 0x00, 0x11, 0x04)
     val APDU = command ++ Utils.decodeHex(keycard)
 
-    send(APPLICATION_APDU) flatMap { (result) =>
+    send(ApplicationApdu) flatMap { (result) =>
       send(0xd0, 0x26, 0x00, 0x00, 0x11, 0x04)
     } map { (result) =>
       true
@@ -193,6 +194,15 @@ class Unplugged(val tag: Tag)  {
   }
   */
 
+}
 
+object Unplugged {
+
+  val FidesmoAppId = "54BF6AA9"
+  val FidesmoAppPackageName = "com.fidesmo.sec.android"
+  val FidesmoServiceUri = Uri.parse("https://api.fidesmo.com/service/")
+  val FidesmoServiceRequestCode = 724
+  val FidesmoServiceCardAction =  "com.fidesmo.sec.DELIVER_SERVICE"
+  val FidesmoServiceId = "test"
 
 }

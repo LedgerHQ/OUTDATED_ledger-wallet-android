@@ -65,7 +65,7 @@ class UnpluggedTapActivity extends UnpluggedSetupActivity {
 
 
   override protected def onNotInstalledTagDiscovered(): Unit = {
-    startNextActivity(classOf[])
+    startNextActivity(classOf[UnpluggedInstallFidesmoActivity])
   }
 
   override protected def onDiscoveredTagError(error: Throwable): Unit = {

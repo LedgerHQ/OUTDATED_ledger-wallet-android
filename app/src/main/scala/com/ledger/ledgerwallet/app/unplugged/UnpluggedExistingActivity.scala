@@ -35,9 +35,10 @@ import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, Recy
 import android.view._
 import android.widget.ImageView
 import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.app.Config
 import com.ledger.ledgerwallet.base.BaseFragment
 import com.ledger.ledgerwallet.common._
-import com.ledger.ledgerwallet.utils.TR
+import com.ledger.ledgerwallet.utils.{AndroidUtils, TR}
 import com.ledger.ledgerwallet.widget.{SpacerItemDecoration, TextView}
 
 class UnpluggedExistingActivity extends UnpluggedSetupActivity {
@@ -77,7 +78,10 @@ class UnpluggedExistingActivity extends UnpluggedSetupActivity {
     }
 
     def onActionClick(actionId: Int): Unit = {
-
+      actionId match {
+        case MyceliumActionId => AndroidUtils.startMarketApplicationPage(Config.MyceliumPackageName)
+        case GreenBitsActionId => AndroidUtils.startMarketApplicationPage(Config.GreenBitsPackageName)
+      }
     }
 
     override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
