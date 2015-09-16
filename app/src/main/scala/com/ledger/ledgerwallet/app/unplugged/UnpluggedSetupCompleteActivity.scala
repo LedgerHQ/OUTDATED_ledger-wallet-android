@@ -1,9 +1,9 @@
 /**
  *
- * UnpluggedTapActivity
- * ledger-wallet-android
+ * UnpluggedSetupCompleteActivity
+ * Ledger wallet
  *
- * Created by Nicolas Bigot on 15/09/15.
+ * Created by Pierre Pollastri on 16/09/15.
  *
  * The MIT License (MIT)
  *
@@ -28,31 +28,8 @@
  * SOFTWARE.
  *
  */
-
 package com.ledger.ledgerwallet.app.unplugged
 
-import android.os.Bundle
-import com.ledger.ledgerwallet.R
-import com.ledger.ledgerwallet.nfc.Unplugged
-
-class UnpluggedTapActivity extends UnpluggedSetupActivity {
-
-  override def onCreate(savedInstanceState: Bundle): Unit = {
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.unplugged_tap_activity)
-    getSupportActionBar.setHomeButtonEnabled(true)
-    getSupportActionBar.setDisplayHomeAsUpEnabled(true)
-  }
-
-  override protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
-    super.onUnpluggedDiscovered(unplugged)
-    if (unplugged.isSetup()) {
-      // Go to already installed
-      ???
-      startNextActivity(classOf[Unplugged])
-    } else {
-      startNextActivity(classOf[UnpluggedHomeActivity])
-    }
-  }
+class UnpluggedSetupCompleteActivity extends UnpluggedSetupActivity {
 
 }

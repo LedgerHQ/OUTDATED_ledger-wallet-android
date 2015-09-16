@@ -94,6 +94,12 @@
             android:screenOrientation="portrait">
         </activity>
 
+        <activity
+            android:name=".app.unplugged.UnpluggedSetupCompleteActivity"
+            android:screenOrientation="portrait">
+
+        </activity>
+
         <receiver
             android:name=".app.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >

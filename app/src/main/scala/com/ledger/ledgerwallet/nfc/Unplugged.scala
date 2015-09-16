@@ -8,17 +8,20 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.nfc.Tag
 import com.ledger.ledgerwallet.bitlib.crypto.Bip39
+import com.ledger.ledgerwallet.utils.logs.Logger
 import nordpol.IsoCard
 import nordpol.android.{AndroidCard, OnDiscoveredTagListener}
 import android.util.Log
 
 import scala.util.Try
 
-class Unplugged extends OnDiscoveredTagListener {
+class Unplugged(val tag: Tag)  {
 
   type ByteArray = Array[Byte]
+  type APDU = ByteArray
 
-  val TAG: String = "LedgerUnpluggedHelper"
+  implicit  val LoggerTag: String = "LedgerUnpluggedHelper"
+
   val APPLICATION_ID = "54BF6AA9"
   val SERVICE_ID = "test"
   val APPLICATION_APDU: String = "00a404000ca0000006170054bf6aa94901"
@@ -30,24 +33,69 @@ class Unplugged extends OnDiscoveredTagListener {
   val MARKET_URI: String = "market://details?id="
   val MARKET_VIA_BROWSER_URI: String = "http://play.google.com/store/apps/details?id="
 
-  def tagDiscovered(tag: Tag) {
-    try {
-      //readCard(AndroidCard.get(tag))
-      Log.v(TAG, "Found NFC Tag !")
-    }
-    catch {
-      case ioe: IOException => {
+  val card = AndroidCard.get(tag)
 
-      }
-    }
-  }
-
-  def isLedgerUnplugged(tag: Tag): Boolean = {
-    sendAPDU(AndroidCard.get(tag), Utils.decodeHex(APPLICATION_APDU))
+  def isLedgerUnplugged(): Boolean = {
+    send(APPLICATION_APDU)
       .map(Utils.encodeHex)
       .getOrElse(null) == "9000"
   }
 
+  def send(apduString: String): Try[ByteArray] = send(Utils.decodeHex(apduString))
+  def send(apduInt: Int*): Try[ByteArray] = send(apduInt.map(_.toByte).toArray)
+  def send(apduByte: Byte*): Try[ByteArray] = send(apduByte.toArray)
+  def send(apdu: APDU): Try[ByteArray] = Try {
+    Logger.d(s"=> ${Utils.encodeHex(apdu)}")
+    card.connect()
+    val response = card.transceive(apdu)
+    Logger.d(s"=> ${Utils.encodeHex(response)}")
+    card.close()
+    response
+  }
+
+  def isSetup(): Boolean = {
+    send(0xE0, 0x40, 0x00, 0x00, 0x0d, 0x03, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00)
+    .map(_.slice(0, 4)).map(Utils.encodeHex).getOrElse(null) != "6985"
+  }
+
+  def setup(PIN: String, seed: String): Try[ByteArray] = { // This will be replaced by BTChip's Java code later
+    def getBip32FromSeed(bip39: String): String = {
+      Utils.bytesToHex(Bip39.generateSeedFromWordList(bip39.split(" "), "").getBip32Seed)
+    }
+
+    val command = Array[Byte](0xe0.toByte, 0x20, 0x00, 0x00)
+    val mode: Byte = 0x01
+    val features: Byte = 0x0a
+    val coinVersion: Byte = 0x00
+    val p2shVersion: Byte = 0x05
+    val pinHex: Array[Byte] = PIN.getBytes
+    val pinLength: Byte = PIN.length.toByte
+    val secPinLength: Byte = 0x00
+    val bip32Seed: Array[Byte] = Utils.decodeHex(getBip32FromSeed(seed))
+    val bip32SeedLength: Byte = bip32Seed.length.toByte
+    val threedeskey: Byte = 0x00
+
+    var APDU = Array[Byte]()
+    APDU = APDU :+ mode :+ features :+ coinVersion :+ p2shVersion :+ pinLength
+    APDU = APDU ++ pinHex :+ secPinLength :+ bip32SeedLength
+    APDU = APDU ++ bip32Seed :+ threedeskey
+
+    APDU = (command :+ APDU.length.toByte) ++ APDU
+
+    send(APDU)
+  }
+
+  def setKeycard(card: IsoCard, keycard: String): Try[ByteArray] = {
+    val command = Array[Byte](0xd0.toByte, 0x26, 0x00, 0x00, 0x11, 0x04)
+    val APDU = command ++ Utils.decodeHex(keycard)
+
+    send(APPLICATION_APDU).flatMap({ (result) =>
+      send(0xd0, 0x26, 0x00, 0x00, 0x11, 0x04)
+    })
+  }
+
+
+  /*
   def isFidesmoInstalled(activity: Activity): Boolean = {
     val pm: PackageManager = activity.getPackageManager
     var app_installed: Boolean = false
@@ -146,7 +194,7 @@ class Unplugged extends OnDiscoveredTagListener {
     selectApplication(card)
     sendAPDU(card, APDU)
   }
-
+  */
 
 
 

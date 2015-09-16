@@ -56,8 +56,8 @@ trait UnpluggedSetupActivity extends BaseActivity {
 
   protected def onTagDiscovered(tag: Tag): Unit = {
     Try({
-      val unplugged  = new Unplugged()
-      if (unplugged.isLedgerUnplugged(tag)) {
+      val unplugged  = new Unplugged(tag)
+      if (unplugged.isLedgerUnplugged()) {
         onUnpluggedDiscovered(unplugged)
       }
     })

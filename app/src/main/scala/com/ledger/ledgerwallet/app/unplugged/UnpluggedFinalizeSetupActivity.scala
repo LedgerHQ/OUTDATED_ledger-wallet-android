@@ -53,6 +53,12 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
   }
 
 
+  override def onPause(): Unit = {
+    super.onPause()
+    _mode = TappingMode
+    setContentFragment(new TapFragment)
+  }
+
   override protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
     super.onUnpluggedDiscovered(unplugged)
     if (_mode == TappingMode) {
@@ -93,6 +99,23 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
       }
     }
 
+    override def onResume(): Unit = {
+      super.onResume()
+      if (_unplugged.isDefined) {
+        _unplugged.get.setup(pin.get, mnemonicPhrase.get) map ((result) => {
+          startNextActivity(classOf[UnpluggedSetupCompleteActivity])
+        }) orElse {
+          // Retry
+          _mode = TappingMode
+          setContentFragment(new TapFragment)
+          null
+        }
+      } else {
+        // We need to tap again
+        _mode = TappingMode
+        setContentFragment(new TapFragment)
+      }
+    }
   }
 
 }
