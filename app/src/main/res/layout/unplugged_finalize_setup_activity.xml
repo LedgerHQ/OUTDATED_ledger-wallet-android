@@ -25,22 +25,6 @@
             android:layout_gravity="center_horizontal"
             android:src="@drawable/ic_wave_unplugged" />
 
-        <com.ledger.ledgerwallet.widget.TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/unplugged_finalize_setup_few_moments"
-            android:id="@+id/bottom_text"
-            android:gravity="center"
-            android:textColor="@color/dark_grey"
-            app:kerning="@dimen/medium_font_spacing"
-            android:textSize="@dimen/small_font_size"
-            app:fontStyle="regular"
-            android:lineSpacingExtra="10dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginLeft="@dimen/extra_large_margin"
-            android:layout_marginRight="@dimen/extra_large_margin"
-            android:layout_marginTop="@dimen/large_margin"/>
-
 
     </LinearLayout>
 
