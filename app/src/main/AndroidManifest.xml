@@ -63,74 +63,123 @@
         </activity>
 
         <activity
+            android:name=".app.unplugged.UnpluggedTapActivity"
+            android:clearTaskOnLaunch="true"
+            android:screenOrientation="portrait"
+            android:label="@string/unplugged_tap_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
+        </activity>
+
+        <activity
             android:name=".app.unplugged.UnpluggedWelcomeActivity"
             android:screenOrientation="portrait"
-            android:label="@string/unplugged_welcome_activity_title">
+            android:label="@string/unplugged_welcome_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
         </activity>
 
         <activity
             android:name=".app.unplugged.UnpluggedSecurityActivity"
             android:screenOrientation="portrait"
-            android:label="@string/unplugged_security_activity_title">
+            android:label="@string/unplugged_security_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
         </activity>
 
         <activity
             android:name=".app.unplugged.UnpluggedPINChoiceActivity"
-            android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:screenOrientation="portrait"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
         </activity>
 
         <activity
             android:name=".app.unplugged.UnpluggedInstallFidesmoActivity"
             android:screenOrientation="portrait"
-            android:label="@string/unplugged_fidesmo_activity_title">
+            android:label="@string/unplugged_fidesmo_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
         </activity>
-
         <activity
             android:name=".app.unplugged.UnpluggedBip39MnemonicPhraseActivity"
             android:screenOrientation="portrait"
-            android:label="@string/unplugged_seed_activity_title">
-        </activity>
-
-        <activity
-            android:name=".app.unplugged.UnpluggedTapActivity"
-            android:clearTaskOnLaunch="true"
-            android:screenOrientation="portrait"
-            android:label="@string/unplugged_tap_activity_title">
-
+            android:label="@string/unplugged_seed_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
         </activity>
 
         <activity
             android:name=".app.unplugged.UnpluggedFinalizeSetupActivity"
             android:screenOrientation="portrait"
-            android:label="@string/unplugged_finalize_setup_activity_title">
+            android:label="@string/unplugged_finalize_setup_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
         </activity>
 
         <activity
             android:name=".app.unplugged.UnpluggedSetupCompleteActivity"
             android:screenOrientation="portrait"
-            android:label="@string/unplugged_setup_complete_activity_title">
+            android:label="@string/unplugged_setup_complete_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
         </activity>
 
         <activity
             android:name=".app.unplugged.UnpluggedInProgressActivity"
             android:screenOrientation="portrait"
-            android:label="@string/unplugged_in_progress_activity_title">
+            android:label="@string/unplugged_in_progress_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
         </activity>
 
         <activity
             android:name=".app.unplugged.UnpluggedExistingActivity"
             android:screenOrientation="portrait"
-            android:label="@string/unplugged_existing_activity_title">
+            android:label="@string/unplugged_existing_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
         </activity>
 
         <activity
             android:name=".app.unplugged.UnpluggedSetupKeyCardActivity"
             android:label="@string/unplugged_scan_title"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
         </activity>
 
         <receiver

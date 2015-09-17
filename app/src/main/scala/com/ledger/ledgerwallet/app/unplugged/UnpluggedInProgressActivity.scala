@@ -38,6 +38,8 @@ class UnpluggedInProgressActivity extends UnpluggedSetupActivity {
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.unplugged_in_progress_activity)
+    getSupportActionBar.setHomeButtonEnabled(true)
+    getSupportActionBar.setDisplayHomeAsUpEnabled(true)
     stepNumberTextView.setText(R.string.unplugged_in_progress_step_number)
     if (isInCreationMode) {
       stepInstructionTextView.setText(R.string.unplugged_in_progress_step_text_creation)

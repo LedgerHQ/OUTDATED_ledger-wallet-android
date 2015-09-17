@@ -112,8 +112,9 @@ class UnpluggedInstallFidesmoActivity extends UnpluggedSetupActivity {
           case Activity.RESULT_OK =>
             startActivity(
               new Intent(this, classOf[UnpluggedTapActivity])
-                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             )
+            finish()
           case anythingElse =>
             // Do nothing
         }

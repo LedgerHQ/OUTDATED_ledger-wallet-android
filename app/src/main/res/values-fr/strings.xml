@@ -64,9 +64,9 @@
     <string name="unplugged_security_step_text">Un smartphone de confiance est requis pour configurer votre Ledger Unplugged</string>
     <string name="unplugged_security_step_number">1.</string>
     <string name="unplugged_security_line_1">Cet assistant de configuration manipule des données sensibles concernant votre portefeuille.</string>
-    <string name="unplugged_security_line_2_creation">Il est très important de continuer la procédure de création depuis un smartphone de confiance afin d’empêcher que quelqu'un accède à ces informations.</string>
-    <string name="unplugged_security_line_2_restore">Il est très important de continuer la procédure de restauration depuis un smartphone de confiance afin d’empêcher que quelqu'un accède à ces informations.</string>
-    <string name="unplugged_security_line_3">En cas de doute, nous recommandons de fermer l'application et de réouvrir cet assistamt depuis un smartphone plus sûr.</string>
+    <string name="unplugged_security_line_2_creation">Il est très important de continuer la procédure de création depuis un smartphone de confiance afin d’empêcher que quelqu\'un accède à ces informations.</string>
+    <string name="unplugged_security_line_2_restore">Il est très important de continuer la procédure de restauration depuis un smartphone de confiance afin d’empêcher que quelqu\'un accède à ces informations.</string>
+    <string name="unplugged_security_line_3">En cas de doute, nous recommandons de fermer l\'application et de réouvrir cet assistamt depuis un smartphone plus sûr.</string>
     <string name="unplugged_security_line_4">En cliquant sur CONTINUER, vous confirmez utiliser un smartphone de confiance.</string>
     <string name="unplugged_security_understood">JE COMPRENDS, CONTINUER</string>
 
@@ -87,12 +87,12 @@
     <string name="unplugged_seed_invalid_seed">Votre phrase de restauration ne semble pas valide.</string>
     <string name="unplugged_seed_header_step_number_create">4.</string>
     <string name="unplugged_seed_header_step_text_create">Notez votre phrase de restauration dans le livret fourni</string>
-    <string name="unplugged_seed_bottom_text_create">Votre phrase de restauration ne sera pas affichée à nouveau. Sans elle, vous n'aurez plus accès à vos bitcoins en cas de perte.</string>
-    <string name="unplugged_seed_button_text_create">J'AI NOTÉ MA PHRASE</string>
+    <string name="unplugged_seed_bottom_text_create">Votre phrase de restauration ne sera pas affichée à nouveau. Sans elle, vous n\'aurez plus accès à vos bitcoins en cas de perte.</string>
+    <string name="unplugged_seed_button_text_create">J\'AI NOTÉ MA PHRASE</string>
     <string name="unplugged_seed_header_step_number_restore">4.</string>
     <string name="unplugged_seed_header_step_text_restore">Entrez votre phrase de restauration</string>
     <string name="unplugged_seed_bottom_text_restore">Cet ensemble de 24 mots vous a été communiqué lors de la création de votre portefeuille.</string>
-    <string name="unplugged_seed_button_text_restore">J'AI ENTRÉ MA PHRASE</string>
+    <string name="unplugged_seed_button_text_restore">J\'AI ENTRÉ MA PHRASE</string>
 
     <!-- Unplugged Tap Activity -->
     <string name="unplugged_tap_activity_title">Ledger Unplugged</string>
@@ -117,19 +117,19 @@
     <!-- Unplugged Install Fidesmo Activity -->
     <string name="unplugged_fidesmo_activity_title">Carte vierge</string>
     <string name="unplugged_fidesmo_top_text">Votre carte Ledger Unplugged est vierge.</string>
-    <string name="unplugged_fidesmo_top_description">Pour configurer votre portefeuille, vous devez installer l'application Fidesmo Ledger Unplugged.</string>
+    <string name="unplugged_fidesmo_top_description">Pour configurer votre portefeuille, vous devez installer l\'application Fidesmo Ledger Unplugged.</string>
     <string name="unplugged_fidesmo_install_apk_action_title">1. Installer Fidesmo</string>
     <string name="unplugged_fidesmo_install_apk_action_subtitle">Voir sur Google Play Store</string>
     <string name="unplugged_fidesmo_install_app_action_title">2. Installer Ledger Unplugged</string>
-    <string name="unplugged_fidesmo_install_app_action_subtitle">Voir sur l'app Fidesmo</string>
-    <string name="unplugged_fidesmo_error_not_installed">L'application Fidesmo ne semble pas installée. Merci de l'installer en premier lieu.</string>
+    <string name="unplugged_fidesmo_install_app_action_subtitle">Voir sur l\'app Fidesmo</string>
+    <string name="unplugged_fidesmo_error_not_installed">L\'application Fidesmo ne semble pas installée. Merci de l\'installer en premier lieu.</string>
 
     <!-- Unplugged Scan Keycard Activity -->
     <string name="unplugged_scan_title">Carte de sécurité</string>
     <string name="unplugged_scan_step_number">5.</string>
     <string name="unplugged_scan_step_instruction">Scannez ou entrez le code QR de votre carte de sécurité situé dans votre livret de restauration</string>
     <string name="unplugged_scan_manual_pincode">ENTRER MANUELLEMENT MON CODE</string>
-    <string name="unplugged_scan_create_keycard">J'ai besoin d'une nouvelle carte de sécurité</string>
+    <string name="unplugged_scan_create_keycard">J\'ai besoin d\'une nouvelle carte de sécurité</string>
     <string name="unplugged_scan_dialog_title">Code de la carte de sécurité</string>
     <string name="unplugged_scan_dialog_message">Veuillez entrer les 32 caractères du code de votre carte de sécurité:</string>
     <string name="unplugged_scan_dialog_error">Le code de la carte de sécurité est invalide.</string>

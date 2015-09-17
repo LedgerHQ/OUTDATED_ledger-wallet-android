@@ -30,6 +30,7 @@
  */
 package com.ledger.ledgerwallet.app.unplugged
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.Toast
@@ -106,13 +107,18 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
     override def onResume(): Unit = {
       super.onResume()
       if (_unplugged.isDefined) {
-
         val unplugged = _unplugged.get
         unplugged.setKeycard(keycardSeed.get) flatMap {(result) =>
           _unplugged.get.setup(pin.get, mnemonicPhrase.get)
         } onComplete {
           case Success(_) =>
-            postOnUiThread(startNextActivity(classOf[UnpluggedSetupCompleteActivity]))
+            postOnUiThread({
+              val intent = new Intent(this, classOf[UnpluggedSetupCompleteActivity])
+              intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+              getActivity.startActivity(intent)
+              finish()
+              startNextActivity(classOf[UnpluggedSetupCompleteActivity])
+            })
           case Failure(error) =>
             error.printStackTrace()
             postOnUiThread({

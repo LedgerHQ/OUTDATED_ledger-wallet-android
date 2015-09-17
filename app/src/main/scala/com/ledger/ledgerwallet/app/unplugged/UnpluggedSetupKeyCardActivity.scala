@@ -66,6 +66,9 @@ class UnpluggedSetupKeyCardActivity extends UnpluggedSetupActivity with ResultHa
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.unplugged_setup_keycard_activity)
+    getSupportActionBar.setHomeButtonEnabled(true)
+    getSupportActionBar.setDisplayHomeAsUpEnabled(true)
+
     scannerLayout.addView(scannerView, 0)
 
     stepNumberTextView.setText(R.string.unplugged_scan_step_number)

@@ -48,6 +48,8 @@ class UnpluggedPINChoiceActivity extends UnpluggedSetupActivity {
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
+    getSupportActionBar.setHomeButtonEnabled(true)
+    getSupportActionBar.setDisplayHomeAsUpEnabled(true)
     setContentView(R.layout.unplugged_pin_choice_fragment)
 
     if (hasPinSetup) {

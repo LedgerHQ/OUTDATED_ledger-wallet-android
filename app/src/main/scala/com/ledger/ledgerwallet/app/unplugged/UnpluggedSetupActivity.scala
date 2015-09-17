@@ -94,6 +94,10 @@ trait UnpluggedSetupActivity extends BaseActivity {
     dispatcher.disableExclusiveNfc()
   }
 
+  override def onClickHome(): Boolean = {
+    false
+  }
+
   def startNextActivity[A <: UnpluggedSetupActivity](nextActivityClass: Class[A]): Unit = {
     val intent = new Intent(this, nextActivityClass)
     intent.putExtras(_nextExtra)

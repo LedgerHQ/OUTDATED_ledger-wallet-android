@@ -42,6 +42,8 @@ class UnpluggedSecurityActivity extends UnpluggedSetupActivity {
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.unplugged_security_activity)
+    getSupportActionBar.setHomeButtonEnabled(true)
+    getSupportActionBar.setDisplayHomeAsUpEnabled(true)
 
     stepNumberTextView.setText(R.string.unplugged_security_step_number)
     stepInstructionTextView.setText(R.string.unplugged_security_step_text)

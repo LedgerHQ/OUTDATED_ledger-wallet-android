@@ -30,6 +30,7 @@
  */
 package com.ledger.ledgerwallet.app.unplugged
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view._
@@ -49,6 +50,12 @@ class UnpluggedSetupCompleteActivity extends UnpluggedSetupActivity {
     getSupportActionBar.setDisplayHomeAsUpEnabled(true)
 
     setContentFragment(new ContentFragment())
+  }
+
+
+  override def onBackPressed(): Unit = {
+    startActivity(new Intent(this, classOf[UnpluggedTapActivity]).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+    finish()
   }
 
   private class ContentFragment extends BaseFragment {
@@ -114,6 +121,8 @@ class UnpluggedSetupCompleteActivity extends UnpluggedSetupActivity {
         new ViewHolder(inflater.inflate(R.layout.action_list_item, parent, false))
       }
     }
+
+
 
     private[this] class ViewHolder(val view: View) extends RecyclerView.ViewHolder(view) {
       lazy val title = view.findViewById(R.id.title).asInstanceOf[TextView]

@@ -30,6 +30,7 @@
  */
 package com.ledger.ledgerwallet.app.unplugged
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.Toast
@@ -55,7 +56,7 @@ class UnpluggedBip39MnemonicPhraseActivity extends UnpluggedSetupActivity {
       seedEditText.setEnabled(false)
       getWindow.setSoftInputMode(
         WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
-      );
+      )
     } else {
       stepNumberTextView.setText(R.string.unplugged_seed_header_step_number_restore)
       stepInstructionTextView.setText(R.string.unplugged_seed_header_step_text_restore)
