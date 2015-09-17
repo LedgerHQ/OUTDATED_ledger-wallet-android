@@ -47,6 +47,7 @@ import com.ledger.ledgerwallet.widget.TextView
 import scala.concurrent.Promise
 import scala.util.{Try, Failure, Success}
 import com.ledger.ledgerwallet.utils.AndroidImplicitConversions._
+import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 
 class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingActivity.CreateDonglePairingProccessContract {
 

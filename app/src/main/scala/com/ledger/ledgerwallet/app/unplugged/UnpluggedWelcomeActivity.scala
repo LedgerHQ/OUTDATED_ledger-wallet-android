@@ -78,8 +78,6 @@ class UnpluggedWelcomeActivity extends UnpluggedSetupActivity {
     }
 
     def onActionClick(actionId: Int): Unit = {
-
-      return
       setupMode = actionId match {
         case CreateActionId => UnpluggedSetupActivity.CreateWalletSetupMode
         case RestoreActionId => UnpluggedSetupActivity.RestoreWalletSetupMode

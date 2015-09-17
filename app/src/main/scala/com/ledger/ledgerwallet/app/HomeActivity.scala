@@ -45,6 +45,7 @@ import com.ledger.ledgerwallet.remote.api.m2fa.{GcmAPI, IncomingTransactionAPI}
 import com.ledger.ledgerwallet.utils.logs.LogCatReader
 import com.ledger.ledgerwallet.utils.{GooglePlayServiceHelper, TR}
 import com.ledger.ledgerwallet.widget.TextView
+import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
 
 import scala.util.{Failure, Success}
 

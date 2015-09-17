@@ -66,7 +66,6 @@ class ScanPairingQrCodeFragment extends BaseFragment with ContractFragment[Creat
     _scannerView.startCamera()
   }
 
-
   override def onPause(): Unit = {
     super.onPause()
     _scannerView.stopCamera()

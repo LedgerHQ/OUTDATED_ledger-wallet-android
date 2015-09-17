@@ -33,17 +33,16 @@ package com.ledger.ledgerwallet.app.unplugged
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.Toast
+import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.base.BaseFragment
-import com.ledger.ledgerwallet.common._
-import com.ledger.ledgerwallet.nfc.Unplugged
+import com.ledger.ledgerwallet.nfc.{Utils, Unplugged}
 import com.ledger.ledgerwallet.utils.TR
 import com.ledger.ledgerwallet.widget.TextView
-import com.ledger.ledgerwallet.{R, common}
-import scala.concurrent.ExecutionContext.Implicits.global
+import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.ui
 
 import scala.util.{Failure, Success}
 
-class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
+class UnpluggedEraseSeedActivity extends UnpluggedSetupActivity {
 
   val TappingMode = 0x01
   val LoadingMode = 0x02
@@ -105,19 +104,16 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
     override def onResume(): Unit = {
       super.onResume()
       if (_unplugged.isDefined) {
-
-        _unplugged.get.setKeycard(keycardSeed.get) andThen {
-          case Success(_) => _unplugged.get.setup(pin.get, mnemonicPhrase.get)
-        } onComplete {
-          case Success(_) =>
-            postOnUiThread(startNextActivity(classOf[UnpluggedSetupCompleteActivity]))
+        _unplugged.get.send(0xE0, 0x22, 0x00, 0x00, 0x04, 0x30, 0x30, 0x30, 0x30) onComplete {
+          case Success(result) =>
+            Toast.makeText(getActivity, s"Received ${Utils.encodeHex(result)}", Toast.LENGTH_LONG).show()
+            _mode = TappingMode
+            setContentFragment(new TapFragment)
           case Failure(error) =>
-            postOnUiThread({
-              error.printStackTrace()
-              Toast.makeText(getActivity, R.string.unplugged_tap_error_occured, Toast.LENGTH_LONG).show()
-              _mode = TappingMode
-              setContentFragment(new TapFragment)
-            })
+            error.printStackTrace()
+            Toast.makeText(getActivity, R.string.unplugged_tap_error_occured, Toast.LENGTH_LONG).show()
+            _mode = TappingMode
+            setContentFragment(new TapFragment)
         }
       } else {
         // We need to tap again
