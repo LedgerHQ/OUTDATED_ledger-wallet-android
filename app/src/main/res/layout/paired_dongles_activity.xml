@@ -35,7 +35,7 @@
         android:layout_marginRight="@dimen/activity_border_margin"
         android:layout_marginBottom="@dimen/activity_border_margin"
         android:id="@+id/add_pairing_btn"
-        android:background="@drawable/bg_green_fab"
+        app:backgroundTint="@color/action_green"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content" />
 

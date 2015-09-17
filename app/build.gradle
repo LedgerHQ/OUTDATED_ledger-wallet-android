@@ -6,7 +6,7 @@ android {
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "com.ledger.ledgerwallet"
+        applicationId "co.ledger.wallet"
         minSdkVersion 14
         targetSdkVersion 22
         versionCode 3

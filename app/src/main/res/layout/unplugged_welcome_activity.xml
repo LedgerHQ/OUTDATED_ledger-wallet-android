@@ -9,7 +9,7 @@
     android:clipChildren="false"
     android:layout_centerHorizontal="true">
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/unplugged_welcome_welcome_to_your_new_wallet"
@@ -22,7 +22,7 @@
         android:textColor="@color/black"
         app:fontStyle="regular"  />
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/unplugged_welcome_create_or_recover"

@@ -14,7 +14,7 @@
         android:clipChildren="false"
         android:layout_centerHorizontal="true">
 
-        <com.ledger.ledgerwallet.widget.TextView
+        <co.ledger.wallet.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/home_p_title"
@@ -29,7 +29,7 @@
             app:fontStyle="light"
             android:layout_gravity="center_horizontal" />
 
-        <com.ledger.ledgerwallet.widget.TextView
+        <co.ledger.wallet.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/home_p_subtitle"
@@ -43,7 +43,7 @@
             android:layout_marginBottom="@dimen/extra_large_margin"
             android:layout_gravity="center_horizontal" />
 
-        <com.ledger.ledgerwallet.widget.TextView
+        <co.ledger.wallet.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/home_p_action"
@@ -53,7 +53,7 @@
 
     </LinearLayout>
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/home_np_bottom"

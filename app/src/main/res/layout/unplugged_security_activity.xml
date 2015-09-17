@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/background_color"
-        android:scrollbarStyle="insideOverlay"
+        android:scrollbarStyle="outsideOverlay"
         android:id="@+id/scrollView"
         android:clipChildren="false"
         android:clipToPadding="false"
@@ -30,7 +30,7 @@
             android:layout_height="match_parent"
             android:id="@+id/linear2">
 
-            <com.ledger.ledgerwallet.widget.TextView
+            <co.ledger.wallet.widget.TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_security_line_1"
@@ -41,7 +41,7 @@
                 app:kerning="@dimen/medium_font_spacing"
                 android:lineSpacingExtra="5dp" />
 
-            <com.ledger.ledgerwallet.widget.TextView
+            <co.ledger.wallet.widget.TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_security_line_1"
@@ -53,7 +53,7 @@
                 app:kerning="@dimen/medium_font_spacing"
                 android:lineSpacingExtra="5dp" />
 
-            <com.ledger.ledgerwallet.widget.TextView
+            <co.ledger.wallet.widget.TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_security_line_3"
@@ -65,7 +65,7 @@
                 app:kerning="@dimen/medium_font_spacing"
                 android:lineSpacingExtra="5dp" />
 
-            <com.ledger.ledgerwallet.widget.TextView
+            <co.ledger.wallet.widget.TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_security_line_4"
@@ -82,7 +82,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
-            <com.ledger.ledgerwallet.widget.TextView
+            <co.ledger.wallet.widget.TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_security_understood"

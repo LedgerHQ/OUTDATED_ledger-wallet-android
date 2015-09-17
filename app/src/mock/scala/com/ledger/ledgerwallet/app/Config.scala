@@ -1,4 +1,4 @@
-package com.ledger.ledgerwallet.app
+package co.ledger.wallet.app
 
 import android.net.Uri
 import com.ledger.ledgerwallet.BuildConfig

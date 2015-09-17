@@ -17,7 +17,7 @@
         android:background="@color/background_color"
         android:paddingLeft="@dimen/extra_large_margin"
         android:paddingRight="@dimen/extra_large_margin"
-        android:scrollbarStyle="insideOverlay"
+        android:scrollbarStyle="outsideOverlay"
         android:id="@+id/scrollView"
         android:clipChildren="false"
         android:clipToPadding="false"
@@ -28,7 +28,7 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <com.ledger.ledgerwallet.widget.Bip39MnemonicPhraseEditText
+            <co.ledger.wallet.widget.Bip39MnemonicPhraseEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/phrase"
@@ -48,7 +48,7 @@
                 android:imeOptions="actionDone"
                  />
 
-            <com.ledger.ledgerwallet.widget.TextView
+            <co.ledger.wallet.widget.TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_seed_bottom_text_create"
@@ -69,7 +69,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
-            <com.ledger.ledgerwallet.widget.TextView
+            <co.ledger.wallet.widget.TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_seed_button_text_create"

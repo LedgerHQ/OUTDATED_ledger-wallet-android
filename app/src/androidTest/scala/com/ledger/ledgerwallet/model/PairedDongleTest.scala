@@ -31,8 +31,8 @@
 package com.ledger.ledgerwallet.model
 
 import android.test.InstrumentationTestCase
-import com.ledger.ledgerwallet.models.PairedDongle
-import com.ledger.ledgerwallet.utils.logs.Logger
+import co.ledger.wallet.models.PairedDongle
+import co.ledger.wallet.utils.logs.Logger
 import junit.framework.Assert
 import org.spongycastle.util.encoders.Hex
 import scala.collection.mutable

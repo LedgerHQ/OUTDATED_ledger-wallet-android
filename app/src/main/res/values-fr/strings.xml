@@ -15,6 +15,7 @@
     <string name="home_np_subtitle">Pour activer le second facteur d\'authentification mobile, associez votre Ledger Wallet avec ce smartphone.</string>
     <string name="home_np_action">ASSOCIER UN LEDGER WALLET</string>
     <string name="home_np_bottom">Besoin d\'aide? Visitez notre centre d\'aide.</string>
+    <string name="home_np_setup_unplugged">CONFIGURER UN LEDGER UNPLUGGED</string>
 
     <!-- Home Activity Menu -->
     <string name="home_activity_menu_setup_unplugged">Ledger Unplugged</string>
@@ -55,9 +56,11 @@
     <string name="unplugged_existing_activity_title">Portefeuille existant</string>
     <string name="unplugged_existing_existing_wallet">Votre portefeuille est déjà configuré.</string>
     <string name="unplugged_existing_compatible_wallets">Ledger Unplugged peut être utilisé avec les wallets Mycelium et GreenBits.</string>
-    <string name="unplugged_existing_install_mycelium">Installer Mycelium</string>
-    <string name="unplugged_existing_install_greenbits">Installer GreenBits</string>
+    <string name="unplugged_existing_install_mycelium">Mycelium</string>
+    <string name="unplugged_existing_install_greenbits">GreenBits</string>
     <string name="unplugged_existing_view_on_play_store">Voir sur Google Play Store</string>
+    <string name="unplugged_existing_delete_unplugged">Réinitialiser votre carte</string>
+    <string name="unplugged_existing_delete_unplugged_description">Voir sur l\'application Fidesmo</string>
 
     <!-- Unplugged Security Activity -->
     <string name="unplugged_security_activity_title">Informations de sécurité</string>
@@ -66,7 +69,7 @@
     <string name="unplugged_security_line_1">Cet assistant de configuration manipule des données sensibles concernant votre portefeuille.</string>
     <string name="unplugged_security_line_2_creation">Il est très important de continuer la procédure de création depuis un smartphone de confiance afin d’empêcher que quelqu\'un accède à ces informations.</string>
     <string name="unplugged_security_line_2_restore">Il est très important de continuer la procédure de restauration depuis un smartphone de confiance afin d’empêcher que quelqu\'un accède à ces informations.</string>
-    <string name="unplugged_security_line_3">En cas de doute, nous recommandons de fermer l\'application et de réouvrir cet assistamt depuis un smartphone plus sûr.</string>
+    <string name="unplugged_security_line_3">Un système de provisionement sécurisé sera disponible dans une prochaine version de l\'application.</string>
     <string name="unplugged_security_line_4">En cliquant sur CONTINUER, vous confirmez utiliser un smartphone de confiance.</string>
     <string name="unplugged_security_understood">JE COMPRENDS, CONTINUER</string>
 
@@ -87,29 +90,29 @@
     <string name="unplugged_seed_invalid_seed">Votre phrase de restauration ne semble pas valide.</string>
     <string name="unplugged_seed_header_step_number_create">4.</string>
     <string name="unplugged_seed_header_step_text_create">Notez votre phrase de restauration dans le livret fourni</string>
-    <string name="unplugged_seed_bottom_text_create">Votre phrase de restauration ne sera pas affichée à nouveau. Sans elle, vous n\'aurez plus accès à vos bitcoins en cas de perte.</string>
-    <string name="unplugged_seed_button_text_create">J\'AI NOTÉ MA PHRASE</string>
+    <string name="unplugged_seed_bottom_text_create">Votre phrase de restauration ne sera pas affichée à nouveau. Sans elle, vous n\'aurez plus accès à vos bitcoins en cas de perte de votre Ledger Unplugged.</string>
+    <string name="unplugged_seed_button_text_create">J\'AI NOTÉ MA PHRASE DE RESTAURATION</string>
     <string name="unplugged_seed_header_step_number_restore">4.</string>
     <string name="unplugged_seed_header_step_text_restore">Entrez votre phrase de restauration</string>
     <string name="unplugged_seed_bottom_text_restore">Cet ensemble de 24 mots vous a été communiqué lors de la création de votre portefeuille.</string>
-    <string name="unplugged_seed_button_text_restore">J\'AI ENTRÉ MA PHRASE</string>
+    <string name="unplugged_seed_button_text_restore">J\'AI ENTRÉ MA PHRASE DE RESTAURATION</string>
 
     <!-- Unplugged Tap Activity -->
     <string name="unplugged_tap_activity_title">Ledger Unplugged</string>
-    <string name="unplugged_tap_looking_for">Recherche de votre carte...</string>
-    <string name="unplugged_tap_place_at_backside">Placez votre Ledger Unplugged contre le dos de votre smartphone NFC.</string>
+    <string name="unplugged_tap_looking_for">Recherche de votre carte…</string>
+    <string name="unplugged_tap_place_at_backside">Placez votre Ledger Unplugged au dos de votre smartphone NFC.</string>
     <string name="unplugged_tap_error_occured">Erreur de communication, veuillez réessayer.</string>
 
     <!-- Unplugged Finalize Setup Activity -->
     <string name="unplugged_finalize_setup_activity_title">Bientôt prêt</string>
     <string name="unplugged_finalize_setup_few_moments">Dans quelques instants, vous pourrez utiliser vos bitcoins de la façon la plus sécurisée possible.</string>
-    <string name="unplugged_finalize_setup_step_text">Placez votre Ledger Unplugged au dos de votre smartphone</string>
+    <string name="unplugged_finalize_setup_step_text">Placez et gardez votre Ledger Unplugged au dos de votre smartphone</string>
     <string name="unplugged_finalize_setup_step_number">6.</string>
 
     <!-- Unplugged In Progress Activity -->
     <string name="unplugged_in_progress_activity_title">Configuration</string>
     <string name="unplugged_in_progress_please_wait">Veuillez patienter, cette opération peut prendre quelques instants.</string>
-    <string name="unplugged_in_progress_configuration">Configuration en cours...</string>
+    <string name="unplugged_in_progress_configuration">Configuration en cours…</string>
     <string name="unplugged_in_progress_step_text_creation">Continuez de tenir la carte au dos de votre smartphone</string>
     <string name="unplugged_in_progress_step_text_restore">Continuez de tenir la carte au dos de votre smartphone</string>
     <string name="unplugged_in_progress_step_number">7.</string>
@@ -135,7 +138,7 @@
     <string name="unplugged_scan_dialog_error">Le code de la carte de sécurité est invalide.</string>
 
     <!-- Unplugged Setup Complete Activity -->
-    <string name="unplugged_setup_complete_activity_title">Succès</string>
+    <string name="unplugged_setup_complete_activity_title">C\'est fait</string>
     <string name="unplugged_setup_complete_top_text_creation">Creation terminée</string>
     <string name="unplugged_setup_complete_top_text_restore">Restauration terminée</string>
     <string name="unplugged_setup_complete_top_description">Vous pouvez maintenant utiliser votre Ledger Unplugged en toute sécurité avec les portefeuilles compatibles suivants.</string>

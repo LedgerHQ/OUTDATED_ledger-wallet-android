@@ -6,7 +6,7 @@
     android:layout_gravity="center"
     android:layout_height="wrap_content">
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/action_bar_title"
@@ -14,7 +14,7 @@
         android:layout_gravity="center"
         style="@style/ActionBarTitleStyle" />
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/action_bar_subtitle"
