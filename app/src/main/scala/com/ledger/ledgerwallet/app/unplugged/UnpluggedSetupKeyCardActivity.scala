@@ -43,7 +43,7 @@ import android.text.InputFilter.LengthFilter
 import android.text.InputType
 import android.view.View
 import android.view.ViewGroup.LayoutParams
-import android.widget.{LinearLayout, RelativeLayout}
+import android.widget.{Toast, LinearLayout, RelativeLayout}
 import com.ledger.ledgerwallet.R
 import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.nfc.Utils
@@ -115,22 +115,7 @@ class UnpluggedSetupKeyCardActivity extends UnpluggedSetupActivity with ResultHa
 
   class SeedPromptAlertDialogFragment extends DialogFragment {
 
-    private lazy val inputText = {
-      val v = new EditText(getActivity)
-      val lp = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-      lp.setMargins(
-        TR(R.dimen.medium_font_size).as[Float].toInt,
-        0,
-        TR(R.dimen.medium_font_size).as[Float].toInt,
-        0
-      )
-      v.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD)
-      v.setFilters(Array(
-        new LengthFilter(32)
-      ))
-      v.setLayoutParams(lp)
-      v
-    }
+    private lazy val inputText = getDialog.findViewById(R.id.edit_text).asInstanceOf[EditText]
 
     override def onCreateDialog(savedInstanceState: Bundle): Dialog = {
       new Builder(getActivity)
@@ -140,7 +125,7 @@ class UnpluggedSetupKeyCardActivity extends UnpluggedSetupActivity with ResultHa
         override def onClick(dialogInterface: DialogInterface, i: Int): Unit = {}
       }).setNegativeButton(android.R.string.cancel, new OnClickListener {
         override def onClick(dialogInterface: DialogInterface, i: Int): Unit = {}
-      }).setView(inputText)
+      }).setView(R.layout.dialog_edittext)
       .create()
     }
 
@@ -151,6 +136,8 @@ class UnpluggedSetupKeyCardActivity extends UnpluggedSetupActivity with ResultHa
         override def onClick(view: View): Unit = {
           if (onSeedIsProvided(inputText.getText.toString)) {
             dismiss()
+          } else {
+            Toast.makeText(getActivity, R.string.unplugged_scan_dialog_error, Toast.LENGTH_LONG).show()
           }
         }
       })
