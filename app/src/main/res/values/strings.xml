@@ -43,7 +43,7 @@
     <string name="create_dongle_instruction_step_5_bottom">Choose a name to assign to this Ledger Wallet.</string>
 
     <!-- Unplugged Welcome Activity -->
-    <string name="unplugged_welcome_title">New wallet</string>
+    <string name="unplugged_welcome_activity_title">New wallet</string>
     <string name="unplugged_welcome_welcome_to_your_new_wallet">Welcome to your Ledger Unplugged!</string>
     <string name="unplugged_welcome_create_or_recover">Would you like to create a new wallet or restore an existing one?</string>
     <string name="unplugged_welcome_use_as_new">Create a new wallet</string>
@@ -52,7 +52,7 @@
     <string name="unplugged_welcome_if_you_lost_your_wallet">By entering your recovery phrase</string>
 
     <!-- Unplugged Welcome Activity -->
-    <string name="unplugged_existing_title">Existing wallet</string>
+    <string name="unplugged_existing_activity_title">Existing wallet</string>
     <string name="unplugged_existing_existing_wallet">Your wallet is already configured.</string>
     <string name="unplugged_existing_compatible_wallets">Ledger Unplugged can be used with Mycelium and GreenBits Android bitcoin wallets.</string>
     <string name="unplugged_existing_install_mycelium">Install Mycelium</string>
@@ -60,6 +60,7 @@
     <string name="unplugged_existing_view_on_play_store">View on Google Play Store</string>
 
     <!-- Unplugged Security Activity -->
+    <string name="unplugged_security_activity_title">Security information</string>
     <string name="unplugged_security_step_text">A trusted computer is required to configure your Ledger Unplugged</string>
     <string name="unplugged_security_step_number">1.</string>
     <string name="unplugged_security_line_1">This configuration wizard handles highly sensitive information about your wallet.</string>
@@ -70,12 +71,12 @@
     <string name="unplugged_security_understood">I UNDERSTAND, CONTINUE</string>
 
     <!-- Unplugged PIN Choice Activity -->
-    <string name="unplugged_pin_choice_title_enter">PIN Code</string>
+    <string name="unplugged_pin_choice_activity_title_enter">PIN Code</string>
     <string name="unplugged_pin_choice_step_number_enter">2.</string>
     <string name="unplugged_pin_choice_step_instruction_enter">Choose a 4 digits code to allow you to secure the access of your wallet</string>
     <string name="unplugged_pin_choice_step_bottom_enter">Please note: your birth year or your debit/credit card pin are not secure PIN codes.</string>
 
-    <string name="unplugged_pin_choice_title_confirm">Confirmation</string>
+    <string name="unplugged_pin_choice_activity_title_confirm">Confirmation</string>
     <string name="unplugged_pin_choice_step_number_confirm">3.</string>
     <string name="unplugged_pin_choice_step_instruction_confirm">Re-enter the PIN code chosen in the previous step</string>
     <string name="unplugged_pin_choice_step_bottom_confirm">Your PIN code will be asked each time you to use your Ledger Unplugged.</string>
@@ -94,16 +95,19 @@
     <string name="unplugged_seed_button_text_restore">I WROTE MY RECOVERY PHRASE</string>
 
     <!-- Unplugged Tap Activity -->
+    <string name="unplugged_tap_activity_title">Ledger Unplugged</string>
     <string name="unplugged_tap_looking_for">Looking for your NFC wallet...</string>
     <string name="unplugged_tap_place_at_backside">Place your Ledger Unplugged card against the backside of your smartphone.</string>
     <string name="unplugged_tap_error_occured">Communication error, please try again.</string>
 
     <!-- Unplugged Finalize Setup Activity -->
+    <string name="unplugged_finalize_setup_activity_title">Almost ready</string>
     <string name="unplugged_finalize_setup_few_moments">In a few moments, you will be able to use your bitcoins in the fastest possible way.</string>
     <string name="unplugged_finalize_setup_step_text">Place your Ledger Unplugged card against the backside of your smartphone</string>
     <string name="unplugged_finalize_setup_step_number">5.</string>
 
     <!-- Unplugged In Progress Activity -->
+    <string name="unplugged_in_progress_activity_title">Configuration</string>
     <string name="unplugged_in_progress_please_wait">Please wait, this operation may take a while.</string>
     <string name="unplugged_in_progress_configuration">Configuration in progress...</string>
     <string name="unplugged_in_progress_step_text_creation">Keep holding your card while the creation of your wallet is in progress</string>
@@ -111,7 +115,7 @@
     <string name="unplugged_in_progress_step_number">6.</string>
 
     <!-- Unplugged Install Fidesmo Activity -->
-    <string name="unplugged_fidesmo_activity_tiel">Blank card</string>
+    <string name="unplugged_fidesmo_activity_title">Blank card</string>
     <string name="unplugged_fidesmo_top_text">Your Ledger Unplugged seems to be blank.</string>
     <string name="unplugged_fidesmo_top_description">To configure your wallet, you need to install the Ledger Unplugged Fidesmo app on your NFC card.</string>
     <string name="unplugged_fidesmo_install_apk_action_title">1. Install Fidesmo</string>
@@ -126,7 +130,15 @@
     <string name="unplugged_scan_step_instruction">Scan or type in your security card QR code from your recovery sheet</string>
     <string name="unplugged_scan_manual_pincode">MANUALLY ENTER MY QR CODE</string>
     <string name="unplugged_scan_create_keycard">I need a new security card</string>
-    
+    <string name="unplugged_scan_dialog_title">Security card code</string>
+    <string name="unplugged_scan_dialog_message">Please enter your security card 32 characters:</string>
+
+    <!-- Unplugged Setup Complete Activity -->
+    <string name="unplugged_setup_complete_activity_title">Success</string>
+    <string name="unplugged_setup_complete_top_text_creation">Creation completed</string>
+    <string name="unplugged_setup_complete_top_text_restore">Recovery completed</string>
+    <string name="unplugged_setup_complete_top_description">You can now use your Ledger Unplugged safely with the following compatible wallets.</string>
+
     <!-- Unplugged Actions -->
     <string name="unplugged_management_continue">CONTINUE</string>
     <string name="unplugged_management_finish">FINISH</string>

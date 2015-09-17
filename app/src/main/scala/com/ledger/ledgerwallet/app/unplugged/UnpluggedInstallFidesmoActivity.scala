@@ -101,7 +101,7 @@ class UnpluggedInstallFidesmoActivity extends UnpluggedSetupActivity {
       actionsView.setAdapter(new ActionsAdapter)
       actionsView.setLayoutManager(new LinearLayoutManager(this))
       actionsView.setItemAnimator(new DefaultItemAnimator)
-      actionsView.addItemDecoration(new SpacerItemDecoration(TR(R.dimen.very_large_margin).as[Float].toInt))
+      actionsView.addItemDecoration(new SpacerItemDecoration(TR(R.dimen.large_margin).as[Float].toInt))
     }
 
 

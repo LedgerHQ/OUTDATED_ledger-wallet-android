@@ -71,4 +71,7 @@ object AndroidUtils {
     )
   }
 
+  def startBrowser(uri: Uri)(implicit context: Context): Unit =
+    context.startActivity(new Intent(Intent.ACTION_VIEW, uri))
+
 }
