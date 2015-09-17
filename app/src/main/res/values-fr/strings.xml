@@ -17,6 +17,7 @@
     <string name="home_np_bottom">Besoin d\'aide? Visitez notre centre d\'aide.</string>
 
     <!-- Home Activity Menu -->
+    <string name="home_activity_menu_setup_unplugged">Ledger Unplugged</string>
     <string name="home_activity_menu_export_logs">Exporter les logs</string>
 
     <!-- Paired Dongle Activity -->
@@ -103,7 +104,7 @@
     <string name="unplugged_finalize_setup_activity_title">Bientôt prêt</string>
     <string name="unplugged_finalize_setup_few_moments">Dans quelques instants, vous pourrez utiliser vos bitcoins de la façon la plus sécurisée possible.</string>
     <string name="unplugged_finalize_setup_step_text">Placez votre Ledger Unplugged au dos de votre smartphone</string>
-    <string name="unplugged_finalize_setup_step_number">5.</string>
+    <string name="unplugged_finalize_setup_step_number">6.</string>
 
     <!-- Unplugged In Progress Activity -->
     <string name="unplugged_in_progress_activity_title">Configuration</string>
@@ -111,7 +112,7 @@
     <string name="unplugged_in_progress_configuration">Configuration en cours...</string>
     <string name="unplugged_in_progress_step_text_creation">Continuez de tenir la carte au dos de votre smartphone</string>
     <string name="unplugged_in_progress_step_text_restore">Continuez de tenir la carte au dos de votre smartphone</string>
-    <string name="unplugged_in_progress_step_number">6.</string>
+    <string name="unplugged_in_progress_step_number">7.</string>
 
     <!-- Unplugged Install Fidesmo Activity -->
     <string name="unplugged_fidesmo_activity_title">Carte vierge</string>
@@ -122,6 +123,15 @@
     <string name="unplugged_fidesmo_install_app_action_title">2. Installer Ledger Unplugged</string>
     <string name="unplugged_fidesmo_install_app_action_subtitle">Voir sur l'app Fidesmo</string>
     <string name="unplugged_fidesmo_error_not_installed">L'application Fidesmo ne semble pas installée. Merci de l'installer en premier lieu.</string>
+
+    <!-- Unplugged Scan Keycard Activity -->
+    <string name="unplugged_scan_title">Carte de sécurité</string>
+    <string name="unplugged_scan_step_number">5.</string>
+    <string name="unplugged_scan_step_instruction">Scannez ou entrez le code QR de votre carte de sécurité situé dans votre livret de restauration</string>
+    <string name="unplugged_scan_manual_pincode">ENTRER MANUELLEMENT MON CODE</string>
+    <string name="unplugged_scan_create_keycard">J'ai besoin d'une nouvelle carte de sécurité</string>
+    <string name="unplugged_scan_dialog_title">Code de la carte de sécurité</string>
+    <string name="unplugged_scan_dialog_message">Veuillez entrer les 32 caractères du code de votre carte de sécurité:</string>
 
     <!-- Unplugged Setup Complete Activity -->
     <string name="unplugged_setup_complete_activity_title">Succès</string>
@@ -138,7 +148,7 @@
 
     <!-- Incoming Transaction Dialog -->
     <string name="incoming_tx_title">CONFIRMER LA TRANSACTION</string>
-    <string name="incoming_tx_date" formatted="false">Initié le %s à %s</string>
+    <string name="incoming_tx_date" formatted="false">Initiée le %s à %s</string>
 
     <!-- Pairing Success Dialog -->
     <string name="pairing_success_dialog_title">ASSOCIATION RÉUSSIE</string>

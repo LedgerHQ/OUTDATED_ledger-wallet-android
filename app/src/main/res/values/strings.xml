@@ -104,7 +104,7 @@
     <string name="unplugged_finalize_setup_activity_title">Almost ready</string>
     <string name="unplugged_finalize_setup_few_moments">In a few moments, you will be able to use your bitcoins in the fastest possible way.</string>
     <string name="unplugged_finalize_setup_step_text">Place your Ledger Unplugged card against the backside of your smartphone</string>
-    <string name="unplugged_finalize_setup_step_number">5.</string>
+    <string name="unplugged_finalize_setup_step_number">6.</string>
 
     <!-- Unplugged In Progress Activity -->
     <string name="unplugged_in_progress_activity_title">Configuration</string>
@@ -112,7 +112,7 @@
     <string name="unplugged_in_progress_configuration">Configuration in progress...</string>
     <string name="unplugged_in_progress_step_text_creation">Keep holding your card while the creation of your wallet is in progress</string>
     <string name="unplugged_in_progress_step_text_restore">Keep holding your card while the recovery of your wallet is in progress</string>
-    <string name="unplugged_in_progress_step_number">6.</string>
+    <string name="unplugged_in_progress_step_number">7.</string>
 
     <!-- Unplugged Install Fidesmo Activity -->
     <string name="unplugged_fidesmo_activity_title">Blank card</string>
@@ -131,7 +131,7 @@
     <string name="unplugged_scan_manual_pincode">MANUALLY ENTER MY QR CODE</string>
     <string name="unplugged_scan_create_keycard">I need a new security card</string>
     <string name="unplugged_scan_dialog_title">Security card code</string>
-    <string name="unplugged_scan_dialog_message">Please enter your security card 32 characters:</string>
+    <string name="unplugged_scan_dialog_message">Please enter your security card 32 characters code:</string>
 
     <!-- Unplugged Setup Complete Activity -->
     <string name="unplugged_setup_complete_activity_title">Success</string>
