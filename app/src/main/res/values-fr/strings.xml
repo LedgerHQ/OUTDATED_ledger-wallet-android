@@ -132,6 +132,7 @@
     <string name="unplugged_scan_create_keycard">J'ai besoin d'une nouvelle carte de sécurité</string>
     <string name="unplugged_scan_dialog_title">Code de la carte de sécurité</string>
     <string name="unplugged_scan_dialog_message">Veuillez entrer les 32 caractères du code de votre carte de sécurité:</string>
+    <string name="unplugged_scan_dialog_error">Le code de la carte de sécurité est invalide.</string>
 
     <!-- Unplugged Setup Complete Activity -->
     <string name="unplugged_setup_complete_activity_title">Succès</string>
