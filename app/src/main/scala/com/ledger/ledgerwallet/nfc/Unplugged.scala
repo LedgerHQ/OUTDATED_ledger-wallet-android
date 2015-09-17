@@ -50,7 +50,7 @@ class Unplugged(val tag: Tag)  {
     .map(_.slice(0, 4)).map(Utils.encodeHex).map(_ != "6985")
   }
 
-  def setup(PIN: String, seed: String): Future[Unit] = { // This will be replaced by BTChip's Java code later
+  def setup(PIN: String, seed: String): Future[ByteArray] = { // This will be replaced by BTChip's Java code later
     def getBip32FromSeed(bip39: String): String = {
       Utils.bytesToHex(Bip39.generateSeedFromWordList(bip39.split(" "), "").getBip32Seed)
     }
@@ -75,13 +75,14 @@ class Unplugged(val tag: Tag)  {
     APDU = (command :+ APDU.length.toByte) ++ APDU
 
     send(APDU) map { (result) =>
-      if (Utils.encodeHex(result).contains("9000")) {
+      if (!Utils.encodeHex(result).contains("9000")) {
         throw new Exception(s"Invalid status - ${Utils.encodeHex(result) }")
       }
+      result
     }
   }
 
-  def setKeycard(keycard: String): Future[Unit] = {
+  def setKeycard(keycard: String): Future[ByteArray] = {
     val command = Array[Byte](0xd0.toByte, 0x26, 0x00, 0x00, 0x11, 0x04)
     val APDU = command ++ Utils.decodeHex(keycard)
 
@@ -91,6 +92,7 @@ class Unplugged(val tag: Tag)  {
       if (!Utils.encodeHex(result).contains("9000")) {
         throw new Exception(s"Invalid status - ${Utils.encodeHex(result) }")
       }
+      result
     }
   }
 

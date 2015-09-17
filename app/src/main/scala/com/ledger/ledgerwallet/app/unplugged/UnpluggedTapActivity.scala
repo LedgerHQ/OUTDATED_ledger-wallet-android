@@ -33,10 +33,11 @@ package com.ledger.ledgerwallet.app.unplugged
 
 import android.os.Bundle
 import android.widget.Toast
-import com.ledger.ledgerwallet.R
+import com.ledger.ledgerwallet.{common, R}
 import com.ledger.ledgerwallet.nfc.Unplugged
 import com.ledger.ledgerwallet.utils.logs.Logger
 import com.ledger.ledgerwallet.concurrent.ExecutionContext.Implicits.main
+import common._
 
 import scala.util.{Failure, Success}
 
@@ -71,6 +72,8 @@ class UnpluggedTapActivity extends UnpluggedSetupActivity {
 
   override protected def onDiscoveredTagError(error: Throwable): Unit = {
     super.onDiscoveredTagError(error)
-    Toast.makeText(this, R.string.unplugged_tap_error_occured, Toast.LENGTH_LONG).show()
+    runOnUiThread {
+      Toast.makeText(this, R.string.unplugged_tap_error_occured, Toast.LENGTH_LONG).show()
+    }
   }
 }

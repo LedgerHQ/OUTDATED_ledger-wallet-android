@@ -54,7 +54,13 @@ package object common extends AndroidImplicitConversions with JsonUtils {
     }
   }
 
-  def postOnUiThread(runnable: => Unit): Unit = runOnUiThread(runnable)
+  def postOnUiThread(runnable: => Unit): Unit = {
+    new Handler(Looper.getMainLooper).post(new Runnable {
+      override def run(): Unit = {
+        runnable
+      }
+    })
+  }
 
   implicit class UiFuture[+T](f: Future[T]) {
 

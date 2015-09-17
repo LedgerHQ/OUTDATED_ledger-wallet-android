@@ -37,6 +37,7 @@ import com.ledger.ledgerwallet.base.BaseFragment
 import com.ledger.ledgerwallet.common._
 import com.ledger.ledgerwallet.nfc.Unplugged
 import com.ledger.ledgerwallet.utils.TR
+import com.ledger.ledgerwallet.utils.logs.Logger
 import com.ledger.ledgerwallet.widget.TextView
 import com.ledger.ledgerwallet.{R, common}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -106,12 +107,14 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
       super.onResume()
       if (_unplugged.isDefined) {
 
-        _unplugged.get.setKeycard(keycardSeed.get) andThen {
-          case Success(_) => _unplugged.get.setup(pin.get, mnemonicPhrase.get)
+        val unplugged = _unplugged.get
+        unplugged.setKeycard(keycardSeed.get) flatMap {(result) =>
+          _unplugged.get.setup(pin.get, mnemonicPhrase.get)
         } onComplete {
           case Success(_) =>
             postOnUiThread(startNextActivity(classOf[UnpluggedSetupCompleteActivity]))
           case Failure(error) =>
+            error.printStackTrace()
             postOnUiThread({
               error.printStackTrace()
               Toast.makeText(getActivity, R.string.unplugged_tap_error_occured, Toast.LENGTH_LONG).show()
