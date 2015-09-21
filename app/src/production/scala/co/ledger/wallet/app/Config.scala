@@ -43,7 +43,7 @@ object Config {
   def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
   def SupportEmailAddress = "hello@ledger.fr"
   def Env = if (BuildConfig.DEBUG) "dev" else "prod"
-  def TrustletWebPage = Uri.parse("https://ledgerwallet.com/trustlet")
+  def TrustletWebPage = Uri.parse("https://www.ledgerwallet.com/beta/trustlet")
   def DisableLogging = !BuildConfig.DEBUG
 
   def GreenBitsPackageName = "com.greenaddress.greenbits_android_wallet"
