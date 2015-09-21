@@ -12,17 +12,16 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:background="@color/background_color"
         android:scrollbarStyle="outsideOverlay"
         android:id="@+id/scrollView"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:fillViewport="true"
-        android:paddingBottom="@dimen/huge_margin"
         android:paddingLeft="@dimen/extra_large_margin"
         android:paddingRight="@dimen/extra_large_margin"
-        android:paddingTop="@dimen/huge_margin">
+        android:paddingTop="@dimen/huge_margin"
+        android:layout_weight="1">
 
         <LinearLayout
             android:orientation="vertical"
@@ -77,21 +76,17 @@
                 app:kerning="@dimen/medium_font_spacing"
                 android:lineSpacingExtra="5dp" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <co.ledger.wallet.widget.TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/unplugged_security_understood"
-                android:id="@+id/button"
-                android:layout_marginTop="@dimen/large_margin"
-                style="@style/RoundedGreenButtonStyle"/>
-
         </LinearLayout>
 
     </ScrollView>
+
+    <co.ledger.wallet.widget.TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/unplugged_security_understood"
+        android:id="@+id/button"
+        android:layout_marginTop="@dimen/large_margin"
+        android:layout_marginBottom="@dimen/huge_margin"
+        style="@style/RoundedGreenButtonStyle"/>
 
 </LinearLayout>
