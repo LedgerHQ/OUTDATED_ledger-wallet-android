@@ -14,15 +14,15 @@
         android:clipChildren="false"
         android:layout_centerHorizontal="true">
 
-        <com.ledger.ledgerwallet.widget.TextView
+        <co.ledger.wallet.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/home_np_title"
             android:id="@+id/textView"
             android:textSize="@dimen/very_extra_large_font_size"
             app:kerning="@dimen/extra_large_font_spacing"
-            android:layout_marginLeft="@dimen/extra_huge_margin"
-            android:layout_marginRight="@dimen/extra_huge_margin"
+            android:layout_marginLeft="@dimen/huge_margin"
+            android:layout_marginRight="@dimen/huge_margin"
             android:layout_marginBottom="@dimen/extra_large_margin"
             android:gravity="center"
             android:textColor="@color/black"
@@ -37,22 +37,22 @@
             android:layout_marginRight="@dimen/huge_margin"
             android:layout_gravity="center_horizontal" />
 
-        <com.ledger.ledgerwallet.widget.TextView
+        <co.ledger.wallet.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/home_np_subtitle"
             android:id="@+id/textView2"
             android:gravity="center"
             android:textColor="@color/soft_grey"
-            app:kerning="@dimen/large_font_spacing"
-            android:layout_marginLeft="@dimen/extra_huge_margin"
-            android:layout_marginRight="@dimen/extra_huge_margin"
-            android:textSize="@dimen/large_font_size"
+            app:kerning="@dimen/medium_font_spacing"
+            android:layout_marginLeft="@dimen/large_margin"
+            android:layout_marginRight="@dimen/large_margin"
+            android:textSize="@dimen/medium_font_size"
             app:fontStyle="light"
             android:layout_marginBottom="@dimen/extra_large_margin"
             android:layout_gravity="center_horizontal" />
 
-        <com.ledger.ledgerwallet.widget.TextView
+        <co.ledger.wallet.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/home_np_action"
@@ -60,9 +60,18 @@
             style="@style/RoundedGreenButtonStyle"
             android:layout_gravity="center_horizontal" />
 
+        <co.ledger.wallet.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/home_np_setup_unplugged"
+            android:id="@+id/setup_unplugged"
+            style="@style/RoundedGreyButtonStyle"
+            android:layout_marginTop="@dimen/large_margin"
+            android:layout_gravity="center_horizontal" />
+
     </LinearLayout>
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/home_np_bottom"

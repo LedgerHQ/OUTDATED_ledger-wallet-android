@@ -6,7 +6,7 @@
     android:gravity="center_horizontal"
     android:layout_height="46dp">
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="46dp"
         android:text="@string/dialog_action_cancel"
@@ -21,7 +21,7 @@
         android:background="@drawable/bg_dialog_button"
  />
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="46dp"
         android:text="@string/dialog_action_close"
@@ -35,7 +35,7 @@
         android:background="@drawable/bg_dialog_button"
         android:id="@+id/neutral_button" />
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="46dp"
         android:text="@string/dialog_action_confirm"

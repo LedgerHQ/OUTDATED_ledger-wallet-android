@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <layer-list >
+            <item>
+                <color android:color="@color/very_light_grey" />
+            </item>
+            <item android:top="1dp" android:bottom="1dp">
+                <color android:color="@color/extra_light_grey_darken_1" />
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_pressed="false">
+        <layer-list >
+            <item>
+                <color android:color="@color/very_light_grey" />
+            </item>
+            <item android:top="1dp" android:bottom="1dp">
+                <color android:color="@color/extra_light_grey" />
+            </item>
+        </layer-list>
+    </item>
+</selector>

@@ -8,7 +8,7 @@
     android:layout_gravity="center_horizontal"
     android:layout_height="match_parent">
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/incoming_tx_title"
@@ -16,11 +16,11 @@
         android:textSize="@dimen/medium_font_size"
         app:kerning="@dimen/medium_font_spacing"
         android:textColor="@color/black"
-        android:layout_marginTop="@dimen/medium_margin"
+        android:layout_marginTop="@dimen/extra_large_margin"
         android:layout_marginBottom="@dimen/medium_margin"
         android:layout_gravity="center_horizontal" />
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Default Wallet"
@@ -38,7 +38,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal">
 
-        <com.ledger.ledgerwallet.widget.TextView
+        <co.ledger.wallet.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.0265"
@@ -48,7 +48,7 @@
             android:layout_marginRight="@dimen/extra_extra_small_margin"
             android:id="@+id/amount" />
 
-        <com.ledger.ledgerwallet.widget.TextView
+        <co.ledger.wallet.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/btc_acronyme"
@@ -67,12 +67,12 @@
         android:src="@drawable/ic_bottom_transfer"
         android:layout_gravity="center_horizontal" />
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="1MrpXW4dUz4FgFhNwkeqHqsWJDn12mPZPe"
-        android:layout_marginLeft="@dimen/huge_margin"
-        android:layout_marginRight="@dimen/huge_margin"
+        android:layout_marginLeft="@dimen/large_margin"
+        android:layout_marginRight="@dimen/large_margin"
         android:textSize="@dimen/small_font_size"
         app:kerning="@dimen/small_font_spacing"
         android:textColor="@color/black"
@@ -80,7 +80,7 @@
         android:gravity="center"
         android:layout_gravity="center_horizontal" />
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/incoming_tx_date"
@@ -98,7 +98,7 @@
         android:layout_height="wrap_content"
         layout="@layout/include_dialog_actions"
         android:layout_gravity="center"
-        android:layout_marginBottom="@dimen/extra_extra_small_margin"
+        android:layout_marginBottom="@dimen/large_margin"
         android:id="@+id/dialog_action_bar" />
 
 </LinearLayout>

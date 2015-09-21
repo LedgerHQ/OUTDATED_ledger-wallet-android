@@ -1,5 +1,6 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.ledger.ledgerwallet.v2">
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="co.ledger.wallet">
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -7,59 +8,204 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.NFC" />
 
-    <permission android:name="com.ledger.ledgerwallet.gcm.permission.C2D_MESSAGE"
+    <permission android:name="co.ledger.wallet.gcm.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
-    <uses-permission android:name="com.ledger.ledgerwallet.gcm.permission.C2D_MESSAGE" />
+    <uses-permission android:name="co.ledger.wallet.gcm.permission.C2D_MESSAGE" />
 
     <application android:name="android.support.multidex.MultiDexApplication" android:allowBackup="true" android:label="@string/app_name"
         android:icon="@drawable/ic_launcher" android:theme="@style/AppTheme">
 
+        <!--<activity-->
+            <!--android:name=".app.unplugged.UnpluggedEraseSeedActivity"-->
+            <!--android:screenOrientation="portrait"-->
+            <!--android:label="@string/app_name"-->
+            <!--android:launchMode="singleTask">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--</intent-filter>-->
+        <!--</activity>-->
+
         <activity
-            android:name="com.ledger.ledgerwallet.app.HomeActivity"
+            android:name=".app.HomeActivity"
             android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity
-            android:name="com.ledger.ledgerwallet.app.m2fa.PairedDonglesActivity"
+            android:name=".app.m2fa.PairedDonglesActivity"
             android:screenOrientation="portrait"
             android:label="@string/paired_dongle_activity_name"
-            android:parentActivityName="com.ledger.ledgerwallet.app.HomeActivity">
+            android:parentActivityName=".app.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.ledger.ledgerwallet.app.HomeActivity" />
+                android:value=".app.HomeActivity" />
         </activity>
 
         <activity
-            android:name="com.ledger.ledgerwallet.app.m2fa.pairing.CreateDonglePairingActivity"
+            android:name=".app.m2fa.pairing.CreateDonglePairingActivity"
             android:screenOrientation="portrait"
             android:label="@string/create_dongle_title"
             android:windowSoftInputMode="adjustResize"
-            android:parentActivityName="com.ledger.ledgerwallet.app.m2fa.PairedDonglesActivity"
+            android:parentActivityName=".app.m2fa.PairedDonglesActivity"
             >
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.ledger.ledgerwallet.app.m2fa.PairedDonglesActivity" />
+                android:value=".app.m2fa.PairedDonglesActivity" />
+        </activity>
+
+        <activity
+            android:name=".app.unplugged.UnpluggedTapActivity"
+            android:clearTaskOnLaunch="true"
+            android:screenOrientation="portrait"
+            android:label="@string/unplugged_tap_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
+        </activity>
+
+        <activity
+            android:name=".app.unplugged.UnpluggedWelcomeActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/unplugged_welcome_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
+        </activity>
+
+        <activity
+            android:name=".app.unplugged.UnpluggedSecurityActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/unplugged_security_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
+        </activity>
+
+        <activity
+            android:name=".app.unplugged.UnpluggedPINChoiceActivity"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
+        </activity>
+
+        <activity
+            android:name=".app.unplugged.UnpluggedInstallFidesmoActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/unplugged_fidesmo_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
+        </activity>
+        <activity
+            android:name=".app.unplugged.UnpluggedBip39MnemonicPhraseActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/unplugged_seed_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
+        </activity>
+
+        <activity
+            android:name=".app.unplugged.UnpluggedFinalizeSetupActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/unplugged_finalize_setup_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
+        </activity>
+
+        <activity
+            android:name=".app.unplugged.UnpluggedSetupCompleteActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/unplugged_setup_complete_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
+        </activity>
+
+        <activity
+            android:name=".app.unplugged.UnpluggedInProgressActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/unplugged_in_progress_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
+        </activity>
+
+        <activity
+            android:name=".app.unplugged.UnpluggedExistingActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/unplugged_existing_activity_title"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
+        </activity>
+
+        <activity
+            android:name=".app.unplugged.UnpluggedSetupKeyCardActivity"
+            android:label="@string/unplugged_scan_title"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".app.HomeActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.HomeActivity" />
         </activity>
 
         <receiver
-            android:name="com.ledger.ledgerwallet.app.GcmBroadcastReceiver"
+            android:name=".app.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-                <category android:name="com.ledger.ledgerwallet.gcm" />
             </intent-filter>
         </receiver>
-        <service android:name="com.ledger.ledgerwallet.app.GcmIntentService" />
+
+        <service android:name=".app.GcmIntentService" android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+            </intent-filter>
+        </service>
+
+        <provider
+            android:name=".content.FileContentProvider"
+            android:authorities="co.ledger.wallet.file_exporter"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/shared_file_paths" />
+        </provider>
     </application>
 
 </manifest>

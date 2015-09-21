@@ -30,6 +30,14 @@
     <color name="action_green_darken_15">#1BA68E</color>
     <color name="action_green_darken_20">#0E9981</color>
 
+    <color name="extra_light_grey_darken_1">#f1f1f1</color>
+    <color name="extra_light_grey_darken_3">#ECECEC</color>
+    <color name="extra_light_grey_darken_5">#E7E7E7</color>
+    <color name="extra_light_grey_darken_6">#E5E5E5</color>
+    <color name="extra_light_grey_darken_8">#E0E0E0</color>
+    <color name="extra_light_grey_darken_15">#CECECE</color>
+    <color name="extra_light_grey_darken_20">#C1C1C1</color>
+
     <color name="light_grey_darken_8">#B8B8B8</color>
     <color name="light_grey_darken_20">#999999</color>
 

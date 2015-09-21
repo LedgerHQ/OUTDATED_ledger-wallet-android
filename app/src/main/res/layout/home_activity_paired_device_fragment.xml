@@ -21,36 +21,36 @@
             android:layout_marginBottom="@dimen/very_large_margin"
             android:layout_gravity="center_horizontal" />
 
-        <com.ledger.ledgerwallet.widget.TextView
+        <co.ledger.wallet.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/home_p_title"
             android:id="@+id/textView"
             android:textSize="@dimen/very_extra_large_font_size"
             app:kerning="@dimen/extra_large_font_spacing"
-            android:layout_marginLeft="@dimen/extra_huge_margin"
-            android:layout_marginRight="@dimen/extra_huge_margin"
+            android:layout_marginLeft="@dimen/large_margin"
+            android:layout_marginRight="@dimen/large_margin"
             android:layout_marginBottom="@dimen/very_large_margin"
             android:gravity="center"
             android:textColor="@color/black"
             app:fontStyle="light"
             android:layout_gravity="center_horizontal" />
 
-        <com.ledger.ledgerwallet.widget.TextView
+        <co.ledger.wallet.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/home_p_subtitle"
             android:gravity="center"
             android:textColor="@color/soft_grey"
-            app:kerning="@dimen/large_font_spacing"
-            android:layout_marginLeft="@dimen/extra_huge_margin"
-            android:layout_marginRight="@dimen/extra_huge_margin"
+            app:kerning="@dimen/medium_font_spacing"
+            android:layout_marginLeft="@dimen/large_margin"
+            android:layout_marginRight="@dimen/large_margin"
             android:textSize="@dimen/medium_font_size"
             app:fontStyle="light"
             android:layout_marginBottom="@dimen/extra_large_margin"
             android:layout_gravity="center_horizontal" />
 
-        <com.ledger.ledgerwallet.widget.TextView
+        <co.ledger.wallet.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/home_p_action"
@@ -60,7 +60,7 @@
 
     </LinearLayout>
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/home_np_bottom"
