@@ -1,19 +1,9 @@
-package co.ledger.wallet
-
-import android.app.Activity
-import android.content.Context
-import android.os.{Handler, Looper}
-import co.ledger.wallet.utils.{StringExtensions, JsonUtils, AndroidImplicitConversions}
-
-import scala.concurrent.{Future, Promise}
-import scala.util.Try
-
 /**
  *
- * common
- * Default (Template) Project
+ * StringExtensions
+ * Ledger wallet
  *
- * Created by Pierre Pollastri on 17/09/15.
+ * Created by Pierre Pollastri on 21/09/15.
  *
  * The MIT License (MIT)
  *
@@ -38,25 +28,16 @@ import scala.util.Try
  * SOFTWARE.
  *
  */
-package object common extends AndroidImplicitConversions with JsonUtils with StringExtensions {
+package co.ledger.wallet.utils
 
-  private[this] lazy val mainThreadHandler = new Handler(Looper.getMainLooper)
-  private[this] lazy val mainThread = Looper.getMainLooper.getThread
+import org.json.{JSONArray, JSONObject}
 
-  def runOnUiThread(runnable: => Unit): Unit = {
-    if (Thread.currentThread == mainThread) {
-      runnable
-    } else {
-      mainThreadHandler.post { runnable }
-    }
-  }
+trait StringExtensions {
 
-  def postOnUiThread(runnable: => Unit): Unit = {
-    new Handler(Looper.getMainLooper).post(new Runnable {
-      override def run(): Unit = {
-        runnable
-      }
-    })
+  implicit class RichCharSequence(charSequence: CharSequence) {
+
+
+
   }
 
 }

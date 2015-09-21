@@ -41,7 +41,6 @@ import com.koushikdutta.async.http._
 import com.koushikdutta.async.http.server.{AsyncHttpServerRequest, AsyncHttpServer}
 import com.koushikdutta.async.http.server.AsyncHttpServer.WebSocketRequestCallback
 import co.ledger.wallet.crypto.ECKeyPair
-import co.ledger.wallet.Remote.HttpClient
 import co.ledger.wallet.utils.logs.Logger
 import junit.framework.Assert
 import org.json.{JSONException, JSONObject}

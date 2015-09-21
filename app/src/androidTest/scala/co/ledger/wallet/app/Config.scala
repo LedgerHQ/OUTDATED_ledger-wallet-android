@@ -1,7 +1,7 @@
 package co.ledger.wallet.app
 
 import android.net.Uri
-import com.ledger.ledgerwallet.BuildConfig
+import co.ledger.wallet.BuildConfig
 
 /**
   *
@@ -44,4 +44,7 @@ object Config {
   def Env: String = "test"
   def TrustletWebPage: Uri = Uri.parse("http://ledgerwallet.com/trustlet")
   def DisableLogging = !BuildConfig.DEBUG
+
+  def GreenBitsPackageName = "com.greenaddress.greenbits_android_wallet"
+  def MyceliumPackageName = "com.mycelium.wallet"
  }

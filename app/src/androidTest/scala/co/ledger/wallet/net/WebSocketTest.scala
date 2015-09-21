@@ -34,10 +34,11 @@ import java.util.concurrent.{TimeUnit, CountDownLatch}
 
 import android.net.Uri
 import android.test.InstrumentationTestCase
-import co.ledger.wallet.common._
 import co.ledger.wallet.utils.logs.Logger
 import junit.framework.Assert
 import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext.Implicits.global
+import co.ledger.wallet.common._
 
 class WebSocketTest extends InstrumentationTestCase {
 
@@ -59,7 +60,7 @@ class WebSocketTest extends InstrumentationTestCase {
           Logger.d(s"Just received a message $message")
           Assert.assertEquals(testString, message)
           signal.countDown()
-          ws.onClose((code, reason, remote) => {signal.countDown()})
+          ws.onClose((_) => {signal.countDown()})
           ws.close()
         })
         ws.send(testString)
@@ -83,7 +84,7 @@ class WebSocketTest extends InstrumentationTestCase {
           Assert.assertEquals(json.get("foo"), testJson.get("foo"))
           Assert.assertEquals(json.get("ledger"), testJson.get("ledger"))
           signal.countDown()
-          ws.onClose((code, reason, remote) => {signal.countDown()})
+          ws.onClose((_) => {signal.countDown()})
           ws.close()
         })
         ws.send(testJson)
@@ -99,8 +100,7 @@ class WebSocketTest extends InstrumentationTestCase {
   def testShouldFailedConnection(): Unit = {
     WebSocket.connect(Uri.parse("wss://an_uri_that_will_never_handle_websockets.never/ever")).onComplete {
       case Success(ws) => // WTF???
-        ws.onClose((code, reason, remote) => Logger.d(s"Received $code $reason $remote"))
-        Logger.d(s"WS is ${ws.isConnecting} ${ws.isClosing} ${ws.isOpen} ${ws.isClosed}")
+        ws.onClose((error) => Logger.d(s"Received ${error.getMessage}"))
         Assert.fail("It should failed connection")
       case Failure(ex) => {
         Logger.d("Failed to connect")

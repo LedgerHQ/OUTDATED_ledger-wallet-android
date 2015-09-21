@@ -28,13 +28,14 @@
  * SOFTWARE.
  *
  */
-package com.ledger.ledgerwallet.model
+package co.ledger.wallet.model
 
 import android.test.InstrumentationTestCase
 import co.ledger.wallet.models.PairedDongle
 import co.ledger.wallet.utils.logs.Logger
 import junit.framework.Assert
 import org.spongycastle.util.encoders.Hex
+
 import scala.collection.mutable
 
 class PairedDongleTest extends InstrumentationTestCase {
