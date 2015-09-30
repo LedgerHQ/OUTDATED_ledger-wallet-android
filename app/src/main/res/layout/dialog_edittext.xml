@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="@dimen/medium_margin"
+    android:paddingRight="@dimen/medium_margin">
+
+    <co.ledger.wallet.widget.EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/edit_text"
+        android:digits="1234567890abcdefABCDEF"
+        android:maxLength="32"
+        android:singleLine="true"
+        android:inputType="textVisiblePassword"
+        android:layout_gravity="center_horizontal" />
+</LinearLayout>

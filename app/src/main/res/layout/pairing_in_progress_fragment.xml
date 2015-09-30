@@ -13,7 +13,7 @@
         android:indeterminate="true"
         android:layout_gravity="center_horizontal" />
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -24,7 +24,7 @@
         android:layout_marginTop="@dimen/large_margin"
         android:layout_gravity="center_horizontal" />
 
-    <com.ledger.ledgerwallet.widget.TextView
+    <co.ledger.wallet.widget.TextView
         android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

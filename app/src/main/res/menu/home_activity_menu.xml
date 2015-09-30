@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/setup_unplugged"
+        android:title="@string/home_activity_menu_setup_unplugged"
+        />
+    <item
         android:id="@+id/export_logs"
         android:title="@string/home_activity_menu_export_logs"
         />

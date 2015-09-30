@@ -24,7 +24,7 @@
             android:layout_toLeftOf="@+id/delete_btn"
             android:layout_toStartOf="@+id/delete_btn">
 
-            <com.ledger.ledgerwallet.widget.TextView
+            <co.ledger.wallet.widget.TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="New Text"
@@ -39,7 +39,7 @@
                 android:layout_toLeftOf="@+id/delete_btn"
                 android:layout_toStartOf="@+id/delete_btn" />
 
-            <com.ledger.ledgerwallet.widget.TextView
+            <co.ledger.wallet.widget.TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="New Text"

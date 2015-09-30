@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/workflow_header" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/background_color"
+        android:scrollbarStyle="outsideOverlay"
+        android:id="@+id/scrollView"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:paddingLeft="@dimen/extra_large_margin"
+        android:paddingRight="@dimen/extra_large_margin"
+        android:paddingTop="@dimen/huge_margin"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/linear2">
+
+            <co.ledger.wallet.widget.TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/unplugged_security_line_1"
+                android:id="@+id/textViewLine1"
+                android:textColor="@color/black"
+                app:fontStyle="light"
+                android:textSize="@dimen/medium_font_size"
+                app:kerning="@dimen/medium_font_spacing"
+                android:lineSpacingExtra="5dp" />
+
+            <co.ledger.wallet.widget.TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/unplugged_security_line_1"
+                android:id="@+id/textViewLine2"
+                android:textColor="@color/black"
+                app:fontStyle="regular"
+                android:layout_marginTop="@dimen/large_margin"
+                android:textSize="@dimen/medium_font_size"
+                app:kerning="@dimen/medium_font_spacing"
+                android:lineSpacingExtra="5dp" />
+
+            <co.ledger.wallet.widget.TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/unplugged_security_line_3"
+                android:id="@+id/textViewLine3"
+                android:textColor="@color/black"
+                app:fontStyle="light"
+                android:layout_marginTop="@dimen/large_margin"
+                android:textSize="@dimen/medium_font_size"
+                app:kerning="@dimen/medium_font_spacing"
+                android:lineSpacingExtra="5dp" />
+
+            <co.ledger.wallet.widget.TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/unplugged_security_line_4"
+                android:id="@+id/textViewLine4"
+                android:textColor="@color/dark_grey"
+                app:fontStyle="regular"
+                android:layout_marginTop="@dimen/large_margin"
+                android:textSize="@dimen/medium_font_size"
+                app:kerning="@dimen/medium_font_spacing"
+                android:lineSpacingExtra="5dp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <co.ledger.wallet.widget.TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/unplugged_security_understood"
+        android:id="@+id/button"
+        android:layout_marginTop="@dimen/large_margin"
+        android:layout_marginBottom="@dimen/huge_margin"
+        style="@style/RoundedGreenButtonStyle"/>
+
+</LinearLayout>

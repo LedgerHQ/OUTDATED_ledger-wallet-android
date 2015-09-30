@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerVertical="true"
+    android:clipToPadding="false"
+    android:clipChildren="false"
+    android:layout_centerHorizontal="true">
+
+    <co.ledger.wallet.widget.TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/unplugged_fidesmo_top_text"
+        android:textSize="@dimen/medium_font_size"
+        app:kerning="@dimen/medium_font_spacing"
+        android:layout_marginLeft="@dimen/extra_large_margin"
+        android:layout_marginRight="@dimen/extra_large_margin"
+        android:layout_marginBottom="@dimen/large_margin"
+        android:layout_marginTop="@dimen/huge_margin"
+        android:textColor="@color/black"
+        app:fontStyle="regular"  />
+
+    <co.ledger.wallet.widget.TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/unplugged_fidesmo_top_description"
+        android:textSize="@dimen/medium_font_size"
+        app:kerning="@dimen/medium_font_spacing"
+        android:layout_marginLeft="@dimen/extra_large_margin"
+        android:layout_marginRight="@dimen/extra_large_margin"
+        android:layout_marginBottom="@dimen/huge_margin"
+        android:lineSpacingExtra="@dimen/almost_very_small_margin"
+        android:textColor="@color/black"
+        app:fontStyle="light"  />
+
+    <android.support.v7.widget.RecyclerView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        android:id="@+id/actions" />
+
+</LinearLayout>
