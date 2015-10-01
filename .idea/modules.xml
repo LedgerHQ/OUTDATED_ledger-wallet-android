@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/libs/bitlib/bitlib.iml" filepath="$PROJECT_DIR$/app/libs/bitlib/bitlib.iml" />
       <module fileurl="file://$PROJECT_DIR$/ledger-wallet-android.iml" filepath="$PROJECT_DIR$/ledger-wallet-android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/libs/libs.iml" filepath="$PROJECT_DIR$/app/libs/libs.iml" />
     </modules>
   </component>
 </project>

@@ -63,6 +63,7 @@ repositories {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    //compile project(':app:libs:bitlib')
     compile 'com.android.support:appcompat-v7:22.2.+'
     compile "org.scala-lang:scala-library:2.11.7"
     compile 'me.dm7.barcodescanner:zbar:1.6'

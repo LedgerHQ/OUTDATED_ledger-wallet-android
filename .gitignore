@@ -5,5 +5,6 @@
 .DS_Store
 /build
 .idea
+*.iml
 app/app.iml
 ledger-wallet-android.iml
