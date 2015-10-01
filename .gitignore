@@ -7,4 +7,5 @@
 .idea
 *.iml
 app/app.iml
+build/
 ledger-wallet-android.iml
