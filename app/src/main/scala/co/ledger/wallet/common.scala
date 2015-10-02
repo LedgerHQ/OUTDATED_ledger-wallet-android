@@ -3,7 +3,7 @@ package co.ledger.wallet
 import android.app.Activity
 import android.content.Context
 import android.os.{Handler, Looper}
-import co.ledger.wallet.utils.{StringExtensions, JsonUtils, AndroidImplicitConversions}
+import co.ledger.wallet.utils.{HexUtils, StringExtensions, JsonUtils, AndroidImplicitConversions}
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
@@ -38,7 +38,7 @@ import scala.util.Try
  * SOFTWARE.
  *
  */
-package object common extends AndroidImplicitConversions with JsonUtils with StringExtensions {
+package object common extends AndroidImplicitConversions with JsonUtils with StringExtensions with HexUtils {
 
   private[this] lazy val mainThreadHandler = new Handler(Looper.getMainLooper)
   private[this] lazy val mainThread = Looper.getMainLooper.getThread

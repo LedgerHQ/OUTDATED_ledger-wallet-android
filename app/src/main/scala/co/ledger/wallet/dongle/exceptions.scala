@@ -1,9 +1,9 @@
 /**
  *
- * Bip39Hekper
+ * exceptions
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 15/09/15.
+ * Created by Pierre Pollastri on 02/10/15.
  *
  * The MIT License (MIT)
  *
@@ -28,26 +28,12 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.bitcoin
+package co.ledger.wallet.dongle
 
-import java.security.SecureRandom
+package exceptions {
 
-import com.mrd.bitlib.crypto.{RandomSource, Bip39}
+import co.ledger.wallet.utils.Convert
 
-object Bip39Helper {
-
-  val EnglishWords = Bip39.ENGLISH_WORD_LIST // Temporary solution before refactoring
-
-  private[this] lazy val _secureRandom = new SecureRandom()
-
-  def generateMnemonicPhrase(dictionary: Array[String] = EnglishWords): String = {
-    Bip39.createRandomMasterSeed(new RandomSource() {
-      override def nextBytes(bytes: Array[Byte]): Unit = _secureRandom.nextBytes(bytes)
-    }).getBip39WordList.toArray.mkString(" ")
-  }
-
-  def isMnemomicPhraseValid(mnemonicPhrase: String): Boolean = {
-    Bip39.isValidWordList(mnemonicPhrase.split(' '))
-  }
-
+class CommuncationErrorException(msg: String) extends Exception(msg)
+  case class InvalidReponseStatusException(statusWord: Int) extends Exception(s"Invalid status - ${Integer.toHexString(statusWord)}")
 }

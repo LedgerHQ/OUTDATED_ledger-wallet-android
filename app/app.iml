@@ -131,8 +131,8 @@
     <orderEntry type="library" exported="" name="jackson-core-2.3.3" level="project" />
     <orderEntry type="library" exported="" name="shapeless_2.11-2.0.0" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="multidex-1.0.1" level="project" />
-    <orderEntry type="library" exported="" name="nordpol-core-0.1.4" level="project" />
     <orderEntry type="library" exported="" name="multidex-1.0.0" level="project" />
+    <orderEntry type="library" exported="" name="nordpol-core-0.1.4" level="project" />
     <orderEntry type="library" exported="" name="stringmetric-core_2.10-0.27.3" level="project" />
     <orderEntry type="library" exported="" name="pkix-1.51.0.0" level="project" />
     <orderEntry type="library" exported="" name="androidasync-2.1.6" level="project" />
@@ -153,6 +153,7 @@
     <orderEntry type="library" exported="" name="core-1.6" level="project" />
     <orderEntry type="library" exported="" name="support-v4-22.2.1" level="project" />
     <orderEntry type="library" exported="" name="guava-19.0-rc1" level="project" />
+    <orderEntry type="library" exported="" name="btchip-java-1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-22.2.1" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="multidex-instrumentation-1.0.1" level="project" />
     <orderEntry type="module" module-name="bitlib" exported="" />

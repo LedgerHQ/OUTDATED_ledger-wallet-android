@@ -1,9 +1,9 @@
 /**
  *
- * Bip39Hekper
+ * NfcDongle
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 15/09/15.
+ * Created by Pierre Pollastri on 01/10/15.
  *
  * The MIT License (MIT)
  *
@@ -28,26 +28,22 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.bitcoin
+package co.ledger.wallet.dongle
 
-import java.security.SecureRandom
+import android.nfc.Tag
+import co.ledger.wallet.dongle.exceptions.InvalidReponseStatusException
+import co.ledger.wallet.dongle.transport.NfcTransport
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-import com.mrd.bitlib.crypto.{RandomSource, Bip39}
+class NfcDongle(tag : Tag) extends Dongle(new NfcTransport(tag)) {
 
-object Bip39Helper {
-
-  val EnglishWords = Bip39.ENGLISH_WORD_LIST // Temporary solution before refactoring
-
-  private[this] lazy val _secureRandom = new SecureRandom()
-
-  def generateMnemonicPhrase(dictionary: Array[String] = EnglishWords): String = {
-    Bip39.createRandomMasterSeed(new RandomSource() {
-      override def nextBytes(bytes: Array[Byte]): Unit = _secureRandom.nextBytes(bytes)
-    }).getBip39WordList.toArray.mkString(" ")
-  }
-
-  def isMnemomicPhraseValid(mnemonicPhrase: String): Boolean = {
-    Bip39.isValidWordList(mnemonicPhrase.split(' '))
+  def checkIsLedgerUnplugged(): Future[Boolean] = {
+    send("00a404000ca0000006170054bf6aa94901")(0x9000)
+      .map((_) => {true}).recover {
+      case InvalidReponseStatusException(_) => false
+      case exception => throw exception
+    }
   }
 
 }

@@ -2,7 +2,7 @@ package co.ledger.wallet.nfc
 
 import android.net.Uri
 import android.nfc.Tag
-import com.ledger.ledgerwallet.bitlib.crypto.Bip39
+import com.mrd.bitlib.crypto.Bip39
 import scala.concurrent.ExecutionContext.Implicits.global
 import co.ledger.wallet.utils.logs.Logger
 import nordpol.android.AndroidCard
@@ -18,7 +18,7 @@ class Unplugged(val tag: Tag)  {
   val APPLICATION_ID = "54BF6AA9"
   val SERVICE_ID = "test"
   val ApplicationApdu: String = "00a404000ca0000006170054bf6aa94901"
-  val successfulAPDU = Array[Byte](0x90.toByte, 0x00);
+  val successfulAPDU = Array[Byte](0x90.toByte, 0x00)
   val FIDESMO_APP: String = "com.fidesmo.sec.android"
   val SERVICE_URI: String = "https://api.fidesmo.com/service/"
   val SERVICE_DELIVERY_CARD_ACTION: String = "com.fidesmo.sec.DELIVER_SERVICE"

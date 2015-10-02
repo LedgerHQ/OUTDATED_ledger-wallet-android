@@ -1,9 +1,9 @@
 /**
  *
- * Bip39Hekper
+ * DongleApi
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 15/09/15.
+ * Created by Pierre Pollastri on 02/10/15.
  *
  * The MIT License (MIT)
  *
@@ -28,26 +28,27 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.bitcoin
+package co.ledger.wallet.dongle.api
 
-import java.security.SecureRandom
+import co.ledger.wallet.nfc.Utils
+import com.btchip.comm.BTChipTransport
 
-import com.mrd.bitlib.crypto.{RandomSource, Bip39}
+import scala.concurrent.Future
 
-object Bip39Helper {
+trait DongleApi {
 
-  val EnglishWords = Bip39.ENGLISH_WORD_LIST // Temporary solution before refactoring
+  type ByteArray = Array[Byte]
+  type APDU = ByteArray
 
-  private[this] lazy val _secureRandom = new SecureRandom()
+  def transport: BTChipTransport
+  def send(apduString: String)(acceptedStatuses: Int*)
+    : Future[ByteArray] = send(Utils.decodeHex(apduString))(acceptedStatuses: _*)
 
-  def generateMnemonicPhrase(dictionary: Array[String] = EnglishWords): String = {
-    Bip39.createRandomMasterSeed(new RandomSource() {
-      override def nextBytes(bytes: Array[Byte]): Unit = _secureRandom.nextBytes(bytes)
-    }).getBip39WordList.toArray.mkString(" ")
-  }
+  def send(apduInt: Int*)(acceptedStatuses: Int*)
+    : Future[ByteArray] = send(apduInt.map(_.toByte).toArray)(acceptedStatuses: _*)
 
-  def isMnemomicPhraseValid(mnemonicPhrase: String): Boolean = {
-    Bip39.isValidWordList(mnemonicPhrase.split(' '))
-  }
+  def send(apdu: APDU)(acceptedStatuses: Int*): Future[ByteArray]
 
+  protected[this] def lastStatusWord_=(statusWord: Int): Unit
+  def lastStatusWord: Int
 }
