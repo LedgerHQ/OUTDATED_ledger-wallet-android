@@ -84,8 +84,8 @@ class NameDongleFragment extends BaseFragment with ContractFragment[CreateDongle
   override def onResume(): Unit = {
     super.onResume()
     activity.foreach((activity) => {
-      activity.getActionBar.setDisplayHomeAsUpEnabled(false)
-      activity.getActionBar.setHomeButtonEnabled(false)
+      activity.getSupportActionBar.setDisplayHomeAsUpEnabled(false)
+      activity.getSupportActionBar.setHomeButtonEnabled(false)
     })
     frame.getViewTreeObserver.addOnGlobalLayoutListener(layoutObserver)
     nameEditText.requestFocus()

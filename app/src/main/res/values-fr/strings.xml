@@ -171,6 +171,19 @@
     <string name="trustlet_promotion_dialog_main_message">Votre smartphone est compatible avec Ledger Trustlet, notre nouvelle technologie en environement d\'exécution sécurisé.</string>
     <string name="trustlet_promotion_dialog_bottom_message">Voulez-vous en savoir plus ?</string>
 
+    <!-- Settings -->
+    <string name="settings_activity_name">Paramètres</string>
+    <string name="settings_pref_internal_keystore_name">Utilisé le keystore interne</string>
+    <string name="settings_pref_internal_keystore_summary">Vous devrez débloquer votre application avec votre mot de passe à chaque démarrage.</string>
+    <string name="settings_pref_change_password_name">Changer le mot de passe du keystore</string>
+    <string name="settings_pref_change_password_summary">Changer le mot de passe du keystore</string>
+    <string name="settings_pref_licences_name">Licences</string>
+    <string name="settings_pref_licences_summary">Licences de l\'application et bibliothèques</string>
+    <string name="settings_category_security">Sécurité</string>
+    <string name="settings_category_about">A propos</string>
+    <string name="settings_category_application">Application</string>
+    <string name="settings_category_libraries">Bibliothèques</string>
+
     <!-- Actions -->
     <string name="action_done">Terminé</string>
 

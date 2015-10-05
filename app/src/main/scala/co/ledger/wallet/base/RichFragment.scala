@@ -46,7 +46,7 @@ trait RichFragment extends Fragment {
   implicit def FragmentActivityToBaseActivity(activity: FragmentActivity) = activity.asInstanceOf[BaseActivity]
 
   def activity = {
-    Option(getActivity)
+    Option(getActivity.asInstanceOf[BaseActivity])
   }
 
 }

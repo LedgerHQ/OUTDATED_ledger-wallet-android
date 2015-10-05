@@ -88,8 +88,10 @@ abstract class Keystore(c: Context) {
   def isLoaded = _javaKeystore.isDefined
   private[this] var _javaKeystore: Option[JavaKeyStore] = None
   protected def javaKeystore = _javaKeystore
+  private[this] var _loadedKeystore: Future[KeyStore] = null
 
-  @inline private[this] def ensureKeyStoreIsLoaded = assert(isLoaded, "Keystore is lock")
+  @inline private[this] def ensureKeyStoreIsLoaded = assert(isLoaded, "Keystore is locked")
+
 }
 
 object Keystore {
@@ -104,7 +106,10 @@ object Keystore {
   private[this] var _defaultInstance: Option[Keystore] = None
 
   def defaultInstance(implicit context: Context) = {
-    null
+    _defaultInstance.getOrElse({
+      _defaultInstance = Option(new AndroidKeystore(context))
+      _defaultInstance.get
+    })
   }
 
   object Preferences {

@@ -59,7 +59,9 @@ object SecretKey {
   private[this] implicit var context: Context = null;
 
   private[this] lazy val keystore: Keystore = {
-    Keystore.defaultInstance
+    val keystore = Keystore.defaultInstance
+    keystore.load(null)
+    keystore
   }
 
   def get(context: Context, alias: String): Option[SecretKey] = {

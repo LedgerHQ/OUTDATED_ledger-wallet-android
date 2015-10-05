@@ -67,6 +67,7 @@ class HomeActivity extends BaseActivity {
     if (!AndroidUtils.hasNfcFeature()) {
       menu.findItem(R.id.setup_unplugged).setVisible(false)
     }
+    menu.findItem(R.id.settings).setVisible(false)
     true
   }
 
