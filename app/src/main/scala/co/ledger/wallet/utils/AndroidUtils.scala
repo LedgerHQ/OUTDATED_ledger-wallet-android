@@ -76,12 +76,23 @@ object AndroidUtils {
 
   def vibrate(duration: Long)(implicit context: Context): Unit = {
     val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE).asInstanceOf[Vibrator]
-    vibrator.vibrate(duration)
+    if (vibrator.hasVibrator) {
+      vibrator.vibrate(duration)
+    }
   }
 
   def vibrate(pattern: Array[Long], repeat: Int = -1)(implicit context: Context): Unit = {
     val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE).asInstanceOf[Vibrator]
-    vibrator.vibrate(pattern, repeat)
+    if (vibrator.hasVibrator) {
+      vibrator.vibrate(pattern, repeat)
+    }
   }
+
+  def hasPermission(permission: String)(implicit context: Context): Boolean = {
+    val packageManager = context.getPackageManager
+    packageManager.hasSystemFeature(permission)
+  }
+
+  def hasNfcFeature()(implicit context: Context): Boolean = hasPermission(PackageManager.FEATURE_NFC)
 
 }

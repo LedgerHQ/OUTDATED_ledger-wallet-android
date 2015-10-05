@@ -47,7 +47,7 @@ import co.ledger.wallet.concurrent.ExecutionContext.Implicits.main
 import co.ledger.wallet.models.PairedDongle
 import co.ledger.wallet.security.{ApplicationKeystore, AndroidKeystore}
 import co.ledger.wallet.utils.logs.{Logger, LogCatReader}
-import co.ledger.wallet.utils.{GooglePlayServiceHelper, TR}
+import co.ledger.wallet.utils.{AndroidUtils, GooglePlayServiceHelper, TR}
 import co.ledger.wallet.widget.TextView
 
 import scala.util.{Failure, Success}
@@ -63,7 +63,10 @@ class HomeActivity extends BaseActivity {
   }
 
   override def onCreateOptionsMenu(menu: Menu): Boolean = {
-    getMenuInflater.inflate(R.menu.home_activity_menu, menu);
+    getMenuInflater.inflate(R.menu.home_activity_menu, menu)
+    if (!AndroidUtils.hasNfcFeature()) {
+      menu.findItem(R.id.setup_unplugged).setVisible(false)
+    }
     true
   }
 
@@ -250,7 +253,13 @@ class HomeActivityContentFragment extends BaseFragment {
       startActivity(intent)
     }
 
-    Option(view.findViewById(R.id.setup_unplugged)).foreach(_.onClick(getActivity.asInstanceOf[HomeActivity].startConfigureUnplugged()))
+
+    Option(view.findViewById(R.id.setup_unplugged)).foreach({ (view) =>
+      if (!AndroidUtils.hasNfcFeature()) {
+        view.setVisibility(View.GONE)
+      }
+      view.onClick(getActivity.asInstanceOf[HomeActivity].startConfigureUnplugged())
+    })
   }
 
   override def onCreateOptionsMenu(menu: Menu, inflater: MenuInflater): Unit = {
