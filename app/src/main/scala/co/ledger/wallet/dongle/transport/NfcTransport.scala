@@ -36,6 +36,7 @@ import co.ledger.wallet.utils.logs.Logger
 import com.btchip.BTChipException
 import com.btchip.comm.BTChipTransport
 import com.btchip.utils.Dump
+import nordpol.android.AndroidCard
 
 import scala.util.Try
 
@@ -53,10 +54,9 @@ class NfcTransport(val tag: Tag, val timeout: Int = NfcTransport.DefaultTimeout)
         _card.setTimeout(timeout)
         Logger.d("Connected")
       }
-      val command: Array[Byte] = new Array(bytes.length + 1)
-      System.arraycopy(bytes, 0, command, 0, bytes.length)
+
       Logger.d(s"=> ${Dump.dump(bytes)}")
-      val response = _card.transceive(command)
+      val response = _card.transceive(bytes)
       Logger.d(s"<= ${Dump.dump(response)}")
       response
     }
@@ -66,14 +66,14 @@ class NfcTransport(val tag: Tag, val timeout: Int = NfcTransport.DefaultTimeout)
     }
   }
 
-  override def setDebug(b: Boolean): Unit = _debug = false
+  override def setDebug(b: Boolean): Unit = _debug = b
 
   private[this] var _debug = false
-  private[this] val _card = IsoDep.get(tag)
+  private[this] val _card = AndroidCard.get(tag)
 }
 
 object NfcTransport {
 
-  val DefaultTimeout = 5000
+  val DefaultTimeout = 30000
 
 }

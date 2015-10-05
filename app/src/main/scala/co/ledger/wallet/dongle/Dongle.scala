@@ -30,14 +30,18 @@
  */
 package co.ledger.wallet.dongle
 
-import co.ledger.wallet.dongle.api.{SetupDongleApi, DongleApi}
-import co.ledger.wallet.dongle.exceptions.{InvalidReponseStatusException, CommuncationErrorException}
+import co.ledger.wallet.dongle.api.{DongleApi, SetupDongleApi, UnlockDongleApi}
+import co.ledger.wallet.dongle.exceptions.{CommuncationErrorException, InvalidReponseStatusException}
 import com.btchip.comm.BTChipTransport
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
-class Dongle(val transport: BTChipTransport) extends DongleApi with SetupDongleApi {
+class Dongle(val transport: BTChipTransport) extends DongleApi
+  with SetupDongleApi
+  with UnlockDongleApi {
+
+  transport.setDebug(true)
 
   override def send(apdu: APDU)(acceptedStatuses: Int*): Future[ByteArray] = Future {
     val response = transport.exchange(apdu)
@@ -49,15 +53,13 @@ class Dongle(val transport: BTChipTransport) extends DongleApi with SetupDongleA
       System.arraycopy(response, 0, result, 0, response.length - 2)
       result
     }
-  } andThen {
-    case Success(result) =>
-      if (acceptedStatuses.isEmpty || (acceptedStatuses.nonEmpty &&
-          acceptedStatuses.contains(lastStatusWord))) {
-        result
-      } else {
-        throw new InvalidReponseStatusException(lastStatusWord)
-      }
-    case Failure(ex) => throw ex
+  } map { (result) =>
+    if (acceptedStatuses.isEmpty || (acceptedStatuses.nonEmpty &&
+        acceptedStatuses.contains(lastStatusWord))) {
+      result
+    } else {
+      throw new InvalidReponseStatusException(lastStatusWord)
+    }
   }
 
   private[this] var _lastStatusWord = 0

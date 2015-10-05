@@ -37,6 +37,7 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.Toast
 import co.ledger.wallet.base.BaseFragment
 import co.ledger.wallet.common._
+import co.ledger.wallet.dongle.NfcDongle
 import co.ledger.wallet.nfc.Unplugged
 import co.ledger.wallet.utils.{AndroidUtils, TR}
 import co.ledger.wallet.utils.logs.Logger
@@ -52,7 +53,7 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
   val LoadingMode = 0x02
 
   private[this] var _mode = TappingMode
-  private[this] var _unplugged: Option[Unplugged] = None
+  private[this] var _unplugged: Option[NfcDongle] = None
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -73,7 +74,7 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
     _unplugged = None
   }
 
-  override protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
+  override protected def onUnpluggedDiscovered(unplugged: NfcDongle): Unit = {
     super.onUnpluggedDiscovered(unplugged)
     if (_mode == TappingMode) {
       _mode = LoadingMode
@@ -123,7 +124,7 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
       setTitle(R.string.unplugged_in_progress_activity_title)
       if (_unplugged.isDefined) {
         val unplugged = _unplugged.get
-        unplugged.setKeycard(keycardSeed.get) flatMap {(result) =>
+        unplugged.setKeycard(keycardSeed.get) flatMap {(_) =>
           _unplugged.get.setup(pin.get, mnemonicPhrase.get)
         } onComplete {
           case Success(_) =>

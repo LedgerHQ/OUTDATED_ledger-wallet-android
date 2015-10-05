@@ -40,10 +40,13 @@ object Bip39Helper {
 
   private[this] lazy val _secureRandom = new SecureRandom()
 
-  def generateMnemonicPhrase(dictionary: Array[String] = EnglishWords): String = {
-    Bip39.createRandomMasterSeed(new RandomSource() {
+  def generateMnemonicPhrase(dictionary: Array[String] = EnglishWords, numberOfWords: Int = 24): String = {
+    val randomSource = new RandomSource() {
       override def nextBytes(bytes: Array[Byte]): Unit = _secureRandom.nextBytes(bytes)
-    }).getBip39WordList.toArray.mkString(" ")
+    }
+    val rawEntropy = new Array[Byte](numberOfWords / 12 * 128 / 8)
+    randomSource.nextBytes(rawEntropy)
+    Bip39.rawEntropyToWords(rawEntropy).mkString(" ")
   }
 
   def isMnemomicPhraseValid(mnemonicPhrase: String): Boolean = {

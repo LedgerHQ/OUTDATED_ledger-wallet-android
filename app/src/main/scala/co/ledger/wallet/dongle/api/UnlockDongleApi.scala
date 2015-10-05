@@ -1,19 +1,9 @@
-package co.ledger.wallet
-
-import android.app.Activity
-import android.content.Context
-import android.os.{Handler, Looper}
-import co.ledger.wallet.utils.{HexUtils, StringExtensions, JsonUtils, AndroidImplicitConversions}
-
-import scala.concurrent.{Future, Promise}
-import scala.util.Try
-
 /**
  *
- * common
- * Default (Template) Project
+ * UnlockDongleApi
+ * Ledger wallet
  *
- * Created by Pierre Pollastri on 17/09/15.
+ * Created by Pierre Pollastri on 02/10/15.
  *
  * The MIT License (MIT)
  *
@@ -38,31 +28,31 @@ import scala.util.Try
  * SOFTWARE.
  *
  */
-package object common extends AndroidImplicitConversions with JsonUtils with StringExtensions with HexUtils {
+package co.ledger.wallet.dongle.api
 
-  private[this] lazy val mainThreadHandler = new Handler(Looper.getMainLooper)
-  private[this] lazy val mainThread = Looper.getMainLooper.getThread
+import java.nio.charset.StandardCharsets
 
-  def runOnUiThread(runnable: => Unit): Unit = {
-    if (Thread.currentThread == mainThread) {
-      runnable
-    } else {
-      mainThreadHandler.post { runnable }
-    }
+import co.ledger.wallet.dongle.exceptions.InvalidReponseStatusException
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
+trait UnlockDongleApi extends DongleApi {
+
+  def unlock(pinCode: String): Future[Unit] = {
+    val APDU: Array[Byte] = (Array[Byte](0xE0.toByte, 0x22, 0x00, 0x00) :+ pinCode.length.toByte) ++ pinCode.getBytes(StandardCharsets.US_ASCII)
+    send(APDU)(0x9000).recover {
+      case InvalidReponseStatusException(status) =>
+        if (((status & 0xFF00) >> 8) == 0x63) {
+          throw new WrongPinCodeException(status - 0x63C0)
+        } else {
+          throw new WrongPinCodeException(0)
+        }
+      case exception => throw exception
+    } map {(_) => }
   }
 
-  def postOnUiThread(runnable: => Unit): Unit = {
-    new Handler(Looper.getMainLooper).post(new Runnable {
-      override def run(): Unit = {
-        runnable
-      }
-    })
-  }
-
-  def delay(delayMillis: Long): Future[Unit] = {
-    val promise = Promise[Unit]()
-    mainThreadHandler.postDelayed(promise.success(null), delayMillis)
-    promise.future
-  }
+  def remainingAttemptsToUnlock(): Future[Int] = ???
 
 }
+
+case class WrongPinCodeException(remainingAttempts: Int) extends Exception(s"Wrong Pin code ($remainingAttempts)")

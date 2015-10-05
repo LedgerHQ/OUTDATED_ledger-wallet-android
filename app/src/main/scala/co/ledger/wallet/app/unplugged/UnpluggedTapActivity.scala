@@ -34,6 +34,7 @@ package co.ledger.wallet.app.unplugged
 import android.nfc.Tag
 import android.os.Bundle
 import android.widget.Toast
+import co.ledger.wallet.dongle.NfcDongle
 import co.ledger.wallet.utils.AndroidUtils
 import co.ledger.wallet.{common, R}
 import co.ledger.wallet.nfc.Unplugged
@@ -57,9 +58,9 @@ class UnpluggedTapActivity extends UnpluggedSetupActivity {
     super.onTagDiscovered(tag)
   }
 
-  override protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
-    super.onUnpluggedDiscovered(unplugged)
-    unplugged.checkIsSetup() onComplete {
+  override protected def onUnpluggedDiscovered(dongle: NfcDongle): Unit = {
+    super.onUnpluggedDiscovered(dongle)
+    dongle.checkIsSetup() onComplete {
       case Success(isSetup) =>
         if (isSetup) {
           startNextActivity(classOf[UnpluggedExistingActivity])
@@ -68,7 +69,7 @@ class UnpluggedTapActivity extends UnpluggedSetupActivity {
         }
       case Failure(error) =>
         error.printStackTrace()
-        Toast.makeText(this, R.string.unplugged_tap_error_occured, Toast.LENGTH_LONG).show()
+        runOnUiThread(Toast.makeText(this, R.string.unplugged_tap_error_occured, Toast.LENGTH_LONG).show())
     }
   }
 

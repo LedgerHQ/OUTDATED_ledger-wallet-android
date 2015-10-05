@@ -60,7 +60,6 @@ trait SetupDongleApi extends DongleApi {
     APDU = APDU ++ bip32Seed :+ threedeskey
 
     APDU = (command :+ APDU.length.toByte) ++ APDU
-
     send(APDU)(0x9000).map((_) => {})
   }
 

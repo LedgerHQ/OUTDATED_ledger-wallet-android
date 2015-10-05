@@ -36,6 +36,7 @@ import android.os.Bundle
 import android.widget.TextView
 import co.ledger.wallet.R
 import co.ledger.wallet.base.BaseActivity
+import co.ledger.wallet.dongle.NfcDongle
 import co.ledger.wallet.nfc.Unplugged
 import co.ledger.wallet.utils.TR
 import co.ledger.wallet.utils.logs.Logger
@@ -59,11 +60,11 @@ trait UnpluggedSetupActivity extends BaseActivity {
   protected def dispatcher = _dispatcher
 
   protected def onTagDiscovered(tag: Tag): Unit = {
-    val unplugged = new Unplugged(tag)
-    unplugged.checkIsLedgerUnplugged() onComplete {
+    val dongle = new NfcDongle(tag)
+    dongle.checkIsLedgerUnplugged() onComplete {
       case Success(isLedgerUnplugged) =>
         if (isLedgerUnplugged) {
-          onUnpluggedDiscovered(unplugged)
+          onUnpluggedDiscovered(dongle)
         } else {
           onNotInstalledTagDiscovered()
         }
@@ -75,7 +76,7 @@ trait UnpluggedSetupActivity extends BaseActivity {
 
   }
 
-  protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
+  protected def onUnpluggedDiscovered(dongle: NfcDongle): Unit = {
 
   }
 

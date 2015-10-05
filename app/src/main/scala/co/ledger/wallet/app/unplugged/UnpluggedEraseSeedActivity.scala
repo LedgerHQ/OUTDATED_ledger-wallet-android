@@ -35,8 +35,9 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.Toast
 import co.ledger.wallet.R
 import co.ledger.wallet.base.BaseFragment
+import co.ledger.wallet.dongle.NfcDongle
 import co.ledger.wallet.nfc.{Utils, Unplugged}
-import co.ledger.wallet.utils.TR
+import co.ledger.wallet.utils.{HexUtils, TR}
 import co.ledger.wallet.widget.TextView
 import co.ledger.wallet.concurrent.ExecutionContext.Implicits.ui
 
@@ -48,7 +49,7 @@ class UnpluggedEraseSeedActivity extends UnpluggedSetupActivity {
   val LoadingMode = 0x02
 
   private[this] var _mode = TappingMode
-  private[this] var _unplugged: Option[Unplugged] = None
+  private[this] var _unplugged: Option[NfcDongle] = None
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
@@ -61,7 +62,7 @@ class UnpluggedEraseSeedActivity extends UnpluggedSetupActivity {
     _unplugged = None
   }
 
-  override protected def onUnpluggedDiscovered(unplugged: Unplugged): Unit = {
+  override protected def onUnpluggedDiscovered(unplugged: NfcDongle): Unit = {
     super.onUnpluggedDiscovered(unplugged)
     if (_mode == TappingMode) {
       _mode = LoadingMode
@@ -104,9 +105,9 @@ class UnpluggedEraseSeedActivity extends UnpluggedSetupActivity {
     override def onResume(): Unit = {
       super.onResume()
       if (_unplugged.isDefined) {
-        _unplugged.get.send(0xE0, 0x22, 0x00, 0x00, 0x04, 0x30, 0x30, 0x30, 0x30) onComplete {
+        _unplugged.get.unlock("0000") onComplete {
           case Success(result) =>
-            Toast.makeText(getActivity, s"Received ${Utils.encodeHex(result)}", Toast.LENGTH_LONG).show()
+            Toast.makeText(getActivity, s"Received", Toast.LENGTH_LONG).show()
             _mode = TappingMode
             setContentFragment(new TapFragment)
           case Failure(error) =>
