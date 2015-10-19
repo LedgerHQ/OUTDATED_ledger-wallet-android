@@ -41,6 +41,7 @@ import co.ledger.wallet.bitcoin.BitcoinUtils
 import co.ledger.wallet.crypto.D3ESCBC
 import co.ledger.wallet.models.PairedDongle
 import co.ledger.wallet.net.WebSocket
+import co.ledger.wallet.security.Keystore
 import co.ledger.wallet.utils.AndroidImplicitConversions._
 import co.ledger.wallet.utils.JsonUtils._
 import co.ledger.wallet.utils.logs.Logger
@@ -49,10 +50,11 @@ import org.spongycastle.util.encoders.Hex
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.collection.mutable
-import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 import scala.util.{Try, Failure, Success}
 
-class IncomingTransactionAPI(context: Context, webSocketUri: Uri = Config.WebSocketChannelsUri) {
+class IncomingTransactionAPI(context: Context, keystore: Keystore, webSocketUri: Uri = Config.WebSocketChannelsUri) {
 
   implicit val DisableLogging = Config.DisableLogging
 
@@ -220,10 +222,13 @@ class IncomingTransactionAPI(context: Context, webSocketUri: Uri = Config.WebSoc
     }
 
     private[this] def handleRequestPackage(json: JSONObject): Unit = {
+      Logger.d(s"Handle request package ${json.toString}")
       val f = Future {
-        val pairingKey = dongle.pairingKey(context)
+        Logger.d("Getting pairing key")
+        val pairingKey = Try(Await.result(dongle.pairingKey(context, keystore), Duration.Inf))
         val data = json.getString("second_factor_data")
-        if (pairingKey.isEmpty)
+        Logger.d(s"Is falure ${pairingKey.isFailure}")
+        if (pairingKey.isFailure)
           throw new Exception("No pairing key")
         val d3es = new D3ESCBC(pairingKey.get.secret)
         val decrypted = d3es.decrypt(Hex.decode(data))
@@ -307,7 +312,7 @@ object IncomingTransactionAPI {
 
   def defaultInstance(context: Context): IncomingTransactionAPI = {
     if (_defaultInstance == null)
-      _defaultInstance = new IncomingTransactionAPI(context)
+      _defaultInstance = new IncomingTransactionAPI(context, Keystore.defaultInstance(context))
     _defaultInstance
   }
 

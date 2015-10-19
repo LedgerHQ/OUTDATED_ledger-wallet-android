@@ -70,7 +70,6 @@ class PairingAPITest extends InstrumentationTestCase {
 
   def testShouldPairDevice: Unit = {
     val signal = new CountDownLatch(1)
-
     val answer = (s: String) => {
       val p = Promise[String]()
       p.success(s)

@@ -39,6 +39,7 @@ import co.ledger.wallet.app.{InstallationInfo, Config}
 import co.ledger.wallet.crypto.{Crypto, D3ESCBC, ECKeyPair}
 import co.ledger.wallet.models.PairedDongle
 import co.ledger.wallet.net.WebSocket
+import co.ledger.wallet.security.Keystore
 import co.ledger.wallet.utils.AndroidUtils
 import co.ledger.wallet.utils.logs.Logger
 import org.json.{JSONException, JSONObject}
@@ -49,7 +50,7 @@ import scala.util.{Try, Failure, Success}
 import co.ledger.wallet.common._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class PairingAPI(context: Context, websocketUri: Uri = Config.WebSocketChannelsUri) {
+class PairingAPI(context: Context, keystore: Keystore, websocketUri: Uri = Config.WebSocketChannelsUri) {
 
   implicit val LogTag = "PairingApi"
   implicit val DisableLogging = Config.DisableLogging
@@ -181,6 +182,7 @@ class PairingAPI(context: Context, websocketUri: Uri = Config.WebSocketChannelsU
     // Ask the user to answer to the challenge
     //_onRequireUserInput(new Requi)
     Logger.d("Client received a challenge " + pkg.toString)
+    Logger.d("Sessions key is " + Hex.toHexString(sessionKey))
     val f = Future {
       val d3es = new D3ESCBC(sessionKey)
       val blob = Hex.decode(pkg.getString("data"))
@@ -235,7 +237,7 @@ class PairingAPI(context: Context, websocketUri: Uri = Config.WebSocketChannelsU
     Logger.d("Request dongle pairing")
     val createDongle = () => {
       Logger.d("Create dongle pairing")
-      val dongle = PairedDongle.create(_pairingId.get, dongleName, pairingKey)
+      val dongle = PairedDongle.create(keystore, _pairingId.get, dongleName, pairingKey)
       success(dongle)
     }
     if (attemptNumber > 0) {

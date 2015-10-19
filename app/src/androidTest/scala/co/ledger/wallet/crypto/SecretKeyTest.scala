@@ -1,14 +1,9 @@
-package co.ledger.wallet.app
-
-import android.net.Uri
-import co.ledger.wallet.BuildConfig
-
 /**
  *
- * Config
+ * SecretKeyTest
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 12/06/15.
+ * Created by Pierre Pollastri on 16/10/15.
  *
  * The MIT License (MIT)
  *
@@ -33,20 +28,16 @@ import co.ledger.wallet.BuildConfig
  * SOFTWARE.
  *
  */
+package co.ledger.wallet.crypto
 
-object Config {
+import android.test.InstrumentationTestCase
 
-  def ApiBaseUri = Uri.parse("https://api.ledgerwallet.com")
-  def WebSocketBaseUri = Uri.parse("https://ws.ledgerwallet.com")
-  def WebSocketChannelsUri = WebSocketBaseUri.buildUpon().appendEncodedPath("2fa/channels").build()
-  def LedgerAttestationPublicKey = "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
-  def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
-  def SupportEmailAddress = "hello@ledger.fr"
-  def Env = if (BuildConfig.DEBUG) "dev" else "prod"
-  def TrustletWebPage = Uri.parse("https://ledgerwallet.com/trustlet")
-  def DisableLogging = !BuildConfig.DEBUG
+class SecretKeyTest extends InstrumentationTestCase {
 
-  def GreenBitsPackageName = "com.greenaddress.greenbits_android_wallet"
-  def MyceliumPackageName = "com.mycelium.wallet"
+  def testShouldStoreSecretKeyAndRetrieveIt(): Unit = {
+    implicit val context = getInstrumentation.getContext
+    val secret = "This is a secret"
+    SecretKey.create(context, "TheAlias", secret.getBytes)
+  }
 
 }

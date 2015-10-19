@@ -39,6 +39,7 @@ import co.ledger.wallet.security.Keystore
 import co.ledger.wallet.utils.logs.Logger
 import org.spongycastle.util.encoders.Hex
 
+import scala.concurrent.Future
 import scala.util.Try
 
 sealed trait SecretKey {
@@ -58,28 +59,26 @@ object SecretKey {
 
   private[this] implicit var context: Context = null;
 
-  private[this] lazy val keystore: Keystore = {
-    val keystore = Keystore.defaultInstance
-    keystore.load(null)
-    keystore
-  }
-
-  def get(context: Context, alias: String): Option[SecretKey] = {
-    this.context = context.getApplicationContext
-    val store = keystore
-    val hexWrappedSecret = context.getSharedPreferences(PreferenceName, Context.MODE_PRIVATE).getString(alias, null)
-    if (!store.containsAlias(alias) || hexWrappedSecret == null)
-      return None
-    val raw = Hex.decode(hexWrappedSecret)
-    val entry = keystore.getEntry(alias, null)
-    entry match {
-      case privateKeyEntry: PrivateKeyEntry =>
-        Some(new SecretKeyImpl(alias, raw, new KeyPair(privateKeyEntry.getCertificate.getPublicKey, privateKeyEntry.getPrivateKey)))
-      case wrongEntryClass => None
+  def get(context: Context, keystore: Keystore, alias: String): Future[SecretKey] = {
+    keystore.safe(context) {
+      this.context = context.getApplicationContext
+      val store = keystore
+      val hexWrappedSecret = context.getSharedPreferences(PreferenceName, Context.MODE_PRIVATE).getString(alias, null)
+      if (!store.containsAlias(alias) || hexWrappedSecret == null) {
+        Logger.d(s"Not found $alias $hexWrappedSecret ${store.containsAlias(alias)}")
+        throw new SecretKeyNotFound(alias)
+      }
+      val raw = Hex.decode(hexWrappedSecret)
+      val entry = keystore.getEntry(alias, null)
+      entry match {
+        case privateKeyEntry: PrivateKeyEntry =>
+          new SecretKeyImpl(alias, raw, new KeyPair(privateKeyEntry.getCertificate.getPublicKey, privateKeyEntry.getPrivateKey))
+        case wrongEntryClass => throw new SecretKeyNotFound(alias)
+      }
     }
   }
 
-  def remove(context: Context, alias: String): Boolean = {
+  def remove(context: Context, keystore: Keystore, alias: String): Boolean = {
     this.context = context.getApplicationContext
     val store = keystore
     if (store.containsAlias(alias)) {
@@ -90,7 +89,7 @@ object SecretKey {
     }
   }
 
-  def create(context: Context, alias: String, secret: Array[Byte]): Try[SecretKey] = {
+  def create(context: Context, keystore: Keystore, alias: String, secret: Array[Byte]): Try[SecretKey] = {
     this.context = context.getApplicationContext
     keystore.generateKey(alias)
     Logger.d("After generate keypair")
@@ -110,25 +109,31 @@ object SecretKey {
     }
   }
 
-  def delete(context: Context, alias: String): Unit = {
-    keystore.deleteEntry(alias)
-    context.getSharedPreferences(PreferenceName, Context.MODE_PRIVATE)
-      .edit()
-      .remove(alias)
-      .commit()
+  def delete(context: Context, keystore: Keystore, alias: String): Unit = {
+    keystore.safe(context) {
+      keystore.deleteEntry(alias)
+      context.getSharedPreferences(PreferenceName, Context.MODE_PRIVATE)
+        .edit()
+        .remove(alias)
+        .commit()
+    }
   }
 
   private class SecretKeyImpl(_alias: String, _raw: Array[Byte], keyPair: KeyPair) extends SecretKey {
+    Crypto.ensureSpongyIsRemoved()
     private[this] val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
 
     override def alias: String = _alias
     override def raw: Array[Byte] = _raw
     override def secret: Array[Byte] = {
+      Crypto.ensureSpongyIsRemoved()
       cipher.init(Cipher.UNWRAP_MODE, keyPair.getPrivate)
       cipher.unwrap(_raw, "AES", Cipher.SECRET_KEY).getEncoded
     }
   }
 
   private val PreferenceName = "SecretKeyStore"
+
+  case class SecretKeyNotFound(key: String) extends Exception(s"Secret key '$key' not found")
 
 }

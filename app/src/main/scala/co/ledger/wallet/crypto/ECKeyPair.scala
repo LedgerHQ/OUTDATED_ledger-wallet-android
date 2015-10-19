@@ -60,9 +60,10 @@ abstract class ECKeyPair {
   def generateAgreementSecret(publicKeyHex: String): Array[Byte] = generateAgreementSecret(Hex.decode(publicKeyHex))
 
   def generateAgreementSecret(publicKey: Array[Byte]): Array[Byte] = {
+    Crypto.ensureSpongyIsInserted()
     val publicKeyPoint = ECKeyPair.bytesToEcPoint(publicKey)
     val P = publicKeyPoint.multiply(ECKeyPair.Domain.getH.multiply(privateKeyInteger))
-    P.getX.getEncoded
+    P.normalize().getXCoord.getEncoded
   }
 }
 

@@ -40,13 +40,13 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{ImageView, ImageButton}
 import co.ledger.wallet.R
 import co.ledger.wallet.app.m2fa.pairing.CreateDonglePairingActivity
-import co.ledger.wallet.base.{BaseActivity, BigIconAlertDialog}
+import co.ledger.wallet.base.{KeystoreActivity, BaseActivity, BigIconAlertDialog}
 import co.ledger.wallet.models.PairedDongle
 import co.ledger.wallet.utils.AndroidImplicitConversions._
 import co.ledger.wallet.utils.TR
 import co.ledger.wallet.widget.TextView
 
-class PairedDonglesActivity extends BaseActivity {
+class PairedDonglesActivity extends BaseActivity with KeystoreActivity {
 
   lazy val addPairingButton = TR(R.id.add_pairing_btn).as[ImageView]
   lazy val pairedDevicesList = TR(R.id.paired_devices_recycler_view).as[RecyclerView]
@@ -132,7 +132,7 @@ class PairedDonglesActivity extends BaseActivity {
         .setMessage(R.string.delete_pairing_dialog_message)
         .setPositiveButton(android.R.string.yes, new OnClickListener {
           override def onClick(dialog: DialogInterface, which: Int): Unit = {
-            dongle.delete()
+            dongle.delete()(PairedDonglesActivity.this, keystore)
             dialog.dismiss()
             pairedDevicesAdapter.pairedDongles = PairedDongle.all.sortBy(_.createdAt.get.getTime)
             if (pairedDevicesAdapter.pairedDongles.length == 0)

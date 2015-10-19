@@ -1,7 +1,6 @@
 <resources>
 
     <!-- General -->
-    <string name="app_name">Ledger Wallet</string>
     <string name="app_version">Ledger Wallet Android %s</string>
     <string name="btc_acronyme">BTC</string>
 

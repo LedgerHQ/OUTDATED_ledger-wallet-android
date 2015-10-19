@@ -39,9 +39,10 @@ import android.content.DialogInterface.OnClickListener
 import android.os.Bundle
 
 import co.ledger.wallet.R
-import co.ledger.wallet.base.{BaseFragment, BaseActivity}
+import co.ledger.wallet.base.{KeystoreActivity, BaseFragment, BaseActivity}
 import co.ledger.wallet.models.PairedDongle
 import co.ledger.wallet.api.m2fa.{RequireDongleName, RequireChallengeResponse, RequirePairingId, PairingAPI}
+import co.ledger.wallet.security.Keystore
 import co.ledger.wallet.utils.TR
 import co.ledger.wallet.utils.logs.Logger
 import co.ledger.wallet.widget.TextView
@@ -50,7 +51,7 @@ import scala.util.{Try, Failure, Success}
 import co.ledger.wallet.utils.AndroidImplicitConversions._
 import co.ledger.wallet.concurrent.ExecutionContext.Implicits.main
 
-class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingActivity.CreateDonglePairingProccessContract {
+class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingActivity.CreateDonglePairingProccessContract with KeystoreActivity {
 
   lazy val stepNumberTextView = TR(R.id.step_number).as[TextView]
   lazy val stepInstructionTextView = TR(R.id.instruction_text).as[TextView]
@@ -69,10 +70,10 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
     gotToStep(1, TR(R.string.create_dongle_instruction_step_1).as[String], new ScanPairingQrCodeFragment())
   }
 
-  override def onResume(): Unit = {
-    super.onResume()
+  override protected def onKeystoreInstanceReady(newKeystore: Keystore): Unit = {
+    super.onKeystoreInstanceReady(newKeystore)
     if (pairingApi == null)
-      pairingApi = new PairingAPI(this)
+      pairingApi = new PairingAPI(this, newKeystore)
     if (pairingApi.future.isEmpty) {
       pairingApi.startPairingProcess()
       if (!getFragmentManager.findFragmentById(R.id.fragment_container).isInstanceOf[ScanPairingQrCodeFragment]) {

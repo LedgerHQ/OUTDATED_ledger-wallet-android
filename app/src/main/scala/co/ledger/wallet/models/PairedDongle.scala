@@ -36,6 +36,8 @@ import java.util.Date
 import javax.crypto.spec.SecretKeySpec
 import co.ledger.wallet.crypto.SecretKey
 import co.ledger.wallet.api.m2fa.GcmAPI
+import co.ledger.wallet.security.Keystore
+import co.ledger.wallet.utils.logs.Logger
 import co.ledger.wallet.utils.{Benchmark, GooglePlayServiceHelper}
 import org.json.JSONObject
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -53,10 +55,10 @@ class PairedDongle(_id: String = null, _name: String = null, _date: Date = null)
   val name = string("name").set(_name)
   val createdAt = date("created_at").set(_date)
 
-  def pairingKey(implicit context: Context): Option[SecretKey] = PairedDongle.retrievePairingKey(id.get)
+  def pairingKey(implicit context: Context, keystore: Keystore): Future[SecretKey] = PairedDongle.retrievePairingKey(keystore, id.get)
 
-  def delete()(implicit context: Context): Unit = {
-    PairedDongle.deletePairingKey(context, id.get)
+  def delete()(implicit context: Context, keystore: Keystore): Unit = {
+    PairedDongle.deletePairingKey(context, keystore, id.get)
     GcmAPI.defaultInstance.removeDongleToken(this)
     PairedDongle.delete(this)
   }
@@ -92,7 +94,7 @@ object PairedDongle extends Collection[PairedDongle] {
     dongles
   }
 
-  def create(id: String, name: String, pairingKey: Array[Byte])(implicit context: Context): PairedDongle = {
+  def create(keystore: Keystore, id: String, name: String, pairingKey: Array[Byte])(implicit context: Context): PairedDongle = {
     implicit val LogTag = "PairedDongle Creation"
     val dongle = new PairedDongle(id, name, new Date())
     context
@@ -100,7 +102,7 @@ object PairedDongle extends Collection[PairedDongle] {
       .edit()
       .putString(id, dongle.toJson.toString)
       .commit()
-    storePairingKey(context, id, pairingKey)
+    storePairingKey(context, keystore, id, pairingKey)
     GooglePlayServiceHelper.getGcmRegistrationId onComplete {
       case Success(regId) => GcmAPI.defaultInstance.updateDonglesToken(regId)
       case _ =>
@@ -116,13 +118,17 @@ object PairedDongle extends Collection[PairedDongle] {
       .commit()
   }
 
-  def retrievePairingKey(id: String)(implicit context: Context): Option[SecretKey] = SecretKey.get(context, id)
+  def retrievePairingKey(keystore: Keystore, id: String)(implicit context: Context): Future[SecretKey] = SecretKey.get(context, keystore, id)
 
-  def storePairingKey(context: Context, id: String, pairingKey: Array[Byte]): Unit = {
-    SecretKey.create(context, id, pairingKey)
+  def storePairingKey(context: Context, keystore: Keystore, id: String, pairingKey: Array[Byte]): Unit = {
+    Logger.d("CREATING SECRET KEY")
+    Keystore.defaultInstance(context).safe(context) {
+      Logger.d("CREATE SECRET KEY")
+      SecretKey.create(context, keystore, id, pairingKey)
+    }
   }
 
-  def deletePairingKey(context: Context, id: String): Unit = SecretKey.delete(context, id)
+  def deletePairingKey(context: Context, keystore: Keystore, id: String): Unit = SecretKey.delete(context, keystore, id)
 
   val PreferencesName = "PairedDonglePreferences"
 
