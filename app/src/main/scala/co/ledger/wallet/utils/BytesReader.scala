@@ -33,7 +33,7 @@ package co.ledger.wallet.utils
 import java.math.BigInteger
 import java.nio.charset.Charset
 
-class ByteReader(val bytes: Array[Byte]) {
+class BytesReader(val bytes: Array[Byte]) {
 
   private[this] var _offset = 0
 
