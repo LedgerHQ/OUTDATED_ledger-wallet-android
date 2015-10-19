@@ -65,7 +65,7 @@ repositories {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':bitlib')
+    // compile project(':bitlib')
     compile 'com.android.support:appcompat-v7:22.2.+'
     compile "org.scala-lang:scala-library:2.11.7"
     compile 'me.dm7.barcodescanner:zbar:1.6'
@@ -82,6 +82,7 @@ dependencies {
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.daimajia.easing:library:1.0.1@aar'
     compile 'com.daimajia.androidanimations:library:1.1.3@aar'
+    compile 'org.bitcoinj:bitcoinj-core:0.13.2'
     compile group: 'com.fidesmo', name: 'nordpol-android', version: '0.1.4', ext: 'aar', transitive: true
     compile 'com.google.guava:guava:19.0-rc1'
 

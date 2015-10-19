@@ -33,17 +33,24 @@ package co.ledger.wallet.utils
 import java.math.BigInteger
 import java.nio.charset.Charset
 
+import org.bitcoinj.core.VarInt
+
 class BytesReader(val bytes: Array[Byte]) {
 
   private[this] var _offset = 0
 
   def read(length: Int): Array[Byte]  = {
+    val offset = _offset
+    seek(length)
+    bytes.slice(offset, _offset)
+  }
+
+  def seek(length: Int): Unit = {
     if (length > available) {
       throw new IndexOutOfBoundsException(s"Invalid length ($length) is greater than available byte to read ($available)")
     }
     val offset = _offset
     _offset = offset + (if (length >= 0) length else available)
-    bytes.slice(offset, _offset)
   }
 
   def readString(length: Int, charset: Charset = Charset.defaultCharset()): String = {
@@ -62,6 +69,16 @@ class BytesReader(val bytes: Array[Byte]) {
   def readNextLeInt(): Int = readLeBigInteger(4).intValue()
   def readNextLeLong(): Long = readLeBigInteger(8).longValue()
 
+  def readNextByte(): Byte = read(1)(0)
+
+  def readNextVarInt(): VarInt = {
+    val varInt = new VarInt(bytes, _offset)
+    seek(varInt.getOriginalSizeInBytes)
+    varInt
+  }
+
   def available: Int = bytes.length - _offset
   def length: Int = bytes.length
+
+  def apply(index: Int): Byte = bytes(index)
 }

@@ -30,8 +30,8 @@
  */
 package co.ledger.wallet.dongle.api
 
+import co.ledger.wallet.bitcoin.Bip39Helper
 import co.ledger.wallet.utils.HexUtils
-import com.mrd.bitlib.crypto.Bip39
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -39,7 +39,7 @@ trait SetupDongleApi extends DongleApi {
 
   def setup(PIN: String, seed: String): Future[Unit] = {
     def getBip32FromSeed(bip39: String): String = {
-      HexUtils.bytesToHex(Bip39.generateSeedFromWordList(bip39.split(" "), "").getBip32Seed)
+      HexUtils.bytesToHex(Bip39Helper.getSeedFromMnemonicPhrase(bip39))
     }
 
     val command = Array[Byte](0xe0.toByte, 0x20, 0x00, 0x00)

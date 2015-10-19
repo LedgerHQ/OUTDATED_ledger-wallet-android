@@ -35,24 +35,27 @@ import java.util.Date
 
 import android.content.Context
 import android.net.Uri
-import android.os.{Looper, Handler}
+import android.os.{Handler, Looper}
 import co.ledger.wallet.app.Config
 import co.ledger.wallet.bitcoin.BitcoinUtils
-import co.ledger.wallet.crypto.D3ESCBC
+import co.ledger.wallet.crypto.{D3ESCBC, SecretKey}
 import co.ledger.wallet.models.PairedDongle
 import co.ledger.wallet.net.WebSocket
 import co.ledger.wallet.security.Keystore
 import co.ledger.wallet.utils.AndroidImplicitConversions._
+import co.ledger.wallet.utils.BytesReader
 import co.ledger.wallet.utils.JsonUtils._
 import co.ledger.wallet.utils.logs.Logger
+import org.bitcoinj.core.Address
+import org.bitcoinj.params.MainNetParams
 import org.json.{JSONException, JSONObject}
 import org.spongycastle.util.encoders.Hex
-import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-import scala.util.{Try, Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 class IncomingTransactionAPI(context: Context, keystore: Keystore, webSocketUri: Uri = Config.WebSocketChannelsUri) {
 
@@ -130,20 +133,15 @@ class IncomingTransactionAPI(context: Context, keystore: Keystore, webSocketUri:
     }
   }
 
-  class IncomingTransaction(connection: Connection,
-                            val dongle: PairedDongle,
-                            val pin: String,
-                            val amount: BigInteger,
-                            val fees: BigInteger,
-                            val change: BigInteger,
-                            val address: String) {
-    Logger.d("Incoming Transaction")
-    Logger.d("Address " + address)
-    Logger.d("Amount " + amount.toString)
-    Logger.d("Change " + change.toString)
-    Logger.d("Fees " + fees.toString)
+  abstract class IncomingTransaction(connection: Connection) {
+    def dongle: PairedDongle
+    def pin: String
+    def amount: BigInteger
+    def fees: BigInteger
+    def change: BigInteger
+    def address: String
 
-    val api = IncomingTransaction.this
+    val api = IncomingTransactionAPI.this
     val date = new Date()
     private[this] var _done = false
 
@@ -167,7 +165,63 @@ class IncomingTransactionAPI(context: Context, keystore: Keystore, webSocketUri:
 
     private[this] var _onCancelled: Option[() => Unit] = None
     def onCancelled(callback: () => Unit): Unit = _onCancelled = Option(callback)
+  }
 
+  private[this] class IncomingTransactionImplV1(connection: Connection,
+                            val dongle: PairedDongle,
+                            val pin: String,
+                            val amount: BigInteger,
+                            val fees: BigInteger,
+                            val change: BigInteger,
+                            val address: String) extends IncomingTransaction(connection) {
+    Logger.d("Incoming Transaction")
+    Logger.d("Address " + address)
+    Logger.d("Amount " + amount.toString)
+    Logger.d("Change " + change.toString)
+    Logger.d("Fees " + fees.toString)
+
+  }
+
+  private[this] class IncomingTransactionImplV2(connection: Connection,
+                                                val dongle: PairedDongle,
+                                                val pin: String,
+                                                val regularCoinVersion: Byte,
+                                                val p2shCoinVersion: Byte,
+                                                val dongleOpMode: Byte,
+                                                val apiVersion: String,
+                                                val flags: Byte,
+                                                val outputScript: Array[Byte])
+    extends IncomingTransaction(connection) {
+
+    class Output {
+      var amount: BigInteger = null
+      var hash160: Array[Byte] = null
+    }
+
+    val reader = new BytesReader(outputScript)
+    val outputsCount = reader.readNextVarInt().value.toInt
+    val outputs = new Array[Output](outputsCount)
+
+    val networkParam = MainNetParams.get() // Change this to handle other networks
+
+    for (i <- 0 until outputsCount) {
+      val output = new Output()
+      output.amount = reader.readLeBigInteger(8)
+      reader.readNextVarInt() // Script size
+      reader.readNextByte() // OP_DUP
+      reader.readNextByte() // OP_HASH160
+      val hash160Size = reader.readNextByte().toInt
+      output.hash160 = reader.read(hash160Size)
+      reader.readNextByte() // OP_EQUALVERIFY
+      reader.readNextByte() // OP_CHECKSIG
+
+      outputs(i) = output
+    }
+
+    override def address: String = new Address(MainNetParams.get(), outputs(0).hash160).toString
+    override def amount: BigInteger = outputs(0).amount
+    override def fees: BigInteger = BigInteger.ZERO
+    override def change: BigInteger = outputs(1).amount
   }
 
   private class Connection(val dongle: PairedDongle) {
@@ -223,14 +277,68 @@ class IncomingTransactionAPI(context: Context, keystore: Keystore, webSocketUri:
 
     private[this] def handleRequestPackage(json: JSONObject): Unit = {
       Logger.d(s"Handle request package ${json.toString}")
-      val f = Future {
-        Logger.d("Getting pairing key")
+      Future {
         val pairingKey = Try(Await.result(dongle.pairingKey(context, keystore), Duration.Inf))
-        val data = json.getString("second_factor_data")
-        Logger.d(s"Is falure ${pairingKey.isFailure}")
         if (pairingKey.isFailure)
           throw new Exception("No pairing key")
-        val d3es = new D3ESCBC(pairingKey.get.secret)
+        pairingKey.get
+      } flatMap { (pairingKey) =>
+        if (json.has("output_data") && !json.getString("output_data").isEmpty) {
+          handlePost110RequestPackage(json, pairingKey)
+        } else {
+          handlePre110RequestPackage(json, pairingKey)
+        }
+      } onComplete {
+        case Success(incomingTransaction) => {
+          if (requestFocus(this)) {
+            _incomingTransaction = Some(incomingTransaction)
+            send(Map("type" -> "accept"))
+            notifyIncomingTransaction(incomingTransaction)
+          }
+        }
+        case Failure(ex) => ex.printStackTrace()// The transaction cannot be handled
+      }
+    }
+
+    private[this] def handlePost110RequestPackage(json: JSONObject, pairingKey: SecretKey): Future[IncomingTransaction] = {
+      Future {
+        val data = json.getString("second_factor_data")
+        val dataD3es = new D3ESCBC(pairingKey.secret)
+        val decryptedData = new BytesReader(dataD3es.decrypt(Hex.decode(data)))
+        if (decryptedData.length < 30) {
+          throw new Exception("Invalid request")
+        }
+        val version = decryptedData.readString(4)
+        if (version != "2FA1")
+          throw new Exception("Invalid request")
+        val decryptionKey = decryptedData.read(16)
+        val CRC16 = decryptedData.read(2)
+        val flags = decryptedData.readNextByte()
+        val currentDongleOpMode = decryptedData.readNextByte()
+        val regularCoinVersion = decryptedData.readNextByte()
+        val p2shCoinVersion = decryptedData.readNextByte()
+        val pin = decryptedData.readString(4)
+        val outputScriptHex = json.getString("output_data")
+        val outputD3es = new D3ESCBC(decryptionKey)
+        val outputScript = outputD3es.decrypt(Hex.decode(outputScriptHex))
+        new IncomingTransactionImplV2(
+          connection = this,
+          dongle = dongle,
+          pin = pin,
+          regularCoinVersion = regularCoinVersion,
+          p2shCoinVersion = p2shCoinVersion,
+          dongleOpMode = currentDongleOpMode,
+          apiVersion = version,
+          flags = flags,
+          outputScript = outputScript
+        )
+      }
+    }
+
+    private[this] def handlePre110RequestPackage(json: JSONObject, pairingKey: SecretKey): Future[IncomingTransaction] = {
+      Future {
+        val data = json.getString("second_factor_data")
+        val d3es = new D3ESCBC(pairingKey.secret)
         val decrypted = d3es.decrypt(Hex.decode(data))
         if (decrypted.length <= 29)
           throw new Exception("Invalid request")
@@ -250,17 +358,7 @@ class IncomingTransactionAPI(context: Context, keystore: Keystore, webSocketUri:
         val address = new String(decrypted.slice(offset + 1, offset + 1 + decrypted.apply(offset).toInt))
         if (!BitcoinUtils.isAddressValid(address))
           throw new Exception("Invalid address")
-        new IncomingTransaction(this, dongle, pin, amount, fees, change, address)
-      }
-      f.onComplete {
-        case Success(incomingTransaction) => {
-          if (requestFocus(this)) {
-            _incomingTransaction = Some(incomingTransaction)
-            send(Map("type" -> "accept"))
-            notifyIncomingTransaction(incomingTransaction)
-          }
-        }
-        case Failure(ex) => ex.printStackTrace()// The transaction cannot be handled
+        new IncomingTransactionImplV1(this, dongle, pin, amount, fees, change, address)
       }
     }
 
