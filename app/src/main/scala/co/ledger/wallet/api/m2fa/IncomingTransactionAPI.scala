@@ -222,6 +222,12 @@ class IncomingTransactionAPI(context: Context, keystore: Keystore, webSocketUri:
     override def amount: BigInteger = outputs(0).amount
     override def fees: BigInteger = BigInteger.ZERO
     override def change: BigInteger = outputs(1).amount
+
+    Logger.d("Incoming Transaction")
+    Logger.d("Address " + address)
+    Logger.d("Amount " + amount.toString)
+    Logger.d("Change " + change.toString)
+    Logger.d("Fees " + fees.toString)
   }
 
   private class Connection(val dongle: PairedDongle) {
