@@ -1,4 +1,9 @@
 # Changelog
+1.0.4
+===
+- Fix 3DES CBC decryption
+- Bug fixes and minor improvements
+
 1.0.3
 ===
 - Vibrator is not required to run the app
