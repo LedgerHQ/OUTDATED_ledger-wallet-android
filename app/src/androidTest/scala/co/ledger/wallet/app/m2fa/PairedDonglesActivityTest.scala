@@ -34,13 +34,6 @@ import android.test.ActivityInstrumentationTestCase2
 import junit.framework.Assert
 
 class PairedDonglesActivityTest extends ActivityInstrumentationTestCase2[PairedDonglesActivity](classOf[PairedDonglesActivity]) {
-
-  def test1() {
-    Assert.assertTrue(true)
-  }
-
-  def test2() {
-    //Assert.assertEquals("Hello. I'm Java !", "Yo")
-  }
+  
 
 }

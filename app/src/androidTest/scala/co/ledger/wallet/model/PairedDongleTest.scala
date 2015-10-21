@@ -32,11 +32,14 @@ package co.ledger.wallet.model
 
 import android.test.InstrumentationTestCase
 import co.ledger.wallet.models.PairedDongle
+import co.ledger.wallet.security.Keystore
 import co.ledger.wallet.utils.logs.Logger
 import junit.framework.Assert
 import org.spongycastle.util.encoders.Hex
 
 import scala.collection.mutable
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 class PairedDongleTest extends InstrumentationTestCase {
 
@@ -44,6 +47,7 @@ class PairedDongleTest extends InstrumentationTestCase {
   override def setUp(): Unit = {
     super.setUp()
     implicit val context = getInstrumentation.getTargetContext
+    implicit val keystore = Keystore.defaultInstance
 
     for (dongle <- PairedDongle.all) {
       dongle.delete()
@@ -52,31 +56,36 @@ class PairedDongleTest extends InstrumentationTestCase {
 
   def testShouldCreateAndGet(): Unit = {
     implicit val context = getInstrumentation.getTargetContext
+    implicit val keystore = Keystore.defaultInstance
     val pairingId = "a test pairing id"
     val name = "A super name for an amazing dongle"
     val pairingKey = Hex.decode("6032d5032c905f39447bc3f28a043a99")
-    val dongle = PairedDongle.create(pairingId, name, pairingKey)
+    val dongle = PairedDongle.create(Keystore.defaultInstance, pairingId, name, pairingKey)
     Assert.assertEquals(pairingId, dongle.id.get)
     Assert.assertEquals(name, dongle.name.get)
-    Assert.assertEquals(Hex.toHexString(pairingKey), Hex.toHexString(dongle.pairingKey.get.secret))
+    val donglePairingKey = Await.result(dongle.pairingKey, Duration.Inf)
+    Assert.assertEquals(Hex.toHexString(pairingKey), Hex.toHexString(donglePairingKey.secret))
   }
 
   def testShouldCreateAndGetFromPreferences(): Unit = {
     implicit val context = getInstrumentation.getTargetContext
+    implicit val keystore = Keystore.defaultInstance
     val pairingId = "a test pairing id"
     val name = "A super name for an amazing dongle"
     val pairingKey = Hex.decode("6032d5032c905f39447bc3f28a043a99")
-    PairedDongle.create(pairingId, name, pairingKey)
+    PairedDongle.create(Keystore.defaultInstance, pairingId, name, pairingKey)
     val dongle = PairedDongle.get(pairingId)
     Assert.assertTrue(dongle.isDefined)
     Assert.assertEquals(pairingId, dongle.get.id.get)
     Assert.assertEquals(name, dongle.get.name.get)
-    Assert.assertEquals(Hex.toHexString(pairingKey), Hex.toHexString(dongle.get.pairingKey.get.secret))
-    Logger.d(Hex.toHexString(pairingKey) + " <> " + Hex.toHexString(dongle.get.pairingKey.get.secret))
+    val donglePairingKey = Await.result(dongle.get.pairingKey, Duration.Inf)
+    Assert.assertEquals(Hex.toHexString(pairingKey), Hex.toHexString(donglePairingKey.secret))
+    Logger.d(Hex.toHexString(pairingKey) + " <> " + Hex.toHexString(donglePairingKey.secret))
   }
 
   def testShouldCreateAndGetFromPreferencesMultipleDongle(): Unit = {
     implicit val context = getInstrumentation.getTargetContext
+    implicit val keystore = Keystore.defaultInstance
 
     val testSet = mutable.Map[String, (String, String)]()
 
@@ -90,7 +99,7 @@ class PairedDongleTest extends InstrumentationTestCase {
 
     testSet foreach {
       case (id, value) =>
-        PairedDongle.create(id, value._1, Hex.decode(value._2))
+        PairedDongle.create(Keystore.defaultInstance, id, value._1, Hex.decode(value._2))
     }
 
     val dongles = PairedDongle.all
@@ -100,7 +109,8 @@ class PairedDongleTest extends InstrumentationTestCase {
       val sample = testSet(dongle.id.get)
       Assert.assertNotNull(sample)
       Assert.assertEquals(sample._1, dongle.name.get)
-      Assert.assertEquals(sample._2, Hex.toHexString(dongle.pairingKey.get.secret))
+      val donglePairingKey = Await.result(dongle.pairingKey, Duration.Inf)
+      Assert.assertEquals(sample._2, Hex.toHexString(donglePairingKey.secret))
     }
   }
 

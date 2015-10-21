@@ -93,7 +93,6 @@ class ApplicationKeystore(context: Context, val keystoreName: String) extends Ke
     certGen.setPublicKey(keypair.getPublic)
     certGen.setSignatureAlgorithm("SHA256WithRSAEncryption")
     val certificate = certGen.generate(keypair.getPrivate)
-
     javaKeystore.get.setEntry(alias, new PrivateKeyEntry(keypair.getPrivate, Array(certificate)), null)
     store()
     keypair

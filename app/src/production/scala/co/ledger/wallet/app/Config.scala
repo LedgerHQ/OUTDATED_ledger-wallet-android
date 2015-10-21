@@ -39,7 +39,8 @@ object Config {
   def ApiBaseUri = Uri.parse("https://api.ledgerwallet.com")
   def WebSocketBaseUri = Uri.parse("wss://ws.ledgerwallet.com")
   def WebSocketChannelsUri = WebSocketBaseUri.buildUpon().appendEncodedPath("2fa/channels").build()
-  def LedgerAttestationPublicKey = "04c370d4013107a98dfef01d6db5bb3419deb9299535f0be47f05939a78b314a3c29b51fcaa9b3d46fa382c995456af50cd57fb017c0ce05e4a31864a79b8fbfd6"//"04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
+  def LedgerAttestationPublicKey =
+    "04c370d4013107a98dfef01d6db5bb3419deb9299535f0be47f05939a78b314a3c29b51fcaa9b3d46fa382c995456af50cd57fb017c0ce05e4a31864a79b8fbfd6" //"04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
   def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
   def SupportEmailAddress = "hello@ledger.fr"
   def Env = if (BuildConfig.DEBUG) "dev" else "prod"

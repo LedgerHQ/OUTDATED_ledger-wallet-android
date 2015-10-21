@@ -34,6 +34,8 @@ import java.security.Security
 
 object Crypto {
 
+  val SpongyCastleProviderName = org.spongycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME
+
   def ensureSpongyIsInserted(): Unit = {
     val ProviderName = org.spongycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME
     if (Security.getProvider(ProviderName) == null) {

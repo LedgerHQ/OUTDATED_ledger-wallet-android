@@ -31,13 +31,14 @@
 package co.ledger.wallet.crypto
 
 import android.test.InstrumentationTestCase
+import co.ledger.wallet.security.Keystore
 
 class SecretKeyTest extends InstrumentationTestCase {
 
   def testShouldStoreSecretKeyAndRetrieveIt(): Unit = {
     implicit val context = getInstrumentation.getContext
     val secret = "This is a secret"
-    SecretKey.create(context, "TheAlias", secret.getBytes)
+    SecretKey.create(context, Keystore.defaultInstance, "TheAlias", secret.getBytes)
   }
 
 }

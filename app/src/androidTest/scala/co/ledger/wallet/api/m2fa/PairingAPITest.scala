@@ -35,7 +35,9 @@ import java.util.concurrent.{TimeUnit, CountDownLatch}
 import android.content.Context
 import android.net.Uri
 import android.os.Handler
+import scala.concurrent.duration._
 import android.test.InstrumentationTestCase
+import co.ledger.wallet.security.Keystore
 import com.koushikdutta.async.callback.CompletedCallback
 import com.koushikdutta.async.http._
 import com.koushikdutta.async.http.server.{AsyncHttpServerRequest, AsyncHttpServer}
@@ -47,6 +49,7 @@ import org.json.{JSONException, JSONObject}
 import org.spongycastle.util.encoders.Hex
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Promise
+import scala.concurrent.duration.Duration
 
 import scala.util.{Failure, Success}
 import concurrent._
@@ -69,7 +72,6 @@ class PairingAPITest extends InstrumentationTestCase {
   }
 
   def testShouldPairDevice: Unit = {
-    val signal = new CountDownLatch(1)
     val answer = (s: String) => {
       val p = Promise[String]()
       p.success(s)
@@ -85,16 +87,9 @@ class PairingAPITest extends InstrumentationTestCase {
       case RequireDongleName() => answer("Test Dongle")
     }
 
-    val future = API.startPairingProcess()
-    future onComplete {
-      case Success(device) => {
-        Assert.assertNotNull(device)
-        signal.countDown()
-      }
-      case Failure(ex) => Assert.fail("Failed to pair device " + ex.getMessage)
-    }
 
-    signal.await(10000, TimeUnit.SECONDS)
+    val device = Await.result(Future({}).flatMap({ (_) => API.startPairingProcess()}), 120 seconds)
+    Assert.assertNotNull(device)
   }
 
 }
@@ -194,7 +189,7 @@ class PairingApiServer(responseDelay: Long = 0) {
 
 }
 
-class MockPairingApi(c: Context) extends PairingAPI(c) {
+class MockPairingApi(c: Context) extends PairingAPI(c, Keystore.defaultInstance(c)) {
   override def keypair: ECKeyPair = {
     ECKeyPair.create(Hex.decode("dbd39adafe3a007706e61a17e0c56849146cfe95849afef7ede15a43a1984491"))
   }

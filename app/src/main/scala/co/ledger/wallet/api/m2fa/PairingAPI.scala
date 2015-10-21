@@ -186,6 +186,7 @@ class PairingAPI(context: Context, keystore: Keystore, websocketUri: Uri = Confi
     val f = Future {
       val d3es = new D3ESCBC(sessionKey)
       val blob = Hex.decode(pkg.getString("data"))
+      Logger.d("Crypted blob: " + pkg.getString("data"))
       PairingAPI.computeChallengePackage(d3es, blob)
     }
 
@@ -374,6 +375,7 @@ object PairingAPI {
   def computeChallengePackage(d3es: D3ESCBC, blob: Array[Byte]): ChallengePackage = {
     val sessionNonce = blob.slice(0, 8)
     val data = d3es.decrypt(blob.slice(8, blob.length))
+    Logger.d("Decrypted blob: " + Hex.toHexString(data))
     val keycardChallenge = new String(data.slice(0, 4).map((b) => {
       (b + '0'.toByte).asInstanceOf[Byte]
     }))
