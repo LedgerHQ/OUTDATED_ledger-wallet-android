@@ -48,10 +48,13 @@ class UnpluggedWelcomeActivity extends UnpluggedSetupActivity {
     getSupportActionBar.setHomeButtonEnabled(true)
     getSupportActionBar.setDisplayHomeAsUpEnabled(true)
 
-    setContentFragment(new ContentFragment())
+    setContentFragment(new UnpluggedWelcomeActivity.ContentFragment())
   }
 
-  private class ContentFragment extends BaseFragment {
+}
+
+object UnpluggedWelcomeActivity {
+  class ContentFragment extends BaseFragment {
 
     val CreateActionId = 0x01
     val RestoreActionId = 0x02
@@ -78,11 +81,12 @@ class UnpluggedWelcomeActivity extends UnpluggedSetupActivity {
     }
 
     def onActionClick(actionId: Int): Unit = {
-      setupMode = actionId match {
+      val activity = getActivity.asInstanceOf[UnpluggedWelcomeActivity]
+      activity.setupMode = actionId match {
         case CreateActionId => UnpluggedSetupActivity.CreateWalletSetupMode
         case RestoreActionId => UnpluggedSetupActivity.RestoreWalletSetupMode
       }
-      startNextActivity(classOf[UnpluggedSecurityActivity])
+      activity.startNextActivity(classOf[UnpluggedSecurityActivity])
     }
 
     override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
@@ -124,6 +128,4 @@ class UnpluggedWelcomeActivity extends UnpluggedSetupActivity {
     }
 
   }
-
 }
-

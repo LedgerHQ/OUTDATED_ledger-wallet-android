@@ -43,6 +43,8 @@ import co.ledger.wallet.view.DialogActionBarController
 import scala.concurrent.{Promise, Future}
 import co.ledger.wallet.common._
 
+import scala.util.Try
+
 class TrustletPromotionDialog extends BaseDialogFragment {
 
   lazy val actions = DialogActionBarController(R.id.dialog_action_bar).noNeutralButton
@@ -77,7 +79,7 @@ object TrustletPromotionDialog extends Preferenceable {
   def show(fragmentManager: FragmentManager)(implicit context: Context): TrustletPromotionDialog = {
     edit().putInt("show_count", preferences.getInt("show_count", 0) + 1).commit()
     val fragment = new TrustletPromotionDialog()
-    runOnUiThread(fragment.show(fragmentManager, DefaultTag))
+    runOnUiThread(Try(fragment.show(fragmentManager, DefaultTag)))
     fragment
   }
 

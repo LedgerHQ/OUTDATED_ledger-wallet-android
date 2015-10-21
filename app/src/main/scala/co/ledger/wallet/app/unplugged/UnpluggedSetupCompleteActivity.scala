@@ -49,7 +49,7 @@ class UnpluggedSetupCompleteActivity extends UnpluggedSetupActivity {
     getSupportActionBar.setHomeButtonEnabled(true)
     getSupportActionBar.setDisplayHomeAsUpEnabled(true)
 
-    setContentFragment(new ContentFragment())
+    setContentFragment(new UnpluggedSetupCompleteActivity.ContentFragment())
   }
 
 
@@ -58,7 +58,10 @@ class UnpluggedSetupCompleteActivity extends UnpluggedSetupActivity {
     finish()
   }
 
-  private class ContentFragment extends BaseFragment {
+}
+
+object UnpluggedSetupCompleteActivity {
+  class ContentFragment extends BaseFragment {
 
     val MyceliumActionId = 0x01
     val GreenBitsActionId = 0x02
@@ -132,6 +135,4 @@ class UnpluggedSetupCompleteActivity extends UnpluggedSetupActivity {
     }
 
   }
-
 }
-

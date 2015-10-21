@@ -49,22 +49,24 @@ import scala.util.{Failure, Success}
 
 class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
 
-  val TappingMode = 0x01
-  val LoadingMode = 0x02
+  val TappingMode = UnpluggedFinalizeSetupActivity.TappingMode
+  val LoadingMode = UnpluggedFinalizeSetupActivity.LoadingMode
 
-  private[this] var _mode = TappingMode
+  var mode = TappingMode
+
   private[this] var _unplugged: Option[NfcDongle] = None
+  def unplugged = _unplugged
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-    _mode = TappingMode
+    mode = TappingMode
     getSupportActionBar.setHomeButtonEnabled(true)
     getSupportActionBar.setDisplayHomeAsUpEnabled(true)
-    setContentFragment(new TapFragment)
+    setContentFragment(new UnpluggedFinalizeSetupActivity.TapFragment)
   }
 
   override protected def onTagDiscovered(tag: Tag): Unit = {
-    if (_mode == TappingMode)
+    if (mode == TappingMode)
       AndroidUtils.vibrate(150)
     super.onTagDiscovered(tag)
   }
@@ -76,12 +78,19 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
 
   override protected def onUnpluggedDiscovered(unplugged: NfcDongle): Unit = {
     super.onUnpluggedDiscovered(unplugged)
-    if (_mode == TappingMode) {
-      _mode = LoadingMode
+    if (mode == TappingMode) {
+      mode = LoadingMode
       _unplugged = Option(unplugged)
-      setContentFragment(new LoadingFragment)
+      setContentFragment(new UnpluggedFinalizeSetupActivity.LoadingFragment)
     }
   }
+
+}
+
+object UnpluggedFinalizeSetupActivity {
+
+  val TappingMode = 0x01
+  val LoadingMode = 0x02
 
   class TapFragment extends BaseFragment {
     override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
@@ -90,7 +99,7 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
 
     override def onResume(): Unit = {
       super.onResume()
-      setTitle(R.string.unplugged_finalize_setup_activity_title)
+      getActivity.setTitle(R.string.unplugged_finalize_setup_activity_title)
     }
 
     override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
@@ -112,7 +121,7 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
       val stepNumberTextView = TR(view, R.id.step_number).as[TextView]
       val stepInstructionTextView = TR(view, R.id.instruction_text).as[TextView]
       stepNumberTextView.setText(R.string.unplugged_in_progress_step_number)
-      if (isInCreationMode) {
+      if (getActivity.asInstanceOf[UnpluggedFinalizeSetupActivity].isInCreationMode) {
         stepInstructionTextView.setText(R.string.unplugged_in_progress_step_text_creation)
       } else {
         stepInstructionTextView.setText(R.string.unplugged_in_progress_step_text_restore)
@@ -121,33 +130,34 @@ class UnpluggedFinalizeSetupActivity extends UnpluggedSetupActivity {
 
     override def onResume(): Unit = {
       super.onResume()
-      setTitle(R.string.unplugged_in_progress_activity_title)
-      if (_unplugged.isDefined) {
-        val unplugged = _unplugged.get
-        unplugged.setKeycard(keycardSeed.get) flatMap {(_) =>
-          _unplugged.get.setup(pin.get, mnemonicPhrase.get)
+      val activity = getActivity.asInstanceOf[UnpluggedFinalizeSetupActivity]
+      getActivity.setTitle(R.string.unplugged_in_progress_activity_title)
+      if (activity.unplugged.isDefined) {
+        val unplugged = activity.unplugged.get
+        unplugged.setKeycard(activity.keycardSeed.get) flatMap {(_) =>
+          activity.unplugged.get.setup(activity.pin.get, activity.mnemonicPhrase.get)
         } onComplete {
           case Success(_) =>
             postOnUiThread({
               val intent = new Intent(this, classOf[UnpluggedSetupCompleteActivity])
               intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
               getActivity.startActivity(intent)
-              finish()
-              startNextActivity(classOf[UnpluggedSetupCompleteActivity])
+              activity.finish()
+              activity.startNextActivity(classOf[UnpluggedSetupCompleteActivity])
             })
           case Failure(error) =>
             error.printStackTrace()
             postOnUiThread({
               error.printStackTrace()
               Toast.makeText(getActivity, R.string.unplugged_tap_error_occured, Toast.LENGTH_LONG).show()
-              _mode = TappingMode
-              setContentFragment(new TapFragment)
+              activity.mode = TappingMode
+              activity.setContentFragment(new TapFragment)
             })
         }
       } else {
         // We need to tap again
-        _mode = TappingMode
-        setContentFragment(new TapFragment)
+        activity.mode = TappingMode
+        activity.setContentFragment(new TapFragment)
       }
     }
   }

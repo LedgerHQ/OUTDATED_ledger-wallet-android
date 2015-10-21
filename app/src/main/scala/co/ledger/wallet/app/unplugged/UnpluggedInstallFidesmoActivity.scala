@@ -50,10 +50,13 @@ class UnpluggedInstallFidesmoActivity extends UnpluggedSetupActivity {
     getSupportActionBar.setHomeButtonEnabled(true)
     getSupportActionBar.setDisplayHomeAsUpEnabled(true)
 
-    setContentFragment(new ContentFragment())
+    setContentFragment(new UnpluggedInstallFidesmoActivity.ContentFragment())
   }
 
-  private class ContentFragment extends BaseFragment {
+}
+
+object UnpluggedInstallFidesmoActivity {
+  class ContentFragment extends BaseFragment {
 
     val InstallFidesmoActionId = 0x01
     val InstallAppActionId = 0x02
@@ -114,9 +117,9 @@ class UnpluggedInstallFidesmoActivity extends UnpluggedSetupActivity {
               new Intent(this, classOf[UnpluggedTapActivity])
                 .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             )
-            finish()
+            getActivity.finish()
           case anythingElse =>
-            // Do nothing
+          // Do nothing
         }
       }
     }

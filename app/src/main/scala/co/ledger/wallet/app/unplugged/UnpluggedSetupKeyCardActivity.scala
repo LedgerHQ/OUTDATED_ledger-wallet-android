@@ -77,7 +77,8 @@ class UnpluggedSetupKeyCardActivity extends UnpluggedSetupActivity with ResultHa
     scannerView.removeViewAt(1)
 
     manualSeedButton onClick {
-      new SeedPromptAlertDialogFragment().show(getFragmentManager, "KeycardPrompt")
+      new UnpluggedSetupKeyCardActivity.SeedPromptAlertDialogFragment().show(getFragmentManager,
+        "KeycardPrompt")
     }
 
     createKeycardLink onClick AndroidUtils.startBrowser(KeycardGeneratorUri)
@@ -106,7 +107,7 @@ class UnpluggedSetupKeyCardActivity extends UnpluggedSetupActivity with ResultHa
     }
   }
 
-  private[this] def onSeedIsProvided(seed: String): Boolean = {
+  private[unplugged] def onSeedIsProvided(seed: String): Boolean = {
     if (seed.length == 32 && Try(Utils.decodeHex(seed)).isSuccess) {
       keycardSeed = seed
       startNextActivity(classOf[UnpluggedFinalizeSetupActivity])
@@ -116,6 +117,9 @@ class UnpluggedSetupKeyCardActivity extends UnpluggedSetupActivity with ResultHa
     }
   }
 
+}
+
+object UnpluggedSetupKeyCardActivity {
   class SeedPromptAlertDialogFragment extends DialogFragment {
 
     private lazy val inputText = getDialog.findViewById(R.id.edit_text).asInstanceOf[EditText]
@@ -129,7 +133,7 @@ class UnpluggedSetupKeyCardActivity extends UnpluggedSetupActivity with ResultHa
       }).setNegativeButton(android.R.string.cancel, new OnClickListener {
         override def onClick(dialogInterface: DialogInterface, i: Int): Unit = {}
       }).setView(R.layout.dialog_edittext)
-      .create()
+        .create()
     }
 
     override def onResume(): Unit = {
@@ -137,7 +141,8 @@ class UnpluggedSetupKeyCardActivity extends UnpluggedSetupActivity with ResultHa
       val dialog = getDialog.asInstanceOf[AlertDialog]
       dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener {
         override def onClick(view: View): Unit = {
-          if (onSeedIsProvided(inputText.getText.toString)) {
+          if (getActivity.asInstanceOf[UnpluggedSetupKeyCardActivity].onSeedIsProvided(inputText
+            .getText.toString)) {
             dismiss()
           } else {
             Toast.makeText(getActivity, R.string.unplugged_scan_dialog_error, Toast.LENGTH_LONG).show()
@@ -147,5 +152,4 @@ class UnpluggedSetupKeyCardActivity extends UnpluggedSetupActivity with ResultHa
     }
 
   }
-
 }

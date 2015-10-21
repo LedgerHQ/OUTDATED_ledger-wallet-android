@@ -50,10 +50,14 @@ class UnpluggedExistingActivity extends UnpluggedSetupActivity {
     getSupportActionBar.setHomeButtonEnabled(true)
     getSupportActionBar.setDisplayHomeAsUpEnabled(true)
 
-    setContentFragment(new ContentFragment())
+    setContentFragment(new UnpluggedExistingActivity.ContentFragment())
   }
 
-  private class ContentFragment extends BaseFragment {
+}
+
+object UnpluggedExistingActivity {
+
+  private class ContentFragment() extends BaseFragment {
 
     val MyceliumActionId = 0x01
     val GreenBitsActionId = 0x02
@@ -98,7 +102,7 @@ class UnpluggedExistingActivity extends UnpluggedSetupActivity {
               .appendPath(Unplugged.FidesmoDeleteServiceId)
               .build())
             startActivityForResult(intent, Unplugged.FidesmoServiceRequestCode)
-            finish()
+            getActivity.finish()
           } else {
             Toast.makeText(this, R.string.unplugged_fidesmo_error_not_installed, Toast.LENGTH_LONG).show()
           }
@@ -146,4 +150,3 @@ class UnpluggedExistingActivity extends UnpluggedSetupActivity {
   }
 
 }
-
