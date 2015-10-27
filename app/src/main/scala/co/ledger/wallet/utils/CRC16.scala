@@ -40,7 +40,7 @@ object CRC16 {
       crc ^= (data(i) & 0xFF)
       crc ^= ((crc & 0xFF) >> 4)
       crc ^= (crc << 12) & 0xFFFF
-      crc ^= ((crc & 0xFF) << 5) 0xFFFF
+      crc ^= ((crc & 0xFF) << 5) & 0xFFFF
     }
     crc.toShort
   }

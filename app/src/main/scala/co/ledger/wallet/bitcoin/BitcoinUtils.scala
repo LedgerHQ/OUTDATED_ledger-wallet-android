@@ -39,7 +39,9 @@ object BitcoinUtils {
 
   def getNetworkFromCoinVersions(regularCoinVersion: Int, p2shCoinVersion: Int)
   : Option[NetworkParameters] = {
-    for (network: NetworkParameters <- Networks.get()) {
+    val iterator = Networks.get().iterator()
+    while (iterator.hasNext) {
+      val network = iterator.next()
       if (network.getAddressHeader == regularCoinVersion && network.getP2SHHeader == p2shCoinVersion)
         return Option(network)
     }

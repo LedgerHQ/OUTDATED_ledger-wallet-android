@@ -203,10 +203,8 @@ class IncomingTransactionAPI(context: Context, keystore: Keystore, webSocketUri:
     val outputsCount = reader.readNextVarInt().value.toInt
     val outputs = new Array[Output](outputsCount)
 
-    val networkParam = {
-
-      MainNetParams.get()
-    } // Change this to handle other networks
+    val networkParam = BitcoinUtils.getNetworkFromCoinVersions(regularCoinVersion.toInt,
+      p2shCoinVersion.toInt).getOrElse(throw new Exception("Unknown coin"))
 
     val scripts = new Array[Script](outputsCount)
 
