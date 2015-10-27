@@ -48,6 +48,7 @@ import co.ledger.wallet.utils.JsonUtils._
 import co.ledger.wallet.utils.logs.Logger
 import org.bitcoinj.core.Address
 import org.bitcoinj.params.MainNetParams
+import org.bitcoinj.script.Script
 import org.json.{JSONException, JSONObject}
 import org.spongycastle.util.encoders.Hex
 
@@ -195,30 +196,29 @@ class IncomingTransactionAPI(context: Context, keystore: Keystore, webSocketUri:
 
     class Output {
       var amount: BigInteger = null
-      var hash160: Array[Byte] = null
+      var script: Script = null
     }
 
     val reader = new BytesReader(outputScript)
     val outputsCount = reader.readNextVarInt().value.toInt
     val outputs = new Array[Output](outputsCount)
 
-    val networkParam = MainNetParams.get() // Change this to handle other networks
+    val networkParam = {
+
+      MainNetParams.get()
+    } // Change this to handle other networks
+
+    val scripts = new Array[Script](outputsCount)
 
     for (i <- 0 until outputsCount) {
       val output = new Output()
       output.amount = reader.readLeBigInteger(8)
-      reader.readNextVarInt() // Script size
-      reader.readNextByte() // OP_DUP
-      reader.readNextByte() // OP_HASH160
-      val hash160Size = reader.readNextByte().toInt
-      output.hash160 = reader.read(hash160Size)
-      reader.readNextByte() // OP_EQUALVERIFY
-      reader.readNextByte() // OP_CHECKSIG
-
+      val scriptSize = reader.readNextVarInt() // Script size
+      output.script = new Script(reader.read(scriptSize.value.toInt))
       outputs(i) = output
     }
 
-    override def address: String = new Address(MainNetParams.get(), outputs(0).hash160).toString
+    override def address: String = outputs(0).script.getToAddress(networkParam).toString
     override def amount: BigInteger = outputs(0).amount
     override def fees: BigInteger = BigInteger.ZERO
     override def change: BigInteger = outputs(1).amount
@@ -318,7 +318,7 @@ class IncomingTransactionAPI(context: Context, keystore: Keystore, webSocketUri:
         if (version != "2FA1")
           throw new Exception("Invalid request")
         val decryptionKey = decryptedData.read(16)
-        val CRC16 = decryptedData.read(2)
+        val crc16 = decryptedData.read(2)
         val flags = decryptedData.readNextByte()
         val currentDongleOpMode = decryptedData.readNextByte()
         val regularCoinVersion = decryptedData.readNextByte()

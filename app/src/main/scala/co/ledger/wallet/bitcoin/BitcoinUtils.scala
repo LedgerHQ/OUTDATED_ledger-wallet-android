@@ -30,8 +30,20 @@
  */
 package co.ledger.wallet.bitcoin
 
+import org.bitcoinj.core.NetworkParameters
+import org.bitcoinj.params.Networks
+
 object BitcoinUtils {
 
   def isAddressValid(address: String): Boolean = Base58.verify(address)
+
+  def getNetworkFromCoinVersions(regularCoinVersion: Int, p2shCoinVersion: Int)
+  : Option[NetworkParameters] = {
+    for (network: NetworkParameters <- Networks.get()) {
+      if (network.getAddressHeader == regularCoinVersion && network.getP2SHHeader == p2shCoinVersion)
+        return Option(network)
+    }
+    None
+  }
 
 }

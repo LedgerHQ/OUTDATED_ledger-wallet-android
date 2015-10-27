@@ -60,12 +60,14 @@ class BytesReader(val bytes: Array[Byte]) {
   def readBigInteger(length: Int, signum: Int = 1): BigInteger = {
     new BigInteger(1, read(length))
   }
+  def readNextShort(): Short = readBigInteger(2).shortValue()
   def readNextInt(): Int = readBigInteger(4).intValue()
   def readNextLong(): Long = readBigInteger(8).longValue()
 
   def readLeBigInteger(length: Int, signum: Int = 1): BigInteger = {
     new BigInteger(1, read(length).reverse)
   }
+  def readNextLeShort(): Int = readLeBigInteger(2).intValue()
   def readNextLeInt(): Int = readLeBigInteger(4).intValue()
   def readNextLeLong(): Long = readLeBigInteger(8).longValue()
 
