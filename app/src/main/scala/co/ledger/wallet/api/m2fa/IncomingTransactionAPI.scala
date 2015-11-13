@@ -46,7 +46,7 @@ import co.ledger.wallet.utils.AndroidImplicitConversions._
 import co.ledger.wallet.utils.BytesReader
 import co.ledger.wallet.utils.JsonUtils._
 import co.ledger.wallet.utils.logs.Logger
-import org.bitcoinj.core.Address
+import org.bitcoinj.core.{NetworkParameters, Address}
 import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.script.Script
 import org.json.{JSONException, JSONObject}
@@ -204,7 +204,7 @@ class IncomingTransactionAPI(context: Context, keystore: Keystore, webSocketUri:
     val outputs = new Array[Output](outputsCount)
 
     val networkParam = BitcoinUtils.getNetworkFromCoinVersions(regularCoinVersion.toInt,
-      p2shCoinVersion.toInt).getOrElse(throw new Exception("Unknown coin"))
+      p2shCoinVersion.toInt).getOrElse(MainNetParams.get())
 
     val scripts = new Array[Script](outputsCount)
 
