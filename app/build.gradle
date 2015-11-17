@@ -86,6 +86,7 @@ dependencies {
     compile 'com.google.guava:guava:19.0-rc1'
 
     androidTestCompile 'com.android.support:multidex-instrumentation:1.0.1'
+    testCompile 'junit:junit:4.12'
 }
 
 tasks.withType(ScalaCompile) {

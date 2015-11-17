@@ -30,29 +30,22 @@
  */
 package co.ledger.wallet.api.m2fa
 
-import java.util.concurrent.{TimeUnit, CountDownLatch}
-
 import android.content.Context
-import android.net.Uri
-import android.os.Handler
-import scala.concurrent.duration._
-import android.test.InstrumentationTestCase
+import co.ledger.wallet.InstrumentationTestCase
+import co.ledger.wallet.crypto.ECKeyPair
 import co.ledger.wallet.security.Keystore
+import co.ledger.wallet.utils.logs.Logger
 import com.koushikdutta.async.callback.CompletedCallback
 import com.koushikdutta.async.http._
-import com.koushikdutta.async.http.server.{AsyncHttpServerRequest, AsyncHttpServer}
 import com.koushikdutta.async.http.server.AsyncHttpServer.WebSocketRequestCallback
-import co.ledger.wallet.crypto.ECKeyPair
-import co.ledger.wallet.utils.logs.Logger
+import com.koushikdutta.async.http.server.{AsyncHttpServer, AsyncHttpServerRequest}
 import junit.framework.Assert
 import org.json.{JSONException, JSONObject}
 import org.spongycastle.util.encoders.Hex
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Promise
-import scala.concurrent.duration.Duration
 
-import scala.util.{Failure, Success}
-import concurrent._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Promise, _}
+import scala.concurrent.duration._
 
 class PairingAPITest extends InstrumentationTestCase {
 
@@ -81,14 +74,15 @@ class PairingAPITest extends InstrumentationTestCase {
     API onRequireUserInput {
       case RequirePairingId() => answer("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
       case RequireChallengeResponse(challenge) => {
-        Assert.assertEquals("FyCD", challenge)
-        answer("2C05")
+        eval {
+          Assert.assertEquals("FyCD", challenge)
+          answer("2C05")
+        }
       }
       case RequireDongleName() => answer("Test Dongle")
     }
 
-
-    val device = Await.result(Future({}).flatMap({ (_) => API.startPairingProcess()}), 120 seconds)
+    val device = await(API.startPairingProcess(), 10.seconds)
     Assert.assertNotNull(device)
   }
 
@@ -143,6 +137,7 @@ class PairingApiServer(responseDelay: Long = 0) {
                   val a = new JSONObject()
                   a.put("type", "challenge")
                   a.put("data", "ab5a56a93c1ea8647f8a6982869b2d8a914538525d716b0443248e1cc51c3976")
+                  a.put("attestation", "0000000000000001")
                   onSendChallenge(a.toString, send)
                 }
                 case "challenge" => {
