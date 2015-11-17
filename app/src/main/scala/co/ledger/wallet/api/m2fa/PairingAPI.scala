@@ -40,7 +40,7 @@ import co.ledger.wallet.crypto.{Crypto, D3ESCBC, ECKeyPair}
 import co.ledger.wallet.models.PairedDongle
 import co.ledger.wallet.net.WebSocket
 import co.ledger.wallet.security.Keystore
-import co.ledger.wallet.utils.AndroidUtils
+import co.ledger.wallet.utils.{BytesReader, AndroidUtils}
 import co.ledger.wallet.utils.logs.Logger
 import org.json.{JSONException, JSONObject}
 import org.spongycastle.util.encoders.Hex
@@ -57,6 +57,8 @@ class PairingAPI(context: Context, keystore: Keystore, websocketUri: Uri = Confi
 
   private[this] val TimeoutDuration = 30L * 1000L
   private[this] val HandledPackages = Array("challenge", "repeat", "disconnect", "pairing")
+
+  private[this] val FallbackAttestationIndex = (2, 1)
 
   private[this] var _promise: Option[Promise[PairedDongle]] = None
   def future = _promise.map(_.future)
@@ -182,9 +184,12 @@ class PairingAPI(context: Context, keystore: Keystore, websocketUri: Uri = Confi
     // Ask the user to answer to the challenge
     //_onRequireUserInput(new Requi)
     Logger.d("Client received a challenge " + pkg.toString)
-
-    _sessionKey = Some(Crypto.splitAndXor(keypair.generateAgreementSecret(Config
-      .LedgerAttestationPublicKey)))
+    val attestationIndex = PairingAPI.indexBytesToAttestationTuple(Hex.decode(pkg.optString("attestation",
+      "0000000200000001")))
+    Logger.i(s"Attestation index is ${attestationIndex._1} ${attestationIndex._2}")
+    val attestation = Option(Config.LedgerAttestationsPublicKeys(attestationIndex)).getOrElse(Config.LedgerAttestationsPublicKeys(FallbackAttestationIndex))
+    Logger.i(s"Attestation is $attestation")
+    _sessionKey = Some(Crypto.splitAndXor(keypair.generateAgreementSecret(attestation)))
     Logger.d("Sessions key is " + Hex.toHexString(sessionKey.orNull))
     val f = Future {
       val d3es = new D3ESCBC(sessionKey.get)
@@ -384,6 +389,11 @@ object PairingAPI {
     }))
     val pairingKey = data.slice(4, 20)
     new ChallengePackage(keycardChallenge, pairingKey, sessionNonce)
+  }
+
+  def indexBytesToAttestationTuple(indexBytes: Array[Byte]): (Int, Int) = {
+    val reader = new BytesReader(indexBytes)
+    (reader.readNextInt(), reader.readNextInt())
   }
 
 }
