@@ -71,7 +71,7 @@ class PairingAPITest extends InstrumentationTestCase {
     super.tearDown()
   }
 
-  def testShouldPairDevice: Unit = {
+  def testShouldPairDevice(): Unit = {
     val answer = (s: String) => {
       val p = Promise[String]()
       p.success(s)

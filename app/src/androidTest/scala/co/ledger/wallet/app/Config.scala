@@ -34,18 +34,20 @@ import co.ledger.wallet.BuildConfig
   *
   */
 
-object Config {
+object Config extends BaseConfig {
 
-  def ApiBaseUri: Uri = Uri.parse("http://localhost:5000")
-  def WebSocketBaseUri: Uri = Uri.parse("ws://localhost:5000")
-  def WebSocketChannelsUri = WebSocketBaseUri.buildUpon().appendEncodedPath("2fa/channels").build()
-  def LedgerAttestationPublicKey = "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
-  def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
-  def SupportEmailAddress = "hello@ledger.fr"
-  def Env: String = "test"
-  def TrustletWebPage: Uri = Uri.parse("http://ledgerwallet.com/trustlet")
-  def DisableLogging = !BuildConfig.DEBUG
+  override def ApiBaseUri: Uri = Uri.parse("http://localhost:5000")
+  override def WebSocketBaseUri: Uri = Uri.parse("ws://localhost:5000")
+  override def WebSocketChannelsUri = WebSocketBaseUri.buildUpon().appendEncodedPath("2fa/channels")
+    .build()
+  override def LedgerAttestationPublicKey =
+    "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
+  override def HelpCenterUri = Uri.parse("http://support.ledgerwallet.com/help_center")
+  override def SupportEmailAddress = "hello@ledger.fr"
+  override def Env: String = "test"
+  override def TrustletWebPage: Uri = Uri.parse("http://ledgerwallet.com/trustlet")
+  override def DisableLogging = !BuildConfig.DEBUG
 
-  def GreenBitsPackageName = "com.greenaddress.greenbits_android_wallet"
-  def MyceliumPackageName = "com.mycelium.wallet"
+  override def GreenBitsPackageName = "com.greenaddress.greenbits_android_wallet"
+  override def MyceliumPackageName = "com.mycelium.wallet"
  }

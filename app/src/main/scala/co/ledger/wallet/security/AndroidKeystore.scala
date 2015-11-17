@@ -45,6 +45,7 @@ import scala.concurrent.{Promise, Future}
 class AndroidKeystore(context: Context) extends Keystore(context) {
 
   override protected def loadJavaKeyStore(passwordProtection: PasswordProtection): Future[JavaKeyStore] = {
+    Crypto.ensureSpongyIsRemoved()
     val keystore = KeyStore.getInstance("AndroidKeyStore")
     keystore.load(null)
     Future.successful(keystore)

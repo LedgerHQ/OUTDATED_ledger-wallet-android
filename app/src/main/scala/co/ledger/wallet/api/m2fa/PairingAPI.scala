@@ -182,9 +182,12 @@ class PairingAPI(context: Context, keystore: Keystore, websocketUri: Uri = Confi
     // Ask the user to answer to the challenge
     //_onRequireUserInput(new Requi)
     Logger.d("Client received a challenge " + pkg.toString)
-    Logger.d("Sessions key is " + Hex.toHexString(sessionKey))
+
+    _sessionKey = Some(Crypto.splitAndXor(keypair.generateAgreementSecret(Config
+      .LedgerAttestationPublicKey)))
+    Logger.d("Sessions key is " + Hex.toHexString(sessionKey.orNull))
     val f = Future {
-      val d3es = new D3ESCBC(sessionKey)
+      val d3es = new D3ESCBC(sessionKey.get)
       val blob = Hex.decode(pkg.getString("data"))
       Logger.d("Crypted blob: " + pkg.getString("data"))
       PairingAPI.computeChallengePackage(d3es, blob)
@@ -198,7 +201,7 @@ class PairingAPI(context: Context, keystore: Keystore, websocketUri: Uri = Confi
           case Success(input) => {
             Logger.d("User input: " + input)
             val answer: Array[Byte] = sessionNonce ++ Hex.decode(input.toCharArray.map("0" + _).mkString("")) ++ Array[Byte](0, 0, 0, 0)
-            val cryptedAnswer = new D3ESCBC(sessionKey).encrypt(answer)
+            val cryptedAnswer = new D3ESCBC(sessionKey.get).encrypt(answer)
             prepareChallengePackage(answer = Hex.toHexString(cryptedAnswer))
             sendPendingPackage(socket)
           }
@@ -314,7 +317,7 @@ class PairingAPI(context: Context, keystore: Keystore, websocketUri: Uri = Confi
     _keyPair
   }
 
-  private[this] lazy val _sessionKey = Crypto.splitAndXor(keypair.generateAgreementSecret(Config.LedgerAttestationPublicKey))
+  private[this] var _sessionKey: Option[Array[Byte]] = None
   def sessionKey = _sessionKey
 
   private[this] var _pairingKey: Array[Byte] = _
