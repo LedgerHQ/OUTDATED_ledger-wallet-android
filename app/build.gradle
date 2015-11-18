@@ -7,11 +7,11 @@ android {
 
     defaultConfig {
         applicationId "co.ledger.wallet"
-        minSdkVersion 14
         targetSdkVersion 22
         versionCode 7
         versionName "1.0.4"
-        //testInstrumentationRunner "com.android.test.runner.MultiDexTestRunner"
+        testInstrumentationRunner "com.android.test.runner.MultiDexTestRunner"
+        multiDexEnabled true
     }
 
     buildTypes {
@@ -38,20 +38,20 @@ android {
 
 
     productFlavors {
+        dev {
+            applicationId "co.ledger.wallet.beta"
+            resValue "string", "app_name", "Ledger Wallet (Dev)"
+            minSdkVersion 22
+        }
+
         beta {
             applicationId "co.ledger.wallet.beta"
             resValue "string", "app_name", "Ledger Wallet (Beta)"
-            //buildConfigField "string", "LEDGER_ATTESTATION_PUBLIC_KEY", "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f"
-        }
-
-        mock {
-            applicationId "com.ledger.ledgerwallet.beta"
-            resValue "string", "app_name", "Ledger Wallet (For Mocked dongle)"
-            //buildConfigField "string", "LEDGER_ATTESTATION_PUBLIC_KEY",  "0478c0837ded209265ea8131283585f71c5bddf7ffafe04ccddb8fe10b3edc7833d6dee70c3b9040e1a1a01c5cc04fcbf9b4de612e688d09245ef5f9135413cc1d"
+            minSdkVersion 14
         }
 
         production {
-            //buildConfigField "string", "LEDGER_ATTESTATION_PUBLIC_KEY",  "04c370d4013107a98dfef01d6db5bb3419deb9299535f0be47f05939a78b314a3c29b51fcaa9b3d46fa382c995456af50cd57fb017c0ce05e4a31864a79b8fbfd6"
+            minSdkVersion 14
         }
     }
 
