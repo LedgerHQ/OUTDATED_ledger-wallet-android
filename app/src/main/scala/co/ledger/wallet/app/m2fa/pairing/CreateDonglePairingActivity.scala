@@ -98,7 +98,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
 
   override def onPause(): Unit = {
     super.onPause()
-    pairingApi.future.foreach (_.onComplete((_) => {}))
+    Option(pairingApi).foreach(_.future.foreach (_.onComplete((_) => {})))
   }
 
 

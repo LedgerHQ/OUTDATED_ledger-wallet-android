@@ -105,7 +105,8 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
       signal.countDown()
     }
 
-    Assert.assertTrue("Current fragment should be scan", getActivity.getSupportFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
+    Assert.assertTrue("Current fragment should be scan", getActivity.getFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
+
     delay {
       activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
     }
@@ -139,7 +140,7 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
       signal.countDown()
     }
 
-    Assert.assertTrue("Current fragment should be scan", getActivity.getSupportFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
+    Assert.assertTrue("Current fragment should be scan", getActivity.getFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
     delay {
       activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
     }
@@ -169,11 +170,13 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
     server.run()
 
     activity.postResult = (resultCode) => {
-      Assert.assertEquals("Pairing should failed due to network error", resultCode, CreateDonglePairingActivity.ResultNetworkError)
+      Assert.assertTrue(s"Pairing should failed due to network error $resultCode",
+          resultCode == CreateDonglePairingActivity.ResultNetworkError ||
+          resultCode == CreateDonglePairingActivity.ResultTimeout)
       signal.countDown()
     }
 
-    Assert.assertTrue("Current fragment should be scan", getActivity.getSupportFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
+    Assert.assertTrue("Current fragment should be scan", getActivity.getFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
     delay {
       activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
     }
@@ -197,7 +200,7 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
     val startTime = System.currentTimeMillis()
     val checkIfFragmentIsPresent = new (() => Unit)  {
       def apply():Unit = {
-        val f = getActivity.getSupportFragmentManager.findFragmentByTag(fragmentTag)
+        val f = getActivity.getFragmentManager.findFragmentByTag(fragmentTag)
         if (f != null && f.isVisible)
           r
         else if (System.currentTimeMillis() - startTime >= timeout)

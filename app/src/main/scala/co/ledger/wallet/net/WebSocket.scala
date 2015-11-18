@@ -42,11 +42,17 @@ import org.json.{JSONArray, JSONObject}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
+import scala.util.Try
 
 class WebSocket(socket: http.WebSocket) {
 
   socket.setStringCallback(new StringCallback {
-    override def onStringAvailable(s: String): Unit = _stringHandler.foreach(_(s))
+    override def onStringAvailable(s: String): Unit = {
+      _stringHandler.foreach(_(s))
+      _jsonHandler.foreach({ (handler) =>
+        Try(new JSONObject(s)).foreach(handler)
+      })
+    }
   })
 
   socket.setClosedCallback(new CompletedCallback {
