@@ -26,7 +26,7 @@
             android:orientation="vertical"
             android:gravity="center">
 
-            <co.ledger.wallet.widget.PinTextView
+            <co.ledger.wallet.core.widget.PinTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
@@ -39,7 +39,7 @@
 
 
 
-            <co.ledger.wallet.widget.TextView
+            <co.ledger.wallet.core.widget.TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_pin_choice_step_bottom_confirm"

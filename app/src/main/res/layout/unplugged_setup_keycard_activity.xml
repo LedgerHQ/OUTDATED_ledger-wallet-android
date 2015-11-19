@@ -27,14 +27,14 @@
             android:paddingBottom="@dimen/huge_margin"
             android:id="@+id/linearLayout">
 
-            <co.ledger.wallet.widget.TextView
+            <co.ledger.wallet.core.widget.TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_scan_manual_pincode"
                 android:id="@+id/button"
                 style="@style/RoundedGreenButtonStyle" />
 
-            <co.ledger.wallet.widget.TextView
+            <co.ledger.wallet.core.widget.TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_scan_create_keycard"
@@ -46,7 +46,7 @@
 
         </LinearLayout>
 
-        <co.ledger.wallet.widget.ScannerFrame
+        <co.ledger.wallet.core.widget.ScannerFrame
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/view"

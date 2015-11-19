@@ -8,7 +8,7 @@
     android:layout_gravity="center_horizontal"
     android:layout_height="match_parent">
 
-    <co.ledger.wallet.widget.TextView
+    <co.ledger.wallet.core.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/incoming_tx_title"
@@ -20,7 +20,7 @@
         android:layout_marginBottom="@dimen/medium_margin"
         android:layout_gravity="center_horizontal" />
 
-    <co.ledger.wallet.widget.TextView
+    <co.ledger.wallet.core.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Default Wallet"
@@ -38,7 +38,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal">
 
-        <co.ledger.wallet.widget.TextView
+        <co.ledger.wallet.core.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.0265"
@@ -48,7 +48,7 @@
             android:layout_marginRight="@dimen/extra_extra_small_margin"
             android:id="@+id/amount" />
 
-        <co.ledger.wallet.widget.TextView
+        <co.ledger.wallet.core.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/btc_acronyme"
@@ -67,7 +67,7 @@
         android:src="@drawable/ic_bottom_transfer"
         android:layout_gravity="center_horizontal" />
 
-    <co.ledger.wallet.widget.TextView
+    <co.ledger.wallet.core.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="1MrpXW4dUz4FgFhNwkeqHqsWJDn12mPZPe"
@@ -80,7 +80,7 @@
         android:gravity="center"
         android:layout_gravity="center_horizontal" />
 
-    <co.ledger.wallet.widget.TextView
+    <co.ledger.wallet.core.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/incoming_tx_date"

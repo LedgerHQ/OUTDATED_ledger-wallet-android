@@ -30,8 +30,8 @@
  */
 package co.ledger.wallet.dongle.api
 
-import co.ledger.wallet.bitcoin.Bip39Helper
-import co.ledger.wallet.utils.HexUtils
+import co.ledger.wallet.core.bitcoin.Bip39Helper
+import co.ledger.wallet.core.utils.HexUtils
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

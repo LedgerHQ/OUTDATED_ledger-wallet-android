@@ -13,7 +13,7 @@
         android:layout_marginTop="@dimen/extra_large_margin"
         android:id="@+id/icon" />
 
-    <co.ledger.wallet.widget.TextView
+    <co.ledger.wallet.core.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/pairing_success_dialog_title"
@@ -26,7 +26,7 @@
         app:kerning="@dimen/large_font_spacing"
         android:id="@+id/title" />
 
-    <co.ledger.wallet.widget.TextView
+    <co.ledger.wallet.core.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/large_margin"

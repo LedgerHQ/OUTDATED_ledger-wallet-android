@@ -31,7 +31,7 @@
         <!--</activity>-->
 
         <activity
-            android:name=".app.HomeActivity"
+            android:name=".app.ui.HomeActivity"
             android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:launchMode="singleTask">
@@ -42,7 +42,7 @@
         </activity>
 
         <activity
-            android:name=".app.SettingsActivity"
+            android:name=".app.ui.SettingsActivity"
             android:screenOrientation="portrait"
             android:label="@string/settings_activity_name"
             android:launchMode="standard">
@@ -50,148 +50,148 @@
         </activity>
 
         <activity
-            android:name=".app.m2fa.PairedDonglesActivity"
+            android:name=".app.ui.m2fa.PairedDonglesActivity"
             android:screenOrientation="portrait"
             android:label="@string/paired_dongle_activity_name"
-            android:parentActivityName=".app.HomeActivity">
+            android:parentActivityName=".app.ui.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.HomeActivity" />
+                android:value=".app.ui.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.m2fa.pairing.CreateDonglePairingActivity"
+            android:name=".app.ui.m2fa.pairing.CreateDonglePairingActivity"
             android:screenOrientation="portrait"
             android:label="@string/create_dongle_title"
             android:windowSoftInputMode="adjustResize"
-            android:parentActivityName=".app.m2fa.PairedDonglesActivity"
+            android:parentActivityName=".app.ui.m2fa.PairedDonglesActivity"
             >
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.m2fa.PairedDonglesActivity" />
+                android:value=".app.ui.m2fa.PairedDonglesActivity" />
         </activity>
 
         <activity
-            android:name=".app.unplugged.UnpluggedTapActivity"
+            android:name=".app.ui.unplugged.UnpluggedTapActivity"
             android:clearTaskOnLaunch="true"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_tap_activity_title"
-            android:parentActivityName=".app.HomeActivity">
+            android:parentActivityName=".app.ui.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.HomeActivity" />
+                android:value=".app.ui.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.unplugged.UnpluggedWelcomeActivity"
+            android:name=".app.ui.unplugged.UnpluggedWelcomeActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_welcome_activity_title"
-            android:parentActivityName=".app.HomeActivity">
+            android:parentActivityName=".app.ui.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.HomeActivity" />
+                android:value=".app.ui.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.unplugged.UnpluggedSecurityActivity"
+            android:name=".app.ui.unplugged.UnpluggedSecurityActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_security_activity_title"
-            android:parentActivityName=".app.HomeActivity">
+            android:parentActivityName=".app.ui.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.HomeActivity" />
+                android:value=".app.ui.HomeActivity" />
 
         </activity>
 
         <activity
-            android:name=".app.unplugged.UnpluggedPINChoiceActivity"
+            android:name=".app.ui.unplugged.UnpluggedPINChoiceActivity"
             android:screenOrientation="portrait"
-            android:parentActivityName=".app.HomeActivity">
+            android:parentActivityName=".app.ui.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.HomeActivity" />
+                android:value=".app.ui.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.unplugged.UnpluggedInstallFidesmoActivity"
+            android:name=".app.ui.unplugged.UnpluggedInstallFidesmoActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_fidesmo_activity_title"
-            android:parentActivityName=".app.HomeActivity">
+            android:parentActivityName=".app.ui.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.HomeActivity" />
+                android:value=".app.ui.HomeActivity" />
         </activity>
         <activity
-            android:name=".app.unplugged.UnpluggedBip39MnemonicPhraseActivity"
+            android:name=".app.ui.unplugged.UnpluggedBip39MnemonicPhraseActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_seed_activity_title"
-            android:parentActivityName=".app.HomeActivity">
+            android:parentActivityName=".app.ui.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.HomeActivity" />
+                android:value=".app.ui.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.unplugged.UnpluggedFinalizeSetupActivity"
+            android:name=".app.ui.unplugged.UnpluggedFinalizeSetupActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_finalize_setup_activity_title"
-            android:parentActivityName=".app.HomeActivity">
+            android:parentActivityName=".app.ui.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.HomeActivity" />
+                android:value=".app.ui.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.unplugged.UnpluggedSetupCompleteActivity"
+            android:name=".app.ui.unplugged.UnpluggedSetupCompleteActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_setup_complete_activity_title"
-            android:parentActivityName=".app.HomeActivity">
+            android:parentActivityName=".app.ui.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.HomeActivity" />
+                android:value=".app.ui.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.unplugged.UnpluggedInProgressActivity"
+            android:name=".app.ui.unplugged.UnpluggedInProgressActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_in_progress_activity_title"
-            android:parentActivityName=".app.HomeActivity">
+            android:parentActivityName=".app.ui.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.HomeActivity" />
+                android:value=".app.ui.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.unplugged.UnpluggedExistingActivity"
+            android:name=".app.ui.unplugged.UnpluggedExistingActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_existing_activity_title"
-            android:parentActivityName=".app.HomeActivity">
+            android:parentActivityName=".app.ui.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.HomeActivity" />
+                android:value=".app.ui.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.unplugged.UnpluggedSetupKeyCardActivity"
+            android:name=".app.ui.unplugged.UnpluggedSetupKeyCardActivity"
             android:label="@string/unplugged_scan_title"
             android:screenOrientation="portrait"
-            android:parentActivityName=".app.HomeActivity">
+            android:parentActivityName=".app.ui.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.HomeActivity" />
+                android:value=".app.ui.HomeActivity" />
         </activity>
 
         <receiver
@@ -209,7 +209,7 @@
         </service>
 
         <provider
-            android:name=".content.FileContentProvider"
+            android:name=".core.content.FileContentProvider"
             android:authorities="co.ledger.wallet.file_exporter"
             android:exported="false"
             android:grantUriPermissions="true">

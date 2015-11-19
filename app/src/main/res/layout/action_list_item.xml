@@ -25,7 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1">
 
-        <co.ledger.wallet.widget.TextView
+        <co.ledger.wallet.core.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Create a new wallet"
@@ -35,7 +35,7 @@
             app:fontStyle="semiBold"
             android:id="@+id/title" />
 
-        <co.ledger.wallet.widget.TextView
+        <co.ledger.wallet.core.widget.TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="By generating a new BIP39 seed"

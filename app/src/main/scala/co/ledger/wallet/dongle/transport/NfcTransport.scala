@@ -32,7 +32,7 @@ package co.ledger.wallet.dongle.transport
 
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
-import co.ledger.wallet.utils.logs.Logger
+import co.ledger.wallet.core.utils.logs.Logger
 import com.btchip.BTChipException
 import com.btchip.comm.BTChipTransport
 import com.btchip.utils.Dump

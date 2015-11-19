@@ -35,9 +35,10 @@ import android.content.{Context, Intent}
 import android.os.Bundle
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.WakefulBroadcastReceiver
+import co.ledger.wallet.app.ui.HomeActivity
 import com.google.android.gms.gcm.GoogleCloudMessaging
 import co.ledger.wallet.R
-import co.ledger.wallet.utils.{AndroidUtils, TR}
+import co.ledger.wallet.core.utils.{AndroidUtils, TR}
 
 class GcmIntentService extends IntentService("Ledger Wallet GCM Service") {
 

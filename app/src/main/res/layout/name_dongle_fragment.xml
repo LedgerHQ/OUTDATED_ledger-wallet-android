@@ -7,7 +7,7 @@
     android:id="@+id/frame"
     android:gravity="center_vertical|center_horizontal">
 
-    <co.ledger.wallet.widget.EditText
+    <co.ledger.wallet.core.widget.EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/name"
@@ -35,7 +35,7 @@
         android:layout_marginRight="@dimen/huge_margin"
         android:layout_marginTop="@dimen/medium_margin" />
 
-    <co.ledger.wallet.widget.TextView
+    <co.ledger.wallet.core.widget.TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/create_dongle_instruction_step_5_bottom"

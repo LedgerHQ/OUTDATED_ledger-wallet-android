@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/linear2">
 
-            <co.ledger.wallet.widget.TextView
+            <co.ledger.wallet.core.widget.TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_security_line_1"
@@ -40,7 +40,7 @@
                 app:kerning="@dimen/medium_font_spacing"
                 android:lineSpacingExtra="5dp" />
 
-            <co.ledger.wallet.widget.TextView
+            <co.ledger.wallet.core.widget.TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_security_line_1"
@@ -52,7 +52,7 @@
                 app:kerning="@dimen/medium_font_spacing"
                 android:lineSpacingExtra="5dp" />
 
-            <co.ledger.wallet.widget.TextView
+            <co.ledger.wallet.core.widget.TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_security_line_3"
@@ -64,7 +64,7 @@
                 app:kerning="@dimen/medium_font_spacing"
                 android:lineSpacingExtra="5dp" />
 
-            <co.ledger.wallet.widget.TextView
+            <co.ledger.wallet.core.widget.TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_security_line_4"
@@ -80,7 +80,7 @@
 
     </ScrollView>
 
-    <co.ledger.wallet.widget.TextView
+    <co.ledger.wallet.core.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/unplugged_security_understood"

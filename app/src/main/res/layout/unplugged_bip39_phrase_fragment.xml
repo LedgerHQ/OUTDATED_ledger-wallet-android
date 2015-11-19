@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <co.ledger.wallet.widget.Bip39MnemonicPhraseEditText
+            <co.ledger.wallet.core.widget.Bip39MnemonicPhraseEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/phrase"
@@ -49,7 +49,7 @@
                 android:imeOptions="actionDone"
                  />
 
-            <co.ledger.wallet.widget.TextView
+            <co.ledger.wallet.core.widget.TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/unplugged_seed_bottom_text_create"
@@ -76,7 +76,7 @@
 
     </ScrollView>
 
-    <co.ledger.wallet.widget.TextView
+    <co.ledger.wallet.core.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/unplugged_seed_button_text_create"

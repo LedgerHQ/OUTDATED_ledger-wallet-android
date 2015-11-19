@@ -32,8 +32,8 @@ package co.ledger.wallet.model
 
 import android.test.InstrumentationTestCase
 import co.ledger.wallet.models.PairedDongle
-import co.ledger.wallet.security.Keystore
-import co.ledger.wallet.utils.logs.Logger
+import co.ledger.wallet.core.security.Keystore
+import co.ledger.wallet.core.utils.logs.Logger
 import junit.framework.Assert
 import org.spongycastle.util.encoders.Hex
 

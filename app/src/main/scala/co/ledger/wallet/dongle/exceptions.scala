@@ -32,7 +32,7 @@ package co.ledger.wallet.dongle
 
 package exceptions {
 
-import co.ledger.wallet.utils.Convert
+import co.ledger.wallet.core.utils.Convert
 
 class CommuncationErrorException(msg: String) extends Exception(msg)
   case class InvalidReponseStatusException(statusWord: Int) extends Exception(s"Invalid status - ${Integer.toHexString(statusWord)}")

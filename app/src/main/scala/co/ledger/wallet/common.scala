@@ -3,7 +3,7 @@ package co.ledger.wallet
 import android.app.Activity
 import android.content.Context
 import android.os.{Handler, Looper}
-import co.ledger.wallet.utils._
+import co.ledger.wallet.core.utils._
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try

@@ -10,7 +10,7 @@
     android:gravity="center_vertical"
     >
 
-    <co.ledger.wallet.widget.PinTextView
+    <co.ledger.wallet.core.widget.PinTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
@@ -35,7 +35,7 @@
         android:layout_alignRight="@+id/pin_view"
         android:layout_alignEnd="@+id/pin_view">
 
-        <co.ledger.wallet.widget.TextView
+        <co.ledger.wallet.core.widget.TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textSize="@dimen/huge_font_size"
@@ -45,7 +45,7 @@
             android:textColor="@color/dark_grey"
             app:fontStyle="light"
             android:text=""/>
-        <co.ledger.wallet.widget.TextView
+        <co.ledger.wallet.core.widget.TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -55,7 +55,7 @@
             android:textSize="@dimen/huge_font_size"
             app:fontStyle="light"
             android:text=""/>
-        <co.ledger.wallet.widget.TextView
+        <co.ledger.wallet.core.widget.TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -65,7 +65,7 @@
             android:textSize="@dimen/huge_font_size"
             app:fontStyle="light"
             android:text=""/>
-        <co.ledger.wallet.widget.TextView
+        <co.ledger.wallet.core.widget.TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -76,7 +76,7 @@
             android:text=""/>
     </LinearLayout>
 
-    <co.ledger.wallet.widget.TextView
+    <co.ledger.wallet.core.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/create_dongle_instruction_step_3_bottom"

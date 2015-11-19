@@ -8,7 +8,7 @@
     android:layout_gravity="center_horizontal"
     android:layout_height="match_parent">
 
-    <co.ledger.wallet.widget.TextView
+    <co.ledger.wallet.core.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/trustlet_promotion_dialog_title"
@@ -27,7 +27,7 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="@dimen/extra_large_margin"/>
 
-    <co.ledger.wallet.widget.TextView
+    <co.ledger.wallet.core.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/trustlet_promotion_dialog_main_message"
@@ -41,7 +41,7 @@
         android:lineSpacingExtra="6dp"
         android:layout_gravity="center_horizontal" />
 
-    <co.ledger.wallet.widget.TextView
+    <co.ledger.wallet.core.widget.TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/trustlet_promotion_dialog_bottom_message"

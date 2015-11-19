@@ -33,7 +33,7 @@ package co.ledger.wallet.app
 import java.util.UUID
 
 import android.content.Context
-import co.ledger.wallet.utils.Preferenceable
+import co.ledger.wallet.core.utils.Preferenceable
 
 /**
  * Gathers all properties for the current application installation
