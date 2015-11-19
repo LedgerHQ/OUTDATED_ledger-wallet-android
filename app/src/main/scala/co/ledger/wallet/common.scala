@@ -3,7 +3,7 @@ package co.ledger.wallet
 import android.app.Activity
 import android.content.Context
 import android.os.{Handler, Looper}
-import co.ledger.wallet.utils.{HexUtils, StringExtensions, JsonUtils, AndroidImplicitConversions}
+import co.ledger.wallet.utils._
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
@@ -38,7 +38,11 @@ import scala.util.Try
  * SOFTWARE.
  *
  */
-package object common extends AndroidImplicitConversions with JsonUtils with StringExtensions with HexUtils {
+package object common extends AndroidImplicitConversions
+  with JsonUtils
+  with StringExtensions
+  with HexUtils
+  with FutureExtensions {
 
   private[this] lazy val mainThreadHandler = new Handler(Looper.getMainLooper)
   private[this] lazy val mainThread = Looper.getMainLooper.getThread
@@ -61,8 +65,12 @@ package object common extends AndroidImplicitConversions with JsonUtils with Str
 
   def delay(delayMillis: Long): Future[Unit] = {
     val promise = Promise[Unit]()
-    mainThreadHandler.postDelayed(promise.success(null), delayMillis)
+    mainThreadHandler.postDelayed(new Runnable {
+      override def run(): Unit = promise.complete(null)
+    }, delayMillis)
     promise.future
   }
+
+
 
 }

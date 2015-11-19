@@ -39,7 +39,7 @@ android {
 
     productFlavors {
         dev {
-            applicationId "co.ledger.wallet.beta"
+            applicationId "co.ledger.wallet.dev"
             resValue "string", "app_name", "Ledger Wallet (Dev)"
             minSdkVersion 22
         }
@@ -92,6 +92,16 @@ dependencies {
 tasks.withType(ScalaCompile) {
     scalaCompileOptions.deprecation = false
     scalaCompileOptions.useCompileDaemon = true
+}
+
+tasks.withType(ScalaCompile) {
+    configure(scalaCompileOptions.forkOptions) {
+        memoryMaximumSize = '1g'
+        jvmArgs = ['-XX:MaxPermSize=512m']
+    }
+}
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.useAnt = false
 }
 
 

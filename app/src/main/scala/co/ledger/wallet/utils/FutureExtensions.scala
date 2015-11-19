@@ -1,11 +1,9 @@
-package co.ledger.wallet.app
-
 /**
  *
- * Config
+ * FutureExtensions
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 12/06/15.
+ * Created by Pierre Pollastri on 18/11/15.
  *
  * The MIT License (MIT)
  *
@@ -15,7 +13,7 @@ package co.ledger.wallet.app
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to PERMIT persons to whom the Software is
+ * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all
@@ -30,8 +28,46 @@ package co.ledger.wallet.app
  * SOFTWARE.
  *
  */
+package co.ledger.wallet.utils
 
-object Config extends BaseConfig {
+import co.ledger.wallet
 
+import scala.concurrent.{Promise, Future}
+import co.ledger.wallet.concurrent.ExecutionContext.Implicits.main
+import scala.util.Try
+
+trait FutureExtensions {
+
+  implicit class UiFuture[A](val future: Future[A]) {
+
+    def mapUi[S](f: (A) => S): Future[S] = {
+      future.flatMap({(a) =>
+        val promise = Promise[S]()
+        wallet.common.runOnUiThread({
+          promise.complete(Try(f(a)))
+        })
+        promise.future
+      })
+    }
+
+    def flatMapUi[S](f: (A) => Future[S]): Future[S] = {
+      future.flatMap({(a) =>
+        val promise = Promise[S]()
+        wallet.common.runOnUiThread({
+          promise.completeWith(f(a))
+        })
+        promise.future
+      })
+    }
+
+    def onCompleteUi[U](f: (Try[A]) => U): Unit = {
+      future.onComplete({ (result) =>
+        wallet.common.runOnUiThread({
+          f(result)
+        })
+      })
+    }
+
+  }
 
 }

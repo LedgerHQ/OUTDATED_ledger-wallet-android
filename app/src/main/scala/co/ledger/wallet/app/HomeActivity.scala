@@ -113,7 +113,6 @@ class HomeActivity extends BaseActivity {
 
     refreshPairedDongleList()
 
-
     val ak = new AndroidKeystore(this)
     val ik = new ApplicationKeystore(this, s"toto${System.currentTimeMillis()}.keystore")
     ak.load(null).andThen({
