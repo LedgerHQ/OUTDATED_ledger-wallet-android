@@ -1,9 +1,9 @@
 /**
  *
- * ExecutionContext
+ * KeystoreActivity
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 02/02/15.
+ * Created by Pierre Pollastri on 19/10/15.
  *
  * The MIT License (MIT)
  *
@@ -28,42 +28,45 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.core.concurrent
+package co.ledger.wallet.core.base
 
-import java.util.concurrent.Executor
+import android.app.Activity
+import co.ledger.wallet.core.security.Keystore
+import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.ui
+import scala.util.{Failure, Success}
 
-import android.app.Fragment
-import android.content.Context
-import android.os.{AsyncTask, Looper, Handler}
-import co.ledger.wallet.core.base.UiContext
+trait KeystoreActivity extends Activity {
 
-object ExecutionContext {
 
-  object Implicits {
-    implicit lazy val main = scala.concurrent.ExecutionContext.fromExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
-    implicit lazy val ui = new HandlerExecutionContext(new Handler(Looper.getMainLooper))
-  }
+  override abstract def onResume(): Unit = {
+    super.onResume()
+    if (_keystore == null || _keystore == Keystore.defaultInstance(this)) {
+      _keystore = Keystore.defaultInstance(this)
+      _keystore.load(null) onComplete {
+        case Success(_) =>
+          onKeystoreInstanceReady(_keystore)
+          super.onResume()
+        case Failure(ex) =>
+          _keystore.promptUnlockDialog(this) onComplete {
+            case Success(_) =>
+              onKeystoreInstanceReady(_keystore)
+            case Failure(err) => finish()
+          }
+      }
 
-  class HandlerExecutionContext(handler: Handler) extends scala.concurrent.ExecutionContextExecutor {
-    override def execute(runnable: Runnable): Unit = {
-      handler.post(runnable)
+    } else {
+      onKeystoreInstanceReady(_keystore)
     }
-    override def reportFailure(cause: Throwable): Unit = {}
+
   }
 
+  protected def onKeystoreInstanceReady(newKeystore: Keystore): Unit = {
 
-  class UiContextExecutionContext(context: UiContext) extends Executor {
-
-    private val handler = new Handler(Looper.getMainLooper)
-
-    override def execute(command: Runnable): Unit = {
-      handler.post(new Runnable {
-        override def run(): Unit = {
-          if (context.isVisible)
-            command.run()
-        }
-      })
-    }
   }
 
+  def keystore = _keystore
+  private[this] var _keystore: Keystore = null
 }
+
+
+

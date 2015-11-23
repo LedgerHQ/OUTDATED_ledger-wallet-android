@@ -1,13 +1,9 @@
-package co.ledger.wallet.app
-
-import co.ledger.wallet.BaseConfig
-
 /**
  *
- * Config
+ * GcmBroadcastReceiver
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 12/06/15.
+ * Created by Pierre Pollastri on 11/02/15.
  *
  * The MIT License (MIT)
  *
@@ -17,7 +13,7 @@ import co.ledger.wallet.BaseConfig
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to PERMIT persons to whom the Software is
+ * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all
@@ -32,8 +28,18 @@ import co.ledger.wallet.BaseConfig
  * SOFTWARE.
  *
  */
+package co.ledger.wallet.service.gcm
 
-object Config extends BaseConfig {
+import android.app.Activity
+import android.content.{ComponentName, Context, Intent}
+import android.support.v4.content.WakefulBroadcastReceiver
 
+class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
+
+  override def onReceive(context: Context, intent: Intent): Unit = {
+    val comp = new ComponentName(context.getPackageName, classOf[GcmIntentService].getName)
+    WakefulBroadcastReceiver.startWakefulService(context, intent.setComponent(comp))
+    setResultCode(Activity.RESULT_OK)
+  }
 
 }

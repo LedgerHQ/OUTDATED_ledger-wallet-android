@@ -1,13 +1,9 @@
-package co.ledger.wallet.app
-
-import co.ledger.wallet.BaseConfig
-
 /**
  *
- * Config
+ * InstallationInfo
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 12/06/15.
+ * Created by Pierre Pollastri on 09/03/15.
  *
  * The MIT License (MIT)
  *
@@ -17,7 +13,7 @@ import co.ledger.wallet.BaseConfig
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to PERMIT persons to whom the Software is
+ * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all
@@ -32,8 +28,26 @@ import co.ledger.wallet.BaseConfig
  * SOFTWARE.
  *
  */
+package co.ledger.wallet
 
-object Config extends BaseConfig {
+import java.util.UUID
 
+import android.content.Context
+import co.ledger.wallet.core.utils.Preferenceable
 
+/**
+ * Gathers all properties for the current application installation
+ */
+object InstallationInfo extends Preferenceable {
+
+  private var _uuid: Option[UUID] = None
+
+  def uuid(implicit context: Context): UUID = _uuid.getOrElse {
+      val uuidString = Option(preferences.getString("uuid", null))
+      _uuid = Some(uuidString.map(UUID.fromString).getOrElse(UUID.randomUUID()))
+      preferences.edit().putString("uuid", _uuid.get.toString).commit()
+      _uuid.get
+  }
+
+  override def PreferencesName: String = "InstallationInfo"
 }

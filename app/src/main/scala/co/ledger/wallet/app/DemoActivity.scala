@@ -1,9 +1,9 @@
 /**
  *
- * ExecutionContext
+ * DemoActivity
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 02/02/15.
+ * Created by Pierre Pollastri on 19/11/15.
  *
  * The MIT License (MIT)
  *
@@ -28,42 +28,39 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.core.concurrent
+package co.ledger.wallet.app
 
 import java.util.concurrent.Executor
 
-import android.app.Fragment
-import android.content.Context
-import android.os.{AsyncTask, Looper, Handler}
-import co.ledger.wallet.core.base.UiContext
+import android.os.{Looper, Handler, AsyncTask, Bundle}
+import co.ledger.wallet.R
+import co.ledger.wallet.core.base.BaseActivity
+import co.ledger.wallet.core.utils.TR
+import co.ledger.wallet.core.utils.logs.Logger
+import co.ledger.wallet.core.widget.TextView
+import co.ledger.wallet.common._
 
-object ExecutionContext {
+class DemoActivity extends BaseActivity {
 
-  object Implicits {
-    implicit lazy val main = scala.concurrent.ExecutionContext.fromExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
-    implicit lazy val ui = new HandlerExecutionContext(new Handler(Looper.getMainLooper))
+  lazy val text = TR(R.id.text).as[TextView]
+
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate(savedInstanceState)
+    Logger.d("UI initialized")
+    setContentView(R.layout.unplugged_welcome_activity)
+    text.setText("onCreate")
+    new Thread() {
+      override def run(): Unit = {
+        super.run()
+        ec.execute(new Runnable {
+          override def run(): Unit = append("Running from thread")
+        })
+      }
+    } start()
   }
 
-  class HandlerExecutionContext(handler: Handler) extends scala.concurrent.ExecutionContextExecutor {
-    override def execute(runnable: Runnable): Unit = {
-      handler.post(runnable)
-    }
-    override def reportFailure(cause: Throwable): Unit = {}
-  }
-
-
-  class UiContextExecutionContext(context: UiContext) extends Executor {
-
-    private val handler = new Handler(Looper.getMainLooper)
-
-    override def execute(command: Runnable): Unit = {
-      handler.post(new Runnable {
-        override def run(): Unit = {
-          if (context.isVisible)
-            command.run()
-        }
-      })
-    }
+  def append(text: String): Unit = {
+    this.text.setText(this.text.getText.toString + "\n" + text)
   }
 
 }

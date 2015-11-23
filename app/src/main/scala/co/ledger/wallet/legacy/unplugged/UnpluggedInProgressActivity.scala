@@ -1,13 +1,9 @@
-package co.ledger.wallet.app
-
-import co.ledger.wallet.BaseConfig
-
 /**
  *
- * Config
+ * UnpluggedFinalizeSetupActivity
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 12/06/15.
+ * Created by Pierre Pollastri on 15/09/15.
  *
  * The MIT License (MIT)
  *
@@ -17,7 +13,7 @@ import co.ledger.wallet.BaseConfig
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to PERMIT persons to whom the Software is
+ * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all
@@ -32,8 +28,25 @@ import co.ledger.wallet.BaseConfig
  * SOFTWARE.
  *
  */
+package co.ledger.wallet.legacy.unplugged
 
-object Config extends BaseConfig {
+import android.os.Bundle
+import co.ledger.wallet.R
 
+class UnpluggedInProgressActivity extends UnpluggedSetupActivity {
+
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.unplugged_in_progress_activity)
+    getSupportActionBar.setHomeButtonEnabled(true)
+    getSupportActionBar.setDisplayHomeAsUpEnabled(true)
+    stepNumberTextView.setText(R.string.unplugged_in_progress_step_number)
+    if (isInCreationMode) {
+      stepInstructionTextView.setText(R.string.unplugged_in_progress_step_text_creation)
+    }
+    else {
+      stepInstructionTextView.setText(R.string.unplugged_in_progress_step_text_restore)
+    }
+  }
 
 }

@@ -12,7 +12,7 @@
 
     <uses-feature android:name="android.hardware.nfc" android:required="false" />
 
-    <permission android:name="co.ledger.wallet.gcm.permission.C2D_MESSAGE"
+    <permission android:name="co.ledger.wallet.service.gcm.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
     <uses-permission android:name="co.ledger.wallet.gcm.permission.C2D_MESSAGE" />
 
@@ -30,8 +30,10 @@
             <!--</intent-filter>-->
         <!--</activity>-->
 
+        <!-- Wallet -->
+
         <activity
-            android:name=".app.ui.HomeActivity"
+            android:name=".app.DemoActivity"
             android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:launchMode="singleTask">
@@ -39,6 +41,18 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <!-- M2FA -->
+
+        <!-- Unplugged setup -->
+
+        <activity
+            android:name=".legacy.HomeActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/app_name"
+            android:launchMode="singleTask">
+
         </activity>
 
         <activity
@@ -50,162 +64,167 @@
         </activity>
 
         <activity
-            android:name=".app.ui.m2fa.PairedDonglesActivity"
+            android:name=".legacy.PairedDonglesActivity"
             android:screenOrientation="portrait"
             android:label="@string/paired_dongle_activity_name"
-            android:parentActivityName=".app.ui.HomeActivity">
+            android:parentActivityName=".legacy.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.ui.HomeActivity" />
+                android:value=".legacy.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.ui.m2fa.pairing.CreateDonglePairingActivity"
+            android:name=".legacy.pairing.CreateDonglePairingActivity"
             android:screenOrientation="portrait"
             android:label="@string/create_dongle_title"
             android:windowSoftInputMode="adjustResize"
-            android:parentActivityName=".app.ui.m2fa.PairedDonglesActivity"
+            android:parentActivityName=".legacy.PairedDonglesActivity"
             >
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.ui.m2fa.PairedDonglesActivity" />
+                android:value=".legacy.PairedDonglesActivity" />
         </activity>
 
         <activity
-            android:name=".app.ui.unplugged.UnpluggedTapActivity"
+            android:name=".legacy.unplugged.UnpluggedTapActivity"
             android:clearTaskOnLaunch="true"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_tap_activity_title"
-            android:parentActivityName=".app.ui.HomeActivity">
+            android:parentActivityName=".legacy.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.ui.HomeActivity" />
+                android:value=".legacy.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.ui.unplugged.UnpluggedWelcomeActivity"
+            android:name=".legacy.unplugged.UnpluggedWelcomeActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_welcome_activity_title"
-            android:parentActivityName=".app.ui.HomeActivity">
+            android:parentActivityName=".legacy.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.ui.HomeActivity" />
+                android:value=".legacy.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.ui.unplugged.UnpluggedSecurityActivity"
+            android:name=".legacy.unplugged.UnpluggedSecurityActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_security_activity_title"
-            android:parentActivityName=".app.ui.HomeActivity">
+            android:parentActivityName=".legacy.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.ui.HomeActivity" />
+                android:value=".legacy.HomeActivity" />
 
         </activity>
 
         <activity
-            android:name=".app.ui.unplugged.UnpluggedPINChoiceActivity"
+            android:name=".legacy.unplugged.UnpluggedPINChoiceActivity"
             android:screenOrientation="portrait"
-            android:parentActivityName=".app.ui.HomeActivity">
+            android:parentActivityName=".legacy.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.ui.HomeActivity" />
+                android:value=".legacy.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.ui.unplugged.UnpluggedInstallFidesmoActivity"
+            android:name=".legacy.unplugged.UnpluggedInstallFidesmoActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_fidesmo_activity_title"
-            android:parentActivityName=".app.ui.HomeActivity">
+            android:parentActivityName=".legacy.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.ui.HomeActivity" />
+                android:value=".legacy.HomeActivity" />
         </activity>
         <activity
-            android:name=".app.ui.unplugged.UnpluggedBip39MnemonicPhraseActivity"
+            android:name=".legacy.unplugged.UnpluggedBip39MnemonicPhraseActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_seed_activity_title"
-            android:parentActivityName=".app.ui.HomeActivity">
+            android:parentActivityName=".legacy.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.ui.HomeActivity" />
+                android:value=".legacy.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.ui.unplugged.UnpluggedFinalizeSetupActivity"
+            android:name=".legacy.unplugged.UnpluggedFinalizeSetupActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_finalize_setup_activity_title"
-            android:parentActivityName=".app.ui.HomeActivity">
+            android:parentActivityName=".legacy.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.ui.HomeActivity" />
+                android:value=".legacy.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.ui.unplugged.UnpluggedSetupCompleteActivity"
+            android:name=".legacy.unplugged.UnpluggedSetupCompleteActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_setup_complete_activity_title"
-            android:parentActivityName=".app.ui.HomeActivity">
+            android:parentActivityName=".legacy.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.ui.HomeActivity" />
+                android:value=".legacy.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.ui.unplugged.UnpluggedInProgressActivity"
+            android:name=".legacy.unplugged.UnpluggedInProgressActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_in_progress_activity_title"
-            android:parentActivityName=".app.ui.HomeActivity">
+            android:parentActivityName=".legacy.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.ui.HomeActivity" />
+                android:value=".legacy.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.ui.unplugged.UnpluggedExistingActivity"
+            android:name=".legacy.unplugged.UnpluggedExistingActivity"
             android:screenOrientation="portrait"
             android:label="@string/unplugged_existing_activity_title"
-            android:parentActivityName=".app.ui.HomeActivity">
+            android:parentActivityName=".legacy.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.ui.HomeActivity" />
+                android:value=".legacy.HomeActivity" />
         </activity>
 
         <activity
-            android:name=".app.ui.unplugged.UnpluggedSetupKeyCardActivity"
+            android:name=".legacy.unplugged.UnpluggedSetupKeyCardActivity"
             android:label="@string/unplugged_scan_title"
             android:screenOrientation="portrait"
-            android:parentActivityName=".app.ui.HomeActivity">
+            android:parentActivityName=".legacy.HomeActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".app.ui.HomeActivity" />
+                android:value=".legacy.HomeActivity" />
         </activity>
 
         <receiver
-            android:name=".app.GcmBroadcastReceiver"
+            android:name=".service.gcm.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
             </intent-filter>
         </receiver>
 
-        <service android:name=".app.GcmIntentService" android:exported="false">
+        <service android:name=".service.gcm.GcmIntentService" android:exported="false">
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
             </intent-filter>
+        </service>
+
+
+        <service android:enabled="true" android:name=".service.wallet.LedgerWalletService">
+
         </service>
 
         <provider

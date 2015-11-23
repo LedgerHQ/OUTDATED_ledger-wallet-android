@@ -37,7 +37,7 @@ import android.util.AttributeSet
 import android.view.ViewGroup.LayoutParams
 import android.view.{ViewGroup, View, LayoutInflater}
 import co.ledger.wallet.R
-import co.ledger.wallet.app.base.BaseActivity
+import co.ledger.wallet.core.base.BaseActivity
 import co.ledger.wallet.core.utils.TR
 
 class Toolbar(context: Context, attrs: AttributeSet) extends android.support.v7.widget.Toolbar(context, attrs) {

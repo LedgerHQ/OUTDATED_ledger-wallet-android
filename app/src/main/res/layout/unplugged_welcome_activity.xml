@@ -23,6 +23,7 @@
         app:fontStyle="regular"  />
 
     <co.ledger.wallet.core.widget.TextView
+        android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/unplugged_welcome_create_or_recover"

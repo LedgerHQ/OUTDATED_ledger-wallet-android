@@ -31,3 +31,18 @@
 -dontwarn android.support.v4.app.**
 -dontwarn android.support.v4.view.**
 -dontwarn android.support.v4.widget.**
+
+-keep class com.typesafe.**
+-keep class akka.**
+-keep class scala.collection.immutable.StringLike {
+    *;
+}
+-keepclasseswithmembers class * {
+    public <init>(java.lang.String, akka.actor.ActorSystem$Settings, akka.event.EventStream, akka.actor.Scheduler, akka.actor.DynamicAccess);
+}
+-keepclasseswithmembers class * {
+    public <init>(akka.actor.ExtendedActorSystem);
+}
+-keep class scala.collection.SeqLike {
+    public protected *;
+}

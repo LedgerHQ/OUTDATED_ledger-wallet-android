@@ -1,7 +1,7 @@
 package co.ledger.wallet.app
 
 import android.net.Uri
-import co.ledger.wallet.BuildConfig
+import co.ledger.wallet.{BaseConfig, BuildConfig}
 
 /**
   *

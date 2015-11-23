@@ -1,5 +1,7 @@
 package co.ledger.wallet.app
 
+import co.ledger.wallet.BaseConfig
+
 /**
  *
  * Config

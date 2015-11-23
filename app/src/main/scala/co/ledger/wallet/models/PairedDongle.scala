@@ -35,16 +35,16 @@ import java.security.KeyStore.SecretKeyEntry
 import java.util.Date
 import javax.crypto.spec.SecretKeySpec
 import co.ledger.wallet.core.crypto.SecretKey
-import co.ledger.wallet.app.api.m2fa.GcmAPI
 import co.ledger.wallet.core.security.Keystore
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.core.utils.{Benchmark, GooglePlayServiceHelper}
+import co.ledger.wallet.legacy.GcmAPI
 import org.json.JSONObject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConversions._
 
 import android.content.Context
-import co.ledger.wallet.app.base.model.{Collection, BaseModel}
+import co.ledger.wallet.core.base.model.{Collection, BaseModel}
 
 import scala.concurrent.Future
 import scala.util.{Success, Try}
