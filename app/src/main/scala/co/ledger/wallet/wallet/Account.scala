@@ -1,6 +1,6 @@
 /**
  *
- * PublicAddress
+ * Account
  * Ledger wallet
  *
  * Created by Pierre Pollastri on 23/11/15.
@@ -30,6 +30,19 @@
  */
 package co.ledger.wallet.wallet
 
-class PublicAddress(val hash160: String, val version: Int, val path: NodePath) {
+import org.bitcoinj.core.{Transaction, Address, Coin}
+import org.bitcoinj.crypto.DeterministicKey
 
+import scala.concurrent.Future
+
+trait Account {
+
+  def index: Int
+  def wallet: Wallet
+
+  def freshPublicAddress(): Future[Address]
+  def xpub(): Future[DeterministicKey]
+  def balance(): Future[Coin]
+  def synchronize(): Future[Unit]
+  def transactions(): Future[Array[Transaction]]
 }

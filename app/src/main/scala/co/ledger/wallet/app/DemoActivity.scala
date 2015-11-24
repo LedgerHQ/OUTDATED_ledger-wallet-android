@@ -34,13 +34,14 @@ import java.util.concurrent.Executor
 
 import android.os.{Looper, Handler, AsyncTask, Bundle}
 import co.ledger.wallet.R
-import co.ledger.wallet.core.base.BaseActivity
+import co.ledger.wallet.core.base.{WalletActivity, BaseActivity}
 import co.ledger.wallet.core.utils.TR
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.core.widget.TextView
 import co.ledger.wallet.common._
+import org.bitcoinj.core.Transaction
 
-class DemoActivity extends BaseActivity {
+class DemoActivity extends BaseActivity with WalletActivity {
 
   lazy val text = TR(R.id.text).as[TextView]
 
@@ -49,18 +50,23 @@ class DemoActivity extends BaseActivity {
     Logger.d("UI initialized")
     setContentView(R.layout.unplugged_welcome_activity)
     text.setText("onCreate")
-    new Thread() {
-      override def run(): Unit = {
-        super.run()
-        ec.execute(new Runnable {
-          override def run(): Unit = append("Running from thread")
-        })
-      }
-    } start()
+    wallet.synchronize().map({(_) => updateTransactionList()})
+    updateTransactionList()
   }
 
   def append(text: String): Unit = {
     this.text.setText(this.text.getText.toString + "\n" + text)
+  }
+
+  private[this] def updateTransactionList(): Unit = {
+    wallet.transactions() map { (transactions: Array[Transaction]) =>
+      text.setText("")
+      for (transaction <- transactions) {
+        append(transaction.getHash.toString)
+      }
+    } recover {
+      case exception => append(s"Error: ${exception.getMessage}")
+    }
   }
 
 }

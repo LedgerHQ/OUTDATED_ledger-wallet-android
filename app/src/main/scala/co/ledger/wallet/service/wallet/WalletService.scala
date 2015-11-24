@@ -1,9 +1,9 @@
 /**
  *
- * WalletRef
+ * WalletService
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 24/11/15.
  *
  * The MIT License (MIT)
  *
@@ -28,19 +28,25 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
+package co.ledger.wallet.service.wallet
 
-import org.bitcoinj.core.{Transaction, Coin}
+import android.app.Service
+import android.content.Intent
+import android.os.IBinder
+import co.ledger.wallet.wallet.Wallet
 
-import scala.concurrent.Future
+class WalletService extends Service {
 
-trait Wallet {
+  def wallet(name: String): Wallet = {
+    null
+  }
 
-  def name: String
-  def account(index: Int): Future[Account]
-  def accounts(): Future[Array[Account]]
-  def balance(): Future[Coin]
-  def synchronize(): Future
-  def transactions(): Future[Array[Transaction]]
+  override def onBind(intent: Intent): IBinder = _binder
 
+  class Binder extends android.os.Binder {
+    def service = WalletService.this
+  }
+
+  private[this] val _binder = new Binder
 }
+
