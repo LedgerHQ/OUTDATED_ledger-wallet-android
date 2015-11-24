@@ -36,14 +36,12 @@ import android.os.Bundle
 import android.widget.TextView
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.BaseActivity
-import co.ledger.wallet.dongle.NfcDongle
-import co.ledger.wallet.nfc.Unplugged
 import co.ledger.wallet.core.utils.TR
 import co.ledger.wallet.core.utils.logs.Logger
+import co.ledger.wallet.dongle.NfcDongle
 import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
-import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 trait UnpluggedSetupActivity extends BaseActivity {
 

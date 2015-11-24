@@ -1,9 +1,9 @@
 /**
  *
- * WalletRef
+ * MainThreadEventReceiver
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 24/11/15.
  *
  * The MIT License (MIT)
  *
@@ -28,22 +28,12 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
+package co.ledger.wallet.core.event
 
-import de.greenrobot.event.EventBus
-import org.bitcoinj.core.{Transaction, Coin}
+trait MainThreadEventReceiver extends EventReceiver {
 
-import scala.concurrent.Future
-
-trait Wallet {
-
-  def name: String
-  def account(index: Int): Future[Account]
-  def accounts(): Future[Array[Account]]
-  def balance(): Future[Coin]
-  def synchronize(): Future[Unit]
-  def transactions(): Future[Set[Transaction]]
-
-  def eventBus: EventBus
+  def onEventMainThread(event: AnyRef): Unit = {
+    receive(event)
+  }
 
 }

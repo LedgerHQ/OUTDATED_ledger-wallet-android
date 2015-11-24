@@ -30,16 +30,12 @@
  */
 package co.ledger.wallet.app
 
-import java.util.concurrent.Executor
-
-import android.os.{Looper, Handler, AsyncTask, Bundle}
+import android.os.Bundle
 import co.ledger.wallet.R
-import co.ledger.wallet.core.base.{WalletActivity, BaseActivity}
+import co.ledger.wallet.core.base.{BaseActivity, WalletActivity}
 import co.ledger.wallet.core.utils.TR
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.core.widget.TextView
-import co.ledger.wallet.common._
-import org.bitcoinj.core.Transaction
 
 class DemoActivity extends BaseActivity with WalletActivity {
 
@@ -59,7 +55,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
   }
 
   private[this] def updateTransactionList(): Unit = {
-    wallet.transactions() map { (transactions: Array[Transaction]) =>
+    wallet.transactions() map { (transactions) =>
       text.setText("")
       for (transaction <- transactions) {
         append(transaction.getHash.toString)
@@ -69,4 +65,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
     }
   }
 
+  override def receive: Receive = {
+    case "toto" => append("He wrote toto O_o")
+  }
 }

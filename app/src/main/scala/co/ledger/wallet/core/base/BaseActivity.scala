@@ -49,7 +49,8 @@ import co.ledger.wallet.service.gcm.GcmIntentService
 
 abstract class BaseActivity extends AppCompatActivity with Loggable with UiContext {
   implicit val context = this
-  implicit val ec = new UiContextExecutionContext(this)
+  implicit val ec = scala.concurrent.ExecutionContext.fromExecutor(new UiContextExecutionContext
+  (this))
 
   lazy val toolbar = TR(R.id.toolbar).as[Toolbar]
   lazy val content = TR(R.id.content_view).as[FrameLayout]

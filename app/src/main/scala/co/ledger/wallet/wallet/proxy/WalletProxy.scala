@@ -31,10 +31,12 @@
 package co.ledger.wallet.wallet.proxy
 
 import android.content.{Intent, ComponentName, ServiceConnection, Context}
-import android.os.IBinder
+import android.os.{Handler, IBinder}
 import co.ledger.wallet.service.wallet.WalletService
 import co.ledger.wallet.wallet.{Account, Wallet}
+import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Transaction, Coin}
+import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
 
 import scala.concurrent.{Promise, Future}
 
@@ -46,16 +48,32 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
 
   override def account(index: Int): Future[Account] = connect().flatMap(_.account(index))
 
-  override def transactions(): Future[Array[Transaction]] = connect().flatMap(_.transactions())
+  override def transactions(): Future[Set[Transaction]] = connect().flatMap(_.transactions())
 
   override def balance(): Future[Coin] = connect().flatMap(_.balance())
 
+  val eventBus =  EventBus
+    .builder()
+    .throwSubscriberException(true)
+    .sendNoSubscriberEvent(false)
+    .build()
+
   def bind(): Unit = {
-    connect()
+    connect().map({ (wallet) =>
+      wallet.eventBus.register(this)
+    })
   }
 
   def unbind(): Unit = {
-    _connection = None
+    connect().map({(wallet) =>
+      wallet.eventBus.unregister(this)
+    }).onComplete {
+      case anything => _connection = None
+    }
+  }
+
+  def onEvent(event: AnyRef): Unit = {
+    eventBus.post(event)
   }
 
   private[this] def connect(): Future[Wallet] = {
@@ -67,6 +85,10 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
       binder.service.wallet(name)
     })
   }
+
+  new Handler().postDelayed(new Runnable {
+    override def run(): Unit = eventBus.post("toto")
+  }, 3000)
 
   private [this] var _connection: Option[BinderServiceConnection] = None
 

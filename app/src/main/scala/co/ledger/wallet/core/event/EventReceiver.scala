@@ -1,9 +1,9 @@
 /**
  *
- * WalletRef
+ * EventReceiver
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 24/11/15.
  *
  * The MIT License (MIT)
  *
@@ -28,22 +28,40 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
+package co.ledger.wallet.core.event
+
+import java.lang.ref.WeakReference
 
 import de.greenrobot.event.EventBus
-import org.bitcoinj.core.{Transaction, Coin}
 
-import scala.concurrent.Future
+trait EventReceiver {
 
-trait Wallet {
+  type Receive = PartialFunction[AnyRef, Unit]
 
-  def name: String
-  def account(index: Int): Future[Account]
-  def accounts(): Future[Array[Account]]
-  def balance(): Future[Coin]
-  def synchronize(): Future[Unit]
-  def transactions(): Future[Set[Transaction]]
+  def receive: Receive
 
-  def eventBus: EventBus
+  def register(eventBus: EventBus): Unit = {
+    _eventBuses = _eventBuses :+ new WeakReference(eventBus)
+    eventBus.register(this)
+  }
 
+  def unregister(eventBus: EventBus): Unit = {
+    for (ref <- _eventBuses) {
+      if (ref.get() == eventBus) {
+        ref.get().unregister(this)
+        _eventBuses = _eventBuses.filter(_ != ref)
+      }
+    }
+  }
+
+  def unregisterAll(): Unit = {
+    for (eventBus <- _eventBuses) {
+      if (eventBus.get() != null) {
+        eventBus.get().unregister(this)
+      }
+    }
+    _eventBuses = Array()
+  }
+
+  private[this] var _eventBuses = Array[WeakReference[EventBus]]()
 }

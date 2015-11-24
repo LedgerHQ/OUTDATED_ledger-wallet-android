@@ -39,7 +39,6 @@ import co.ledger.wallet.R
 import co.ledger.wallet.app.{SettingsActivity, Config}
 import co.ledger.wallet.common._
 import co.ledger.wallet.core.base.{BaseActivity, BaseFragment, BigIconAlertDialog}
-import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
 import co.ledger.wallet.core.security.{AndroidKeystore, ApplicationKeystore}
 import co.ledger.wallet.core.utils.logs.{LogCatReader, Logger}
 import co.ledger.wallet.core.utils.{AndroidUtils, GooglePlayServiceHelper, TR}

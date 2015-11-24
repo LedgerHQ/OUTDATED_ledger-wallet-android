@@ -39,7 +39,6 @@ import co.ledger.wallet.core.utils.AndroidUtils
 import co.ledger.wallet.{common, R}
 import co.ledger.wallet.nfc.Unplugged
 import co.ledger.wallet.core.utils.logs.Logger
-import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
 import common._
 
 import scala.util.{Failure, Success}

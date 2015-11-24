@@ -33,12 +33,16 @@ package co.ledger.wallet.service.wallet
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import co.ledger.wallet.service.wallet.spv.SpvWalletClient
 import co.ledger.wallet.wallet.Wallet
 
 class WalletService extends Service {
 
+  private var _wallet: SpvWalletClient = null // Temporary implementation
   def wallet(name: String): Wallet = {
-    null
+    if (_wallet == null)
+      _wallet = new SpvWalletClient(this, name)
+    _wallet
   }
 
   override def onBind(intent: Intent): IBinder = _binder

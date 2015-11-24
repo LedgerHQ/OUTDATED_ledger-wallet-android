@@ -39,7 +39,6 @@ import android.content.DialogInterface.OnClickListener
 import android.os.Bundle
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{BaseActivity, BaseFragment, KeystoreActivity}
-import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
 import co.ledger.wallet.core.security.Keystore
 import co.ledger.wallet.core.utils.AndroidImplicitConversions._
 import co.ledger.wallet.core.utils.TR
