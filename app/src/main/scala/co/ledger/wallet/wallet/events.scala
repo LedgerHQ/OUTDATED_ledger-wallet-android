@@ -1,6 +1,6 @@
 /**
  *
- * WalletService
+ * events
  * Ledger wallet
  *
  * Created by Pierre Pollastri on 24/11/15.
@@ -28,30 +28,22 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.service.wallet
+package co.ledger.wallet.wallet
 
-import android.app.Service
-import android.content.Intent
-import android.os.IBinder
-import co.ledger.wallet.service.wallet.spv.SpvWalletClient
-import co.ledger.wallet.wallet.Wallet
+import org.bitcoinj.core.Transaction
 
-class WalletService extends Service {
+package object events {
 
-  private var _wallet: SpvWalletClient = null // Temporary implementation
-  def wallet(name: String): Wallet = {
-    if (_wallet == null)
-      _wallet = new SpvWalletClient(this, name)
-    _wallet
+  object PeerGroupEvents {
+
+    case class BlockDownloaded(blockLeft: Int)
+
   }
 
-  override def onBind(intent: Intent): IBinder = _binder
+  object WalletEvents {
 
-  class Binder extends android.os.Binder {
-    def service = WalletService.this
+    case class TransactionReceived(transaction: Transaction)
+
   }
-
-  private[this] val _binder = new Binder
 
 }
-

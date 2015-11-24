@@ -31,21 +31,28 @@
 package co.ledger.wallet.app
 
 import android.os.Bundle
+import android.text.method.ScrollingMovementMethod
+import android.widget.{ProgressBar, TextView}
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{BaseActivity, WalletActivity}
 import co.ledger.wallet.core.utils.TR
 import co.ledger.wallet.core.utils.logs.Logger
-import co.ledger.wallet.core.widget.TextView
+import co.ledger.wallet.wallet.events.PeerGroupEvents.BlockDownloaded
+import co.ledger.wallet.wallet.events.WalletEvents.TransactionReceived
 
 class DemoActivity extends BaseActivity with WalletActivity {
 
   lazy val text = TR(R.id.text).as[TextView]
+  lazy val progress = TR(R.id.progressBar).as[ProgressBar]
+  lazy val text2 = TR(R.id.text2).as[TextView]
+  var maxBlockLeft = -1
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     Logger.d("UI initialized")
-    setContentView(R.layout.unplugged_welcome_activity)
+    setContentView(R.layout.demo_activity)
     text.setText("onCreate")
+    text.setMovementMethod(new ScrollingMovementMethod)
     wallet.synchronize().map({(_) => updateTransactionList()})
     updateTransactionList()
   }
@@ -66,6 +73,15 @@ class DemoActivity extends BaseActivity with WalletActivity {
   }
 
   override def receive: Receive = {
-    case "toto" => append("He wrote toto O_o")
+    case TransactionReceived(tx) => append(s"Received ${tx.getHash.toString}")
+    case BlockDownloaded(left) =>
+      if (maxBlockLeft == -1) {
+        maxBlockLeft = left
+        progress.setMax(maxBlockLeft)
+      }
+      val p = (((maxBlockLeft - left).toDouble / maxBlockLeft.toDouble) * 100).toInt
+      text2.setText(s"Synchronizing $p%")
+      progress.setProgress(maxBlockLeft - left)
+    case string: String => append(string)
   }
 }

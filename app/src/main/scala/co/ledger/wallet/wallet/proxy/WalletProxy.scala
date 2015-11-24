@@ -86,10 +86,6 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
     })
   }
 
-  new Handler().postDelayed(new Runnable {
-    override def run(): Unit = eventBus.post("toto")
-  }, 3000)
-
   private [this] var _connection: Option[BinderServiceConnection] = None
 
 
