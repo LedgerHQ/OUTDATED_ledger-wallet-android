@@ -40,12 +40,32 @@ object IOUtils {
 
   val BufferSize = 8192
 
-  @tailrec
   def copy(source: InputStream,
            destination: OutputStream,
-           buffer: Array[Byte] = new Array(BufferSize),
-           progress: (Long) => Unit = _ => ())
+           buffer: Array[Char],
+           progress: (Long) => Unit)
   : Unit = {
+    copy(new InputStreamReader(source), new OutputStreamWriter(destination), buffer, progress)
+  }
+
+  def copy(source: InputStream,
+           destination: OutputStream,
+           buffer: Array[Char])
+  : Unit = {
+    copy(new InputStreamReader(source), new OutputStreamWriter(destination), buffer)
+  }
+
+  def copy(source: InputStream,
+           destination: OutputStream)
+  : Unit = {
+    copy(new InputStreamReader(source), new OutputStreamWriter(destination))
+  }
+
+  @tailrec
+  def copy(source: Reader,
+           destination: Writer,
+           buffer: Array[Char] = new Array(BufferSize),
+           progress: (Long) => Unit = _ => ()): Unit = {
     require(source != null)
     require(destination != null)
 
@@ -56,6 +76,14 @@ object IOUtils {
     destination.write(buffer, 0, read)
     progress(read)
     copy(source, destination, buffer, progress)
+  }
+
+  def copy(source: Reader,
+           destination: File): Unit = {
+    require(source != null)
+    require(destination != null)
+    val output = new FileWriter(destination)
+    copy(source, output)
   }
 
 

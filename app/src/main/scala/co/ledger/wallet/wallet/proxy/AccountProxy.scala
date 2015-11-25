@@ -1,9 +1,9 @@
 /**
  *
- * WalletRef
+ * AccountProxy
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 25/11/15.
  *
  * The MIT License (MIT)
  *
@@ -28,22 +28,29 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
+package co.ledger.wallet.wallet.proxy
 
-import de.greenrobot.event.EventBus
-import org.bitcoinj.core.{Transaction, Coin}
-
+import co.ledger.wallet.wallet.Account
+import org.bitcoinj.core.{Address, Transaction, Coin}
+import org.bitcoinj.crypto.DeterministicKey
+import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
 import scala.concurrent.Future
 
-trait Wallet {
+class AccountProxy(val wallet: WalletProxy, val index: Int) extends Account {
 
-  def name: String
-  def account(index: Int): Account
-  def accounts(): Future[Array[Account]]
-  def balance(): Future[Coin]
-  def synchronize(): Future[Unit]
-  def transactions(): Future[Set[Transaction]]
+  override def freshPublicAddress(): Future[Address] = connect().flatMap(_.freshPublicAddress())
 
-  def eventBus: EventBus
+  override def synchronize(): Future[Unit] = connect().flatMap(_.synchronize())
+
+  override def xpub(): Future[DeterministicKey] = connect().flatMap(_.xpub())
+
+  override def transactions(): Future[Set[Transaction]] = connect().flatMap(_.transactions())
+
+  override def balance(): Future[Coin] = connect().flatMap(_.balance())
+
+  private def connect(): Future[Account] = {
+
+    null
+  }
 
 }

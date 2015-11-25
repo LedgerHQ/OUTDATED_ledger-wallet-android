@@ -44,5 +44,5 @@ trait Account {
   def xpub(): Future[DeterministicKey]
   def balance(): Future[Coin]
   def synchronize(): Future[Unit]
-  def transactions(): Future[Array[Transaction]]
+  def transactions(): Future[Set[Transaction]]
 }

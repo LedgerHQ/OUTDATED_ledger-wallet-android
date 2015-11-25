@@ -30,11 +30,12 @@
  */
 package co.ledger.wallet.service.wallet.spv
 
-import java.io.File
+import java.io._
 import java.util
 
 import android.content.Context
-import co.ledger.wallet.core.concurrent.ThreadPoolTask
+import co.ledger.wallet.core.concurrent.{SerialQueueTask, ThreadPoolTask}
+import co.ledger.wallet.core.utils.io.IOUtils
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.wallet.events.PeerGroupEvents.BlockDownloaded
 import co.ledger.wallet.wallet.events.WalletEvents
@@ -45,11 +46,15 @@ import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.net.discovery.DnsDiscovery
 import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.store.{SPVBlockStore, MemoryBlockStore}
+import org.json.JSONObject
 import scala.concurrent.{Promise, Future}
 import scala.collection.JavaConverters._
 import WalletEvents._
 
-class SpvWalletClient(val context: Context, val name: String) extends Wallet with ThreadPoolTask {
+import scala.util.Try
+
+class SpvWalletClient(val context: Context, val name: String, val networkParameters: NetworkParameters)
+  extends Wallet with SerialQueueTask {
 
   type JWallet = org.bitcoinj.core.Wallet
   type JSpvBlockchain = org.bitcoinj.core.BlockChain
@@ -59,11 +64,9 @@ class SpvWalletClient(val context: Context, val name: String) extends Wallet wit
 
   override def accounts(): Future[Array[Account]] = ???
 
-  override def account(index: Int): Future[Account] = ???
+  override def account(index: Int): Account = ???
 
-  override def transactions(): Future[Set[Transaction]] = load().map(_.getTransactions(false)
-    .asScala.toSet)
-
+  override def transactions(): Future[Set[Transaction]] = ???
   override def balance(): Future[Coin] = ???
 
   val eventBus =  EventBus
@@ -72,10 +75,44 @@ class SpvWalletClient(val context: Context, val name: String) extends Wallet wit
     .sendNoSubscriberEvent(false)
     .build()
 
+  def peerGroup(): Future[JPeerGroup] = {
+    init().map({ (_) => _peerGroup.get})
+  }
+
+  private def init(): Future[Unit] = Future {
+    if (_peerGroup != null) {
+
+      // Load the wallet from file
+      if (_walletFile.exists()) {
+        val writer = new StringWriter()
+        val reader = new FileReader(_walletFile)
+        IOUtils.copy(reader, writer)
+        val json = Try(new JSONObject(writer.toString))
+        _persistentState = Some(json.getOrElse(null))
+      }
+      _persistentState = _persistentState.orElse(Some(new JSONObject()))
+
+      // Create the peer group
+      _peerGroup = Option(new JPeerGroup(networkParameters, blockChain))
+      _peerGroup.get.setDownloadTxDependencies(false)
+      _peerGroup.get.addPeerDiscovery(new DnsDiscovery(networkParameters))
+      _peerGroup.get.startAsync()
+    }
+  }
+
+  private def save(): Future[Unit] = Future {
+    if (_persistentState.isEmpty) {
+      throw new IllegalStateException("Error during save: client is not initialized")
+    }
+    val input = new StringReader(_persistentState.get.toString)
+    IOUtils.copy(input, _walletFile)
+  }
+
   /**
    * Temporary implementation
    * @return
    */
+  /*
   private[this] def load(): Future[JWallet] = {
     val promise = Promise[JWallet]()
     Future {
@@ -132,11 +169,19 @@ class SpvWalletClient(val context: Context, val name: String) extends Wallet wit
       case ex => eventBus.post(ex.getMessage)
     }
     promise.future
-  }
+  } */
 
-  private var _wallet: JWallet = null
-  private var _spvBlockChain: JSpvBlockchain = null
-  private var _peerGroup: JPeerGroup = null
+  private var _persistentState: Option[JSONObject] = None
+  private var _peerGroup: Option[JPeerGroup] = None
+  private def _walletFileName =
+    s"${name}_${networkParameters.getAddressHeader}_${networkParameters.getP2SHHeader}"
+  private lazy val _walletFile =
+    new File(context.getDir("spv_wallets", Context.MODE_PRIVATE), _walletFileName)
+
+  lazy val blockStoreFile =
+    new File(context.getDir("blockstores", Context.MODE_PRIVATE), _walletFileName)
+  lazy val blockStore = new SPVBlockStore(networkParameters, blockStoreFile)
+  lazy val blockChain = new JSpvBlockchain(networkParameters, blockStore)
 }
 
 object SpvWalletClient {

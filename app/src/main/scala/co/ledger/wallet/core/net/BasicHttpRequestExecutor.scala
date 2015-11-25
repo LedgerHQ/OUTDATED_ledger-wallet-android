@@ -48,7 +48,7 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
 
   val TimeoutDuration = 1000L
   val BufferSize = 10 * 1024 // ~= 10KB buffer
-  val Buffers: mutable.Map[Long, Array[Byte]] = mutable.Map[Long, Array[Byte]]()
+  val Buffers: mutable.Map[Long, Array[Char]] = mutable.Map[Long, Array[Char]]()
 
   override def execute(responseBuilder: HttpClient#ResponseBuilder): Unit = Future {
     Logger.d(s"Begin request ${responseBuilder.request.url.toString}")
@@ -143,7 +143,7 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
 
   private[this] def writeBody(connection: HttpURLConnection,
                               request: HttpClient#Request)
-                             (implicit buffer: Array[Byte]): Unit = {
+                             (implicit buffer: Array[Char]): Unit = {
     request.method match {
       case "POST" | "PUT" =>
         Logger.d(s"Write body")
@@ -158,7 +158,7 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
     }
   }
 
-  private[this] def buffer: Array[Byte] = {
+  private[this] def buffer: Array[Char] = {
     Logger.d("Buffer begin")
     synchronized {
       Logger.d("Buffer sync")
@@ -166,7 +166,7 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
       Logger.d("Buffer sync 1")
       if (buffer.isEmpty) {
         Logger.d("Buffer sync 2")
-        buffer = Option(new Array[Byte](BufferSize))
+        buffer = Option(new Array[Char](BufferSize))
         Logger.d("Buffer sync 3")
         Buffers(Thread.currentThread().getId) = buffer.get
         Logger.d("Buffer sync 4")

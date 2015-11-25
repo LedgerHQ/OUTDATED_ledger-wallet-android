@@ -1,9 +1,9 @@
 /**
  *
- * WalletRef
+ * SequentialExecutionContext
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 25/11/15.
  *
  * The MIT License (MIT)
  *
@@ -28,22 +28,34 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
+package co.ledger.wallet.core.concurrent
 
-import de.greenrobot.event.EventBus
-import org.bitcoinj.core.{Transaction, Coin}
+import java.util.concurrent.atomic.AtomicReference
 
-import scala.concurrent.Future
+import scala.annotation.tailrec
+import scala.concurrent.{Promise, Future}
+import scala.util.Try
 
-trait Wallet {
+class SequentialExecutionContext(ec: scala.concurrent.ExecutionContext) extends scala.concurrent.ExecutionContext {
 
-  def name: String
-  def account(index: Int): Account
-  def accounts(): Future[Array[Account]]
-  def balance(): Future[Coin]
-  def synchronize(): Future[Unit]
-  def transactions(): Future[Set[Transaction]]
+  private val queue: AtomicReference[Future[Unit]] = new AtomicReference[Future[Unit]](Future.successful())
 
-  def eventBus: EventBus
+  override def execute(runnable: Runnable): Unit = {
+    val p = Promise[Unit]()
 
+    @tailrec
+    def add(): Future[_] = {
+      val tail = queue.get()
+
+      if (!queue.compareAndSet(tail, p.future)) {
+        add()
+      } else {
+        tail
+      }
+    }
+
+    add().onComplete(_ ⇒ p.complete(Try(runnable.run())))(ec)
+  }
+
+  override def reportFailure(cause: Throwable): Unit = ec.reportFailure(cause)
 }

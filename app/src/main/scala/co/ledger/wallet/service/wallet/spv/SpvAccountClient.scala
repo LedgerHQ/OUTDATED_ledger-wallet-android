@@ -1,9 +1,9 @@
 /**
  *
- * WalletRef
+ * SpvAccountClient
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 25/11/15.
  *
  * The MIT License (MIT)
  *
@@ -28,22 +28,38 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
+package co.ledger.wallet.service.wallet.spv
 
-import de.greenrobot.event.EventBus
-import org.bitcoinj.core.{Transaction, Coin}
-
+import co.ledger.wallet.core.concurrent.ThreadPoolTask
+import co.ledger.wallet.wallet.{Wallet, Account}
+import org.bitcoinj.core.{PeerGroup, Transaction, Coin, Address}
+import org.bitcoinj.crypto.DeterministicKey
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
-trait Wallet {
+class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
+  extends Account {
 
-  def name: String
-  def account(index: Int): Account
-  def accounts(): Future[Array[Account]]
-  def balance(): Future[Coin]
-  def synchronize(): Future[Unit]
-  def transactions(): Future[Set[Transaction]]
+  implicit val ec = wallet.ec // Work on the wallet queue
 
-  def eventBus: EventBus
+  type JWallet = org.bitcoinj.core.Wallet
+  type JSpvBlockChain = org.bitcoinj.core.BlockChain
+  type JPeerGroup = PeerGroup
+
+  override def synchronize(): Future[Unit] = ???
+
+  override def xpub(): Future[DeterministicKey] = ???
+
+  override def transactions(): Future[Set[Transaction]] =
+    load().map(_.getTransactions(false).asScala.toSet)
+
+  override def balance(): Future[Coin] = ???
+
+  override def freshPublicAddress(): Future[Address] = ???
+
+
+  private def load(): Future[JWallet] = {
+    null
+  }
 
 }

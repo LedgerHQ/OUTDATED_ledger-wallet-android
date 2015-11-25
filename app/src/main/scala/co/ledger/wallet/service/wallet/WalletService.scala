@@ -35,14 +35,20 @@ import android.content.Intent
 import android.os.IBinder
 import co.ledger.wallet.service.wallet.spv.SpvWalletClient
 import co.ledger.wallet.wallet.Wallet
+import org.bitcoinj.params.MainNetParams
 
 class WalletService extends Service {
 
   private var _wallet: SpvWalletClient = null // Temporary implementation
   def wallet(name: String): Wallet = {
     if (_wallet == null)
-      _wallet = new SpvWalletClient(this, name)
+      _wallet = new SpvWalletClient(this, name, MainNetParams.get())
     _wallet
+  }
+
+  override def onCreate(): Unit = {
+    super.onCreate()
+    this.startService(new Intent(this, this.getClass))
   }
 
   override def onBind(intent: Intent): IBinder = _binder

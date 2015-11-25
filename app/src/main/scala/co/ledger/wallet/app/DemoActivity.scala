@@ -30,6 +30,7 @@
  */
 package co.ledger.wallet.app
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.method.ScrollingMovementMethod
 import android.widget.{ProgressBar, TextView}
@@ -53,8 +54,8 @@ class DemoActivity extends BaseActivity with WalletActivity {
     setContentView(R.layout.demo_activity)
     text.setText("onCreate")
     text.setMovementMethod(new ScrollingMovementMethod)
-    wallet.synchronize().map({(_) => updateTransactionList()})
-    updateTransactionList()
+    //wallet.synchronize().map({(_) => updateTransactionList()})
+    //updateTransactionList()
   }
 
   def append(text: String): Unit = {

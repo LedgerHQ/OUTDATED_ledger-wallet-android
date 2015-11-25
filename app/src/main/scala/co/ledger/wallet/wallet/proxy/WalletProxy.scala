@@ -46,7 +46,7 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
 
   override def accounts(): Future[Array[Account]] = connect().flatMap(_.accounts())
 
-  override def account(index: Int): Future[Account] = connect().flatMap(_.account(index))
+  override def account(index: Int): Account = new AccountProxy(this, index)
 
   override def transactions(): Future[Set[Transaction]] = connect().flatMap(_.transactions())
 
@@ -76,7 +76,7 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
     eventBus.post(event)
   }
 
-  private[this] def connect(): Future[Wallet] = {
+  def connect(): Future[Wallet] = {
     _connection.orElse({
       _connection = Option(new BinderServiceConnection)
       context.bindService(new Intent(context, classOf[WalletService]), _connection.get, Context.BIND_AUTO_CREATE)

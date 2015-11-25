@@ -1,9 +1,9 @@
 /**
  *
- * WalletRef
+ * SerialQueueTask
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 25/11/15.
  *
  * The MIT License (MIT)
  *
@@ -28,22 +28,10 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
+package co.ledger.wallet.core.concurrent
 
-import de.greenrobot.event.EventBus
-import org.bitcoinj.core.{Transaction, Coin}
+trait SerialQueueTask {
 
-import scala.concurrent.Future
-
-trait Wallet {
-
-  def name: String
-  def account(index: Int): Account
-  def accounts(): Future[Array[Account]]
-  def balance(): Future[Coin]
-  def synchronize(): Future[Unit]
-  def transactions(): Future[Set[Transaction]]
-
-  def eventBus: EventBus
+  implicit val ec = new SequentialExecutionContext(co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main)
 
 }
