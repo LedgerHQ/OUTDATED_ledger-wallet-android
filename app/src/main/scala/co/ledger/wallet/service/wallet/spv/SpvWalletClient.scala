@@ -51,7 +51,7 @@ import scala.concurrent.{Promise, Future}
 import scala.collection.JavaConverters._
 import WalletEvents._
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class SpvWalletClient(val context: Context, val name: String, val networkParameters: NetworkParameters)
   extends Wallet with SerialQueueTask {
@@ -60,14 +60,66 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   type JSpvBlockchain = org.bitcoinj.core.BlockChain
   type JPeerGroup = PeerGroup
 
+  def AccountCountKey = "account_count"
+  def AccountKey(index: Int) = s"account_$index"
+
   override def synchronize(): Future[Unit] = ???
 
-  override def accounts(): Future[Array[Account]] = ???
+  override def accounts(): Future[Array[Account]] = init().map({ (_) =>
+    _accounts.asInstanceOf[Array[Account]]
+  })
 
-  override def account(index: Int): Account = ???
+  override def account(index: Int): Account = {
+    if (index >= _accounts.length) {
+      for (i <- _accounts.length to index) {
+        _accounts = _accounts :+ createSpvAccountInstance(i)
+      }
+    }
+    _accounts(index)
+  }
 
   override def transactions(): Future[Set[Transaction]] = ???
-  override def balance(): Future[Coin] = ???
+  override def balance(): Future[Coin] = {
+    init().flatMap({ (_) =>
+      val promise = Promise[Coin]()
+      var sum = Coin.ZERO
+      def iter(index: Int): Unit = {
+        if (index >= _accounts.length) {
+          promise.success(sum)
+          return
+        }
+        _accounts(index).balance().onComplete {
+          case Success(balance) =>
+            sum = sum add balance
+            iter(index + 1)
+          case Failure(ex) => promise.failure(ex)
+        }
+      }
+      iter(0)
+      promise.future
+    })
+  }
+  override def accountsCount(): Future[Int] = init().map({(_) => _accounts.length})
+
+  def notifyEmptyAccountIsUsed(): Unit = {
+    if (_peerGroup.isEmpty)
+      throw new IllegalStateException("Wallet is not initialized")
+    val index = _persistentState.get.optInt(AccountCountKey, 0)
+    _accounts = _accounts :+ createSpvAccountInstance(index)
+    _persistentState.get.put(AccountCountKey, _accounts.length)
+    save()
+  }
+
+  def accountPersistedJson(index: Int): Future[JSONObject] = {
+    init().map({ (_) =>
+      var accountJson = _persistentState.get.optJSONObject(AccountKey(index))
+      if (accountJson == null) {
+        accountJson = new JSONObject()
+        _persistentState.get.put(AccountKey(index), accountJson)
+      }
+      accountJson
+    })
+  }
 
   val eventBus =  EventBus
     .builder()
@@ -87,20 +139,35 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
         val writer = new StringWriter()
         val reader = new FileReader(_walletFile)
         IOUtils.copy(reader, writer)
-        val json = Try(new JSONObject(writer.toString))
-        _persistentState = Some(json.getOrElse(null))
+        _persistentState = Try(new JSONObject(writer.toString)).toOption
       }
       _persistentState = _persistentState.orElse(Some(new JSONObject()))
+
+      val persistentState = _persistentState.get
+      val accountCount = persistentState.optInt(AccountCountKey, 0)
+
+      if (_accounts.length < accountCount) {
+        for (index <- _accounts.length until accountCount) {
+          _accounts = _accounts :+ createSpvAccountInstance(index)
+        }
+      }
 
       // Create the peer group
       _peerGroup = Option(new JPeerGroup(networkParameters, blockChain))
       _peerGroup.get.setDownloadTxDependencies(false)
       _peerGroup.get.addPeerDiscovery(new DnsDiscovery(networkParameters))
       _peerGroup.get.startAsync()
+
+      if (_accounts.length == 0)
+        notifyEmptyAccountIsUsed()
     }
   }
 
-  private def save(): Future[Unit] = Future {
+  private def createSpvAccountInstance(index: Int): SpvAccountClient = {
+    new SpvAccountClient(this, index)
+  }
+
+  def save(): Future[Unit] = Future {
     if (_persistentState.isEmpty) {
       throw new IllegalStateException("Error during save: client is not initialized")
     }
@@ -171,6 +238,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     promise.future
   } */
 
+  private var _accounts = Array[SpvAccountClient]()
   private var _persistentState: Option[JSONObject] = None
   private var _peerGroup: Option[JPeerGroup] = None
   private def _walletFileName =

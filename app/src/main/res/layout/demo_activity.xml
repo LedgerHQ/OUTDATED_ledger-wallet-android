@@ -23,6 +23,55 @@
         app:fontStyle="regular"  />
 
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add account"
+        android:id="@+id/button2"
+        android:layout_gravity="center_horizontal"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <co.ledger.wallet.core.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Accounts:"
+            android:textSize="@dimen/medium_font_size"
+            app:kerning="@dimen/medium_font_spacing"
+            android:layout_marginLeft="@dimen/extra_large_margin"
+            android:layout_marginRight="@dimen/extra_large_margin"
+            android:layout_marginBottom="@dimen/large_margin"
+            android:textColor="@color/black"
+            app:fontStyle="regular"  />
+        <co.ledger.wallet.core.widget.TextView
+            android:id="@+id/account_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="@dimen/medium_font_size"
+            app:kerning="@dimen/medium_font_spacing"
+            android:layout_marginLeft="@dimen/extra_large_margin"
+            android:layout_marginRight="@dimen/extra_large_margin"
+            android:layout_marginBottom="@dimen/large_margin"
+            android:textColor="@color/black"
+            app:fontStyle="regular"  />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/accounts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="@dimen/medium_font_size"
+        android:layout_marginLeft="@dimen/extra_large_margin"
+        android:layout_marginRight="@dimen/extra_large_margin"
+        android:layout_marginBottom="@dimen/huge_margin"
+        android:lineSpacingExtra="@dimen/almost_very_small_margin"
+        android:textColor="@color/black"
+        android:scrollbars="vertical" />
+
     <TextView
         android:id="@+id/text2"
         android:layout_width="match_parent"

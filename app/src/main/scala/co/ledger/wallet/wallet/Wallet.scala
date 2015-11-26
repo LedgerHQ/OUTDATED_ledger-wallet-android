@@ -40,6 +40,7 @@ trait Wallet {
   def name: String
   def account(index: Int): Account
   def accounts(): Future[Array[Account]]
+  def accountsCount(): Future[Int]
   def balance(): Future[Coin]
   def synchronize(): Future[Unit]
   def transactions(): Future[Set[Transaction]]

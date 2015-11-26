@@ -1,9 +1,9 @@
 /**
  *
- * events
+ * ExtendedPublicKeyProvider
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 24/11/15.
+ * Created by Pierre Pollastri on 26/11/15.
  *
  * The MIT License (MIT)
  *
@@ -30,19 +30,10 @@
  */
 package co.ledger.wallet.wallet
 
-import org.bitcoinj.core.Transaction
+import org.bitcoinj.crypto.DeterministicKey
 
-package object events {
+import scala.concurrent.Future
 
-  object PeerGroupEvents {
-
-    case class BlockDownloaded(blockLeft: Int)
-
-  }
-
-  object WalletEvents {
-    case class TransactionReceived(transaction: Transaction)
-    case class AccountCreated(index: Int)
-  }
-
+trait ExtendedPublicKeyProvider {
+  def generateXpub(path: String): Future[DeterministicKey]
 }

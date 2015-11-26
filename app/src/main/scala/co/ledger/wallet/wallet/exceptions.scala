@@ -1,9 +1,9 @@
 /**
  *
- * events
+ * exceptions
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 24/11/15.
+ * Created by Pierre Pollastri on 26/11/15.
  *
  * The MIT License (MIT)
  *
@@ -30,19 +30,9 @@
  */
 package co.ledger.wallet.wallet
 
-import org.bitcoinj.core.Transaction
+package object exceptions {
 
-package object events {
-
-  object PeerGroupEvents {
-
-    case class BlockDownloaded(blockLeft: Int)
-
-  }
-
-  object WalletEvents {
-    case class TransactionReceived(transaction: Transaction)
-    case class AccountCreated(index: Int)
-  }
+  case class AccountHasNoXpubException(accountIndex: Int)
+    extends Exception(s"Account #$accountIndex has no extended public key")
 
 }

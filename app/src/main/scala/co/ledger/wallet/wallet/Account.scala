@@ -42,6 +42,7 @@ trait Account {
 
   def freshPublicAddress(): Future[Address]
   def xpub(): Future[DeterministicKey]
+  def importXpub(provider: ExtendedPublicKeyProvider): Future[Unit]
   def balance(): Future[Coin]
   def synchronize(): Future[Unit]
   def transactions(): Future[Set[Transaction]]

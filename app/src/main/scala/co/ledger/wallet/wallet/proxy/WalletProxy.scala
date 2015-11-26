@@ -44,13 +44,22 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
 
   override def synchronize(): Future[Unit] = connect().flatMap(_.synchronize())
 
-  override def accounts(): Future[Array[Account]] = connect().flatMap(_.accounts())
+  override def accounts(): Future[Array[Account]] = connect().flatMap(_.accounts()) map {
+    (accounts) =>
+      val proxies = new Array[Account](accounts.length)
+      for (index <- accounts.indices) {
+        proxies(index) = new AccountProxy(this, account(index).index)
+      }
+      proxies
+  }
 
   override def account(index: Int): Account = new AccountProxy(this, index)
 
   override def transactions(): Future[Set[Transaction]] = connect().flatMap(_.transactions())
 
   override def balance(): Future[Coin] = connect().flatMap(_.balance())
+
+  override def accountsCount(): Future[Int] = connect().flatMap(_.accountsCount())
 
   val eventBus =  EventBus
     .builder()

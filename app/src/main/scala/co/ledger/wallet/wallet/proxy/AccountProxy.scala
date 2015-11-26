@@ -30,7 +30,7 @@
  */
 package co.ledger.wallet.wallet.proxy
 
-import co.ledger.wallet.wallet.Account
+import co.ledger.wallet.wallet.{ExtendedPublicKeyProvider, Account}
 import org.bitcoinj.core.{Address, Transaction, Coin}
 import org.bitcoinj.crypto.DeterministicKey
 import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
@@ -48,9 +48,12 @@ class AccountProxy(val wallet: WalletProxy, val index: Int) extends Account {
 
   override def balance(): Future[Coin] = connect().flatMap(_.balance())
 
+  override def importXpub(provider: ExtendedPublicKeyProvider): Future[Unit] =
+    connect().flatMap(_.importXpub(provider))
+
   private def connect(): Future[Account] = {
-
-    null
+    wallet.connect().map({(w) =>
+      w.account(index)
+    })
   }
-
 }
