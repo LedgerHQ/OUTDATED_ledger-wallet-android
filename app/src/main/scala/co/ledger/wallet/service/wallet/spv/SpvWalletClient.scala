@@ -65,7 +65,11 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
   override def synchronize(): Future[Unit] = {
     _synchronizationFuture.getOrElse({
-      _synchronizationFuture = Some(peerGroup() flatMap { (peerGroup) =>
+      _synchronizationFuture = Some(peerGroup() flatMap {(peerGroup) =>
+        Future.sequence((for (account <- _accounts) yield account.load().map({(_) => 1})).toSeq).map({(_) =>
+          peerGroup
+        })
+      } flatMap {(peerGroup) =>
         val promise = Promise[Unit]()
         peerGroup.setFastCatchupTimeSecs(1434979887)
         peerGroup.startBlockChainDownload(new AbstractPeerEventListener () {
