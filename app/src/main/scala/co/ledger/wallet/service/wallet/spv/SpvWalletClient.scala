@@ -63,31 +63,40 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   def AccountCountKey = "account_count"
   def AccountKey(index: Int) = s"account_$index"
 
-  override def synchronize(): Future[Unit] = peerGroup() flatMap { (peerGroup) =>
-    val promise = Promise[Unit]()
-    peerGroup.setFastCatchupTimeSecs(1434979887)
-    peerGroup.startBlockChainDownload(new AbstractPeerEventListener () {
-      var _max = Int.MaxValue
+  override def synchronize(): Future[Unit] = {
+    _synchronizationFuture.getOrElse({
+      _synchronizationFuture = Some(peerGroup() flatMap { (peerGroup) =>
+        val promise = Promise[Unit]()
+        peerGroup.setFastCatchupTimeSecs(1434979887)
+        peerGroup.startBlockChainDownload(new AbstractPeerEventListener () {
+          var _max = Int.MaxValue
 
-      override def onChainDownloadStarted(peer: Peer, blocksLeft: Int): Unit = {
-        super.onChainDownloadStarted(peer, blocksLeft)
-        eventBus.post(StartSynchronization())
-      }
+          override def onChainDownloadStarted(peer: Peer, blocksLeft: Int): Unit = {
+            super.onChainDownloadStarted(peer, blocksLeft)
+            eventBus.post(StartSynchronization())
+          }
 
-      override def onBlocksDownloaded(peer: Peer, block: Block, filteredBlock: FilteredBlock,
-                                      blocksLeft: Int): Unit = {
-        super.onBlocksDownloaded(peer, block, filteredBlock, blocksLeft)
-        if (_max == Int.MaxValue)
-          _max = blocksLeft
+          override def onBlocksDownloaded(peer: Peer, block: Block, filteredBlock: FilteredBlock,
+                                          blocksLeft: Int): Unit = {
+            super.onBlocksDownloaded(peer, block, filteredBlock, blocksLeft)
+            if (_max == Int.MaxValue)
+              _max = blocksLeft
 
-        //Logger.d(s"Block downloaded ${block.getTime.toString}")
-        if ((_max - blocksLeft) % 100 == 0)
-          eventBus.post(SynchronizationProgress(_max - blocksLeft, _max))
-      }
+            //Logger.d(s"Block downloaded ${block.getTime.toString}")
+            if ((_max - blocksLeft) % 100 == 0)
+              eventBus.post(SynchronizationProgress(_max - blocksLeft, _max))
+          }
 
+        })
+        promise.future.map({(_) =>
+          _synchronizationFuture = None
+        })
+      })
+      _synchronizationFuture.get
     })
-    promise.future
   }
+
+
 
   override def accounts(): Future[Array[Account]] = init().map({ (_) =>
     _accounts.asInstanceOf[Array[Account]]
@@ -305,6 +314,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     promise.future
   } */
 
+  private var _synchronizationFuture: Option[Future[Unit]] = None
   private var _accounts = Array[SpvAccountClient]()
   private var _persistentState: Option[JSONObject] = None
   private var _peerGroup: Option[JPeerGroup] = None

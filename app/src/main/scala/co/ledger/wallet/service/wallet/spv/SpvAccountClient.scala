@@ -30,10 +30,13 @@
  */
 package co.ledger.wallet.service.wallet.spv
 
+import java.io.File
 import java.util
 import java.util.Date
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
+import android.content.Context
 import co.ledger.wallet.core.concurrent.ThreadPoolTask
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.wallet.events.PeerGroupEvents.{StartSynchronization,
@@ -86,7 +89,7 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
 
   override def freshPublicAddress(): Future[Address] = load().map({(wallet) => wallet.freshReceiveAddress()})
 
-  private def load(): Future[JWallet] = Future.successful() flatMap { (_) =>
+  def load(): Future[JWallet] = Future.successful() flatMap { (_) =>
     if (_walletFuture == null) {
       // If no xpub fail
       _walletFuture = wallet.accountPersistedJson(index) flatMap {(json) =>
@@ -102,9 +105,14 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
           _xpub = Some(DeterministicKey.deserializeB58(json.getString(XpubKey), wallet.networkParameters))
         }
         wallet.peerGroup().map({(peerGroup) =>
-          val w = org.bitcoinj.core.Wallet.fromWatchingKey(wallet.networkParameters, _xpub.get)
-
+          var w: JWallet = null
+          if (_walletFile.exists())
+            w = org.bitcoinj.core.Wallet.loadFromFile(_walletFile)
+          else {
+            w = org.bitcoinj.core.Wallet.fromWatchingKey(wallet.networkParameters, _xpub.get)
+          }
           wallet.blockChain.addWallet(w)
+          w.autosaveToFile(_walletFile, 500L, TimeUnit.MILLISECONDS, null)
           peerGroup.addWallet(w)
           w.addEventListener(_walletEventListener)
           w
@@ -124,4 +132,8 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
   private var _walletFuture: Future[JWallet] = null
   private var _persistentState: JSONObject = null
   private var _xpub: Option[DeterministicKey] = None
+  private lazy val _walletFile = new File(
+    wallet.context.getDir("spv_wallets", Context.MODE_PRIVATE),
+    s"${wallet.name}_$index"
+  )
 }
