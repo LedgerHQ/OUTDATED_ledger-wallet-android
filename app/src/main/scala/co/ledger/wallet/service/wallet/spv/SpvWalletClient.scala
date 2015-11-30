@@ -31,26 +31,24 @@
 package co.ledger.wallet.service.wallet.spv
 
 import java.io._
-import java.util
+import java.util.Date
 
 import android.content.Context
-import co.ledger.wallet.core.concurrent.{SerialQueueTask, ThreadPoolTask}
+import co.ledger.wallet.core.concurrent.SerialQueueTask
 import co.ledger.wallet.core.utils.io.IOUtils
-import co.ledger.wallet.core.utils.logs.Logger
-import co.ledger.wallet.wallet.events.PeerGroupEvents.BlockDownloaded
-import co.ledger.wallet.wallet.events.WalletEvents
-import co.ledger.wallet.wallet.{Account, Wallet}
+import co.ledger.wallet.wallet.events.PeerGroupEvents.{StartSynchronization, SynchronizationProgress}
+
+import co.ledger.wallet.wallet.exceptions._
+import co.ledger.wallet.wallet.{EarliestTransactionTimeProvider, Account, Wallet}
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core._
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.net.discovery.DnsDiscovery
 import org.bitcoinj.params.MainNetParams
-import org.bitcoinj.store.{SPVBlockStore, MemoryBlockStore}
+import org.bitcoinj.store.SPVBlockStore
 import org.json.JSONObject
-import scala.concurrent.{Promise, Future}
-import scala.collection.JavaConverters._
-import WalletEvents._
 
+import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success, Try}
 
 class SpvWalletClient(val context: Context, val name: String, val networkParameters: NetworkParameters)
@@ -63,7 +61,31 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   def AccountCountKey = "account_count"
   def AccountKey(index: Int) = s"account_$index"
 
-  override def synchronize(): Future[Unit] = ???
+  override def synchronize(): Future[Unit] = peerGroup() flatMap { (peerGroup) =>
+    val promise = Promise[Unit]()
+    peerGroup.setFastCatchupTimeSecs(1434979887)
+    peerGroup.startBlockChainDownload(new AbstractPeerEventListener () {
+      var _max = Int.MaxValue
+
+      override def onChainDownloadStarted(peer: Peer, blocksLeft: Int): Unit = {
+        super.onChainDownloadStarted(peer, blocksLeft)
+        eventBus.post(StartSynchronization())
+      }
+
+      override def onBlocksDownloaded(peer: Peer, block: Block, filteredBlock: FilteredBlock,
+                                      blocksLeft: Int): Unit = {
+        super.onBlocksDownloaded(peer, block, filteredBlock, blocksLeft)
+        if (_max == Int.MaxValue)
+          _max = blocksLeft
+
+        //Logger.d(s"Block downloaded ${block.getTime.toString}")
+        if ((_max - blocksLeft) % 100 == 0)
+          eventBus.post(SynchronizationProgress(_max - blocksLeft, _max))
+      }
+
+    })
+    promise.future
+  }
 
   override def accounts(): Future[Array[Account]] = init().map({ (_) =>
     _accounts.asInstanceOf[Array[Account]]
@@ -128,13 +150,41 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     .build()
 
   def peerGroup(): Future[JPeerGroup] = {
-    init().map({ (_) => _peerGroup.get})
+    init() flatMap {(_) =>
+      if (_peerGroup.isDefined)
+        Future.successful(_peerGroup.get)
+      else {
+        if (_accounts.length == 0 || !_accounts(0).hasXpub)
+          throw new AccountHasNoXpubException(0)
+
+        // Create the peer group
+        blockChain.getChainHead // Will throw if a corruption is detected
+
+        /*_peerGroup = Option(new JPeerGroup(networkParameters, blockChain))
+          _peerGroup.get.setDownloadTxDependencies(false)
+          _peerGroup.get.addPeerDiscovery(new DnsDiscovery(networkParameters))
+          _peerGroup.get.startAsync()
+          _peerGroup.get.addEventListener(new AbstractPeerEventListener {
+            override def onPeerConnected(peer: Peer, peerCount: Int): Unit = {
+              super.onPeerConnected(peer, peerCount)
+              //eventBus.post(s"Peer connected $peerCount")
+            }
+
+            override def onPeerDisconnected(peer: Peer, peerCount: Int): Unit = {
+              super.onPeerDisconnected(peer, peerCount)
+              if (peerCount == 0)
+                eventBus.post(s"Peer disconnected $peerCount")
+            }
+          })*/
+        null
+      }
+    }
   }
 
   private def init(): Future[Unit] = Future {
-    if (_peerGroup != null) {
-
-      // Load the wallet from file
+    _persistentState.isDefined
+  } map { (isInitialized) =>
+    if (!isInitialized) {
       if (_walletFile.exists()) {
         val writer = new StringWriter()
         val reader = new FileReader(_walletFile)
@@ -150,16 +200,10 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
         for (index <- _accounts.length until accountCount) {
           _accounts = _accounts :+ createSpvAccountInstance(index)
         }
+      } else if (_accounts.length == 0) {
+        _accounts = _accounts :+ createSpvAccountInstance(0)
       }
 
-      // Create the peer group
-      _peerGroup = Option(new JPeerGroup(networkParameters, blockChain))
-      _peerGroup.get.setDownloadTxDependencies(false)
-      _peerGroup.get.addPeerDiscovery(new DnsDiscovery(networkParameters))
-      _peerGroup.get.startAsync()
-
-      if (_accounts.length == 0)
-        notifyEmptyAccountIsUsed()
     }
   }
 
@@ -250,6 +294,14 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     new File(context.getDir("blockstores", Context.MODE_PRIVATE), _walletFileName)
   lazy val blockStore = new SPVBlockStore(networkParameters, blockStoreFile)
   lazy val blockChain = new JSpvBlockchain(networkParameters, blockStore)
+
+  lazy val earliestTransactionTimeProvider = new EarliestTransactionTimeProvider {
+    override def getEarliestTransactionTime(deterministicKey: DeterministicKey): Future[Date] = {
+      // Derive the first 20 addresses from both public and change chain
+      Future.successful(new Date())
+    }
+  }
+
 }
 
 object SpvWalletClient {

@@ -1,9 +1,9 @@
 /**
  *
- * events
+ * EarliestTransactionTimeProvider
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 24/11/15.
+ * Created by Pierre Pollastri on 30/11/15.
  *
  * The MIT License (MIT)
  *
@@ -30,20 +30,14 @@
  */
 package co.ledger.wallet.wallet
 
-import org.bitcoinj.core.Transaction
+import java.util.Date
 
-package object events {
+import org.bitcoinj.crypto.DeterministicKey
 
-  object PeerGroupEvents {
-    case class StartSynchronization()
-    case class BlockDownloaded(blockLeft: Int)
-    case class SynchronizationProgress(current: Int, total: Int)
-  }
+import scala.concurrent.Future
 
-  object WalletEvents {
-    case class TransactionReceived(transaction: Transaction)
-    case class AccountCreated(index: Int)
-    case class AccountUpdated(index: Int)
-  }
+trait EarliestTransactionTimeProvider {
+
+  def getEarliestTransactionTime(deterministicKey: DeterministicKey): Future[Date]
 
 }

@@ -30,19 +30,24 @@
  */
 package co.ledger.wallet.service.wallet.spv
 
+import java.util
+import java.util.Date
 import java.util.concurrent.atomic.AtomicReference
 
 import co.ledger.wallet.core.concurrent.ThreadPoolTask
 import co.ledger.wallet.core.utils.logs.Logger
-import co.ledger.wallet.wallet.events.WalletEvents.AccountCreated
+import co.ledger.wallet.wallet.events.PeerGroupEvents.{StartSynchronization,
+SynchronizationProgress}
+import co.ledger.wallet.wallet.events.WalletEvents.{AccountUpdated, AccountCreated}
 import co.ledger.wallet.wallet.exceptions.AccountHasNoXpubException
 import co.ledger.wallet.wallet.{ExtendedPublicKeyProvider, Wallet, Account}
-import org.bitcoinj.core.{PeerGroup, Transaction, Coin, Address}
+import org.bitcoinj.core._
 import org.bitcoinj.crypto.DeterministicKey
+import org.bitcoinj.script.Script
 import org.json.JSONObject
 import scala.collection.JavaConverters._
 import scala.concurrent.{Promise, Future}
-import scala.util.{Failure, Success}
+import scala.util.{Try, Failure, Success}
 
 class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
   extends Account {
@@ -55,9 +60,11 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
   type JSpvBlockChain = org.bitcoinj.core.BlockChain
   type JPeerGroup = PeerGroup
 
-  override def synchronize(): Future[Unit] = ???
+  override def synchronize(): Future[Unit] = wallet.synchronize()
 
-  override def xpub(): Future[DeterministicKey] = load().map(_ => _xpub.get)
+  override def xpub(): Future[DeterministicKey] = Future(_xpub.getOrElse(throw new AccountHasNoXpubException(index)))
+
+  def hasXpub = _xpub.isDefined
 
   override def importXpub(provider: ExtendedPublicKeyProvider): Future[Unit] =
     provider.generateXpub("") flatMap { (key) =>
@@ -92,13 +99,22 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
         }
         wallet.peerGroup().map({(peerGroup) =>
           val w = org.bitcoinj.core.Wallet.fromWatchingKey(wallet.networkParameters, _xpub.get)
+
           wallet.blockChain.addWallet(w)
           peerGroup.addWallet(w)
+          w.addEventListener(_walletEventListener)
           w
         })
       }
     }
     _walletFuture
+  }
+
+  private val _walletEventListener = new AbstractWalletEventListener {
+    override def onWalletChanged(w: JWallet): Unit = {
+      super.onWalletChanged(w)
+      wallet.eventBus.post(AccountUpdated(index))
+    }
   }
 
   private var _walletFuture: Future[JWallet] = null

@@ -36,7 +36,7 @@ import co.ledger.wallet.service.wallet.WalletService
 import co.ledger.wallet.wallet.{Account, Wallet}
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Transaction, Coin}
-import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
+import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.ui
 
 import scala.concurrent.{Promise, Future}
 

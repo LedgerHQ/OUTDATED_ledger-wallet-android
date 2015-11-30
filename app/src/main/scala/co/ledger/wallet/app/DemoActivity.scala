@@ -30,6 +30,8 @@
  */
 package co.ledger.wallet.app
 
+import java.util.Date
+
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
 import android.os.Bundle
@@ -42,9 +44,10 @@ import co.ledger.wallet.{common, R}
 import co.ledger.wallet.core.base.{BaseActivity, WalletActivity}
 import co.ledger.wallet.core.utils.TR
 import co.ledger.wallet.core.utils.logs.Logger
-import co.ledger.wallet.wallet.events.PeerGroupEvents.BlockDownloaded
-import co.ledger.wallet.wallet.events.WalletEvents.{AccountCreated, TransactionReceived}
-import co.ledger.wallet.wallet.exceptions.AccountHasNoXpubException
+import co.ledger.wallet.wallet.events.PeerGroupEvents.{StartSynchronization,
+SynchronizationProgress, BlockDownloaded}
+import co.ledger.wallet.wallet.events.WalletEvents._
+import co.ledger.wallet.wallet.exceptions._
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.MainNetParams
 import common._
@@ -75,8 +78,17 @@ class DemoActivity extends BaseActivity with WalletActivity {
     //wallet.synchronize().map({(_) => updateTransactionList()})
     //updateTransactionList()
     updateAccounts()
+    progress.setMax(100)
     TR(R.id.button2).as[Button].setOnClickListener({(view: View) =>
 
+    })
+    TR(R.id.sync).as[Button].setOnClickListener({(view: View) =>
+      wallet.account(0).synchronize().recover {
+        case AccountHasNoXpubException(index) =>
+          showMissingXpubDialog(index)
+        case exception =>
+          append(s"Failure: ${exception.getMessage}")
+      }
     })
   }
 
@@ -110,18 +122,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
     } recover {
       case AccountHasNoXpubException(index) =>
         text.append(s"Account #$index has no xpub yet\n")
-        new AlertDialog.Builder(this)
-          .setMessage(s"Account #$index has no xpub yet\nWould you like to provide one?")
-          .setPositiveButton("yes", new OnClickListener {
-            override def onClick(dialog: DialogInterface, which: Int): Unit =
-              wallet.account(index).importXpub(new ExtendedPublicKeyProvider {
-                override def generateXpub(path: String): Future[DeterministicKey] = {
-                  Logger.d("GENERATE XPUB")
-                  Future(DeterministicKey.deserializeB58(XPubs(index), MainNetParams.get()))
-                }
-              })
-          }).setNegativeButton("no", null)
-          .show()
+        showMissingXpubDialog(index)
       case throwable =>
         throwable.printStackTrace()
         append(s"Failure: ${throwable.toString}")
@@ -130,7 +131,25 @@ class DemoActivity extends BaseActivity with WalletActivity {
     }
   }
 
+  private[this] def showMissingXpubDialog(index: Int): Unit = {
+    new AlertDialog.Builder(this)
+      .setMessage(s"Account #$index has no xpub yet\nWould you like to provide one?")
+      .setPositiveButton("yes", new OnClickListener {
+        override def onClick(dialog: DialogInterface, which: Int): Unit =
+          wallet.account(index).importXpub(new ExtendedPublicKeyProvider {
+            override def generateXpub(path: String): Future[DeterministicKey] = {
+              Logger.d("GENERATE XPUB")
+              Future(DeterministicKey.deserializeB58(XPubs(index), MainNetParams.get()))
+            }
+          })
+      }).setNegativeButton("no", null)
+      .show()
+  }
+
+  var lastBlockTime: Date = null
   override def receive: Receive = {
+    case StartSynchronization() => append("Start blockchain sync")
+    case AccountUpdated(index) => //updateTransactionList()
     case AccountCreated(index) => updateAccounts()
     case TransactionReceived(tx) => append(s"Received ${tx.getHash.toString}")
     case BlockDownloaded(left) =>
@@ -141,6 +160,17 @@ class DemoActivity extends BaseActivity with WalletActivity {
       val p = (((maxBlockLeft - left).toDouble / maxBlockLeft.toDouble) * 100).toInt
       text2.setText(s"Synchronizing $p%")
       progress.setProgress(maxBlockLeft - left)
+    case SynchronizationProgress(p, total) =>
+      val time = new Date()
+      if (lastBlockTime == null)
+        text2.setText(s"Synchronizing $p/$total")
+      else
+        text2.setText(s"Synchronizing $p/$total speed: ${100 / (time.getTime - lastBlockTime
+          .getTime).toDouble} blocks/s")
+      lastBlockTime = time
+      if (progress.getMax != total)
+        progress.setMax(total)
+      progress.setProgress(p)
     case string: String => append(string)
   }
 }
