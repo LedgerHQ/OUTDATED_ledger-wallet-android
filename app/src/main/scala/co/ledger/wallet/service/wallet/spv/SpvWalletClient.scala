@@ -34,8 +34,10 @@ import java.io._
 import java.util.Date
 
 import android.content.Context
+import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.SerialQueueTask
 import co.ledger.wallet.core.utils.io.IOUtils
+import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.wallet.events.PeerGroupEvents.{StartSynchronization, SynchronizationProgress}
 
 import co.ledger.wallet.wallet.exceptions._
@@ -157,10 +159,10 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
         if (_accounts.length == 0 || !_accounts(0).hasXpub)
           throw new AccountHasNoXpubException(0)
 
-        // Create the peer group
-        blockChain.getChainHead // Will throw if a corruption is detected
+        val blockStoreFileExist = blockStoreFile.exists()
 
-        /*_peerGroup = Option(new JPeerGroup(networkParameters, blockChain))
+        def createPeerGroup(): Future[JPeerGroup] = {
+          _peerGroup = Option(new JPeerGroup(networkParameters, blockChain))
           _peerGroup.get.setDownloadTxDependencies(false)
           _peerGroup.get.addPeerDiscovery(new DnsDiscovery(networkParameters))
           _peerGroup.get.startAsync()
@@ -175,8 +177,29 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
               if (peerCount == 0)
                 eventBus.post(s"Peer disconnected $peerCount")
             }
-          })*/
-        null
+          })
+          Future.successful(_peerGroup.get)
+        }
+
+        // Create the peer group
+        blockChain.getChainHead // Will throw if a corruption is detected
+
+        if (!blockStoreFileExist) {
+          _accounts(0).xpub() flatMap {(xpub) =>
+            earliestTransactionTimeProvider.getEarliestTransactionTime(xpub)
+          } flatMap {(time) =>
+            val input = context.getAssets.open(Config.CheckpointFilePath)
+            CheckpointManager.checkpoint(networkParameters, input, blockStore, time.getTime)
+            createPeerGroup()
+          } recoverWith {
+            case throwable: Throwable => // Complete without checkpoints
+              Logger.e("Fail to load checkpoints")
+              throwable.printStackTrace()
+              createPeerGroup()
+          }
+        } else {
+          createPeerGroup()
+        }
       }
     }
   }

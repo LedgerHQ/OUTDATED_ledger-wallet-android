@@ -90,6 +90,10 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
     if (_walletFuture == null) {
       // If no xpub fail
       _walletFuture = wallet.accountPersistedJson(index) flatMap {(json) =>
+        // We could use a WalletExtension instead of using our own file for storing metadata but
+        // no ;). We need to store accounts information in the SpvWalletClient so instead of
+        // saving data on multiple location, we save our metadata into the same json for every
+        // accounts
         _persistentState = json
         if (_xpub.isEmpty && !json.has(XpubKey)) {
           _walletFuture = null

@@ -9,33 +9,42 @@
     android:clipChildren="false"
     android:layout_centerHorizontal="true">
 
-    <co.ledger.wallet.core.widget.TextView
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/unplugged_welcome_welcome_to_your_new_wallet"
-        android:textSize="@dimen/medium_font_size"
-        app:kerning="@dimen/medium_font_spacing"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Balance: 0 BTC"
         android:layout_marginLeft="@dimen/extra_large_margin"
         android:layout_marginRight="@dimen/extra_large_margin"
         android:layout_marginBottom="@dimen/large_margin"
         android:layout_marginTop="@dimen/huge_margin"
-        android:textColor="@color/black"
-        app:fontStyle="regular"  />
+        android:id="@+id/textView3"/>
 
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:layout_height="wrap_content">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add account"
+            android:id="@+id/button2"
+            android:layout_gravity="center_horizontal"/>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Add account"
-        android:id="@+id/button2"
-        android:layout_gravity="center_horizontal"/>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Synchronize"
-        android:id="@+id/sync"
-        android:layout_gravity="center_horizontal"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Synchronize"
+            android:id="@+id/sync"
+            android:layout_gravity="center_horizontal"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Refresh"
+            android:id="@+id/refresh"
+            android:layout_gravity="center_horizontal"/>
+    </LinearLayout>
 
     <LinearLayout
         android:orientation="horizontal"

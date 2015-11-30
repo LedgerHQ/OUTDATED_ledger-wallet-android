@@ -67,6 +67,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
   lazy val text2 = TR(R.id.text2).as[TextView]
   lazy val accountCount = TR(R.id.account_count).as[TextView]
   lazy val accountsList = TR(R.id.accounts).as[TextView]
+  lazy val balanceText = TR(R.id.textView3).as[TextView]
   var maxBlockLeft = -1
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
@@ -89,6 +90,9 @@ class DemoActivity extends BaseActivity with WalletActivity {
         case exception =>
           append(s"Failure: ${exception.getMessage}")
       }
+    })
+    TR(R.id.refresh).as[Button].setOnClickListener({(view: View) =>
+      updateBalance()
     })
   }
 
@@ -131,6 +135,16 @@ class DemoActivity extends BaseActivity with WalletActivity {
     }
   }
 
+  private[this] def updateBalance(): Unit = {
+    wallet.balance().map {(b) =>
+      balanceText.setText(s"Balance: ${b.toFriendlyString}")
+    } recover {
+      case throwable: Throwable =>
+        throwable.printStackTrace()
+        append(s"Failure: ${throwable.toString}")
+    }
+  }
+
   private[this] def showMissingXpubDialog(index: Int): Unit = {
     new AlertDialog.Builder(this)
       .setMessage(s"Account #$index has no xpub yet\nWould you like to provide one?")
@@ -149,7 +163,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
   var lastBlockTime: Date = null
   override def receive: Receive = {
     case StartSynchronization() => append("Start blockchain sync")
-    case AccountUpdated(index) => //updateTransactionList()
+    case AccountUpdated(index) => updateBalance()
     case AccountCreated(index) => updateAccounts()
     case TransactionReceived(tx) => append(s"Received ${tx.getHash.toString}")
     case BlockDownloaded(left) =>

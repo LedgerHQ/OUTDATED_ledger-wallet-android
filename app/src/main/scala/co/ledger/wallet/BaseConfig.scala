@@ -49,6 +49,8 @@ trait BaseConfig {
   def GreenBitsPackageName = "com.greenaddress.greenbits_android_wallet"
   def MyceliumPackageName = "com.mycelium.wallet"
 
+  def CheckpointFilePath = "checkpoints"
+
   def LedgerAttestationsPublicKeys = Map(
     (0, 1) -> "04e69fd3c044865200e66f124b5ea237c918503931bee070edfcab79a00a25d6b5a09afbee902b4b763ecf1f9c25f82d6b0cf72bce3faf98523a1066948f1a395f",
     (1, 1) -> "04223314cdffec8740150afe46db3575fae840362b137316c0d222a071607d61b2fd40abb2652a7fea20e3bb3e64dc6d495d59823d143c53c4fe4059c5ff16e406",
