@@ -39,22 +39,21 @@ import android.support.v7.app.AlertDialog
 import android.text.method.ScrollingMovementMethod
 import android.view.View
 import android.widget.{Button, ProgressBar, TextView}
-import co.ledger.wallet.wallet.ExtendedPublicKeyProvider
-import co.ledger.wallet.{common, R}
-import co.ledger.wallet.core.base.{BaseActivity, WalletActivity}
+import co.ledger.wallet.R
+import co.ledger.wallet.common._
+import co.ledger.wallet.core.base.{BaseActivity, UiContext, WalletActivity}
 import co.ledger.wallet.core.utils.TR
 import co.ledger.wallet.core.utils.logs.Logger
-import co.ledger.wallet.wallet.events.PeerGroupEvents.{StartSynchronization,
-SynchronizationProgress, BlockDownloaded}
+import co.ledger.wallet.wallet.ExtendedPublicKeyProvider
+import co.ledger.wallet.wallet.events.PeerGroupEvents._
 import co.ledger.wallet.wallet.events.WalletEvents._
 import co.ledger.wallet.wallet.exceptions._
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.MainNetParams
-import common._
 
 import scala.concurrent.Future
 
-class DemoActivity extends BaseActivity with WalletActivity {
+class DemoActivity extends BaseActivity with WalletActivity with UiContext {
 
   val XPubs = Array(
     "xpub6D4waFVPfPCpRvPkQd9A6n65z3hTp6TvkjnBHG5j2MCKytMuadKgfTUHqwRH77GQqCKTTsUXSZzGYxMGpWpJBdYAYVH75x7yMnwJvra1BUJ",
@@ -74,6 +73,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
     super.onCreate(savedInstanceState)
     Logger.d("UI initialized")
     setContentView(R.layout.demo_activity)
+
     text.setText("onCreate")
     text.setMovementMethod(new ScrollingMovementMethod)
     //wallet.synchronize().map({(_) => updateTransactionList()})
@@ -164,6 +164,8 @@ class DemoActivity extends BaseActivity with WalletActivity {
   var lastBlockTime: Date = null
   override def receive: Receive = {
     case StartSynchronization() => append("Start blockchain sync")
+    case CoinReceived(index, _) => updateBalance()
+    case CoinSent(index, _) => updateBalance()
     case AccountUpdated(index) => updateBalance()
     case AccountCreated(index) => updateAccounts()
     case TransactionReceived(tx) => append(s"Received ${tx.getHash.toString}")
@@ -188,4 +190,5 @@ class DemoActivity extends BaseActivity with WalletActivity {
       progress.setProgress(p)
     case string: String => append(string)
   }
+
 }

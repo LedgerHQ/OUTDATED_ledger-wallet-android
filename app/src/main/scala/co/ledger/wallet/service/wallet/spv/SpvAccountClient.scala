@@ -41,7 +41,8 @@ import co.ledger.wallet.core.concurrent.ThreadPoolTask
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.wallet.events.PeerGroupEvents.{StartSynchronization,
 SynchronizationProgress}
-import co.ledger.wallet.wallet.events.WalletEvents.{AccountUpdated, AccountCreated}
+import co.ledger.wallet.wallet.events.WalletEvents.{CoinReceived, CoinSent, AccountUpdated,
+AccountCreated}
 import co.ledger.wallet.wallet.exceptions.AccountHasNoXpubException
 import co.ledger.wallet.wallet.{ExtendedPublicKeyProvider, Wallet, Account}
 import org.bitcoinj.core._
@@ -132,6 +133,20 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
   }
 
   private val _walletEventListener = new AbstractWalletEventListener {
+
+
+    override def onCoinsReceived(w: JWallet, tx: Transaction, prevBalance: Coin, newBalance: Coin): Unit = {
+      super.onCoinsReceived(w, tx, prevBalance, newBalance)
+      wallet.eventBus.post(CoinReceived(index, prevBalance.subtract(newBalance)))
+    }
+
+
+    override def onCoinsSent(w: JWallet, tx: Transaction, prevBalance: Coin, newBalance:
+    Coin): Unit = {
+      super.onCoinsSent(w, tx, prevBalance, newBalance)
+      wallet.eventBus.post(CoinSent(index, prevBalance.subtract(newBalance)))
+    }
+
     override def onWalletChanged(w: JWallet): Unit = {
       super.onWalletChanged(w)
       wallet.eventBus.post(AccountUpdated(index))

@@ -30,7 +30,7 @@
  */
 package co.ledger.wallet.wallet
 
-import org.bitcoinj.core.Transaction
+import org.bitcoinj.core.{Coin, Transaction}
 
 package object events {
 
@@ -44,6 +44,8 @@ package object events {
     case class TransactionReceived(transaction: Transaction)
     case class AccountCreated(index: Int)
     case class AccountUpdated(index: Int)
+    case class CoinReceived(accountIndex: Int, coin: Coin)
+    case class CoinSent(accountInt: Int, coin: Coin)
   }
 
 }

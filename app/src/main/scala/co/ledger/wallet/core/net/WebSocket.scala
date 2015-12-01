@@ -35,9 +35,8 @@ import com.koushikdutta.async.callback.CompletedCallback
 import com.koushikdutta.async.future.FutureCallback
 import com.koushikdutta.async.http
 import com.koushikdutta.async.http.WebSocket.StringCallback
-import com.koushikdutta.async.http.{AsyncHttpClient, AsyncHttpRequest}
+import com.koushikdutta.async.http.{AsyncHttpGet, AsyncHttpClient, AsyncHttpRequest}
 import co.ledger.wallet.core.utils.logs.Logger
-import org.apache.http.impl.DefaultHttpRequestFactory
 import org.json.{JSONArray, JSONObject}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -85,14 +84,13 @@ object WebSocket {
   implicit val LogTag = "WebSocket"
 
   private[this] lazy val _client = AsyncHttpClient.getDefaultInstance
-  private[this] lazy val _requestFactory = new DefaultHttpRequestFactory
 
   def connect(uri: Uri): Future[WebSocket] = {
     val promise = Promise[WebSocket]()
     val url = uri.toString.replace("wss://", "https://").replace("ws://", "http://")
-    val request = _requestFactory.newHttpRequest("GET", url)
     Logger.d(s"Connecting to $url")
-    _client.websocket(AsyncHttpRequest.create(request), null, null).setCallback(new FutureCallback[http.WebSocket] {
+    _client.websocket(new AsyncHttpGet(url), null, null).setCallback(new FutureCallback[http
+    .WebSocket] {
       override def onCompleted(ex: Exception, webSocket: http.WebSocket): Unit = {
         if (ex != null || webSocket == null) {
           val cause = Option(ex).getOrElse(new Exception("WebSocket connection failed with no reason (null websocket)"))
