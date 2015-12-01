@@ -84,7 +84,16 @@ object IOUtils {
     require(destination != null)
     val output = new FileWriter(destination)
     copy(source, output)
+    output.close()
   }
 
+  def copy(source: File,
+           destination: Writer): Unit = {
+    require(source != null)
+    require(destination != null)
+    val input = new FileReader(source)
+    copy(input, destination)
+    input.close()
+  }
 
 }

@@ -94,6 +94,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
     TR(R.id.refresh).as[Button].setOnClickListener({(view: View) =>
       updateBalance()
     })
+    updateBalance()
   }
 
   def append(text: String): Unit = {

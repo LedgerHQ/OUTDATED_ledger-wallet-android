@@ -65,7 +65,16 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
 
   override def synchronize(): Future[Unit] = wallet.synchronize()
 
-  override def xpub(): Future[DeterministicKey] = Future(_xpub.getOrElse(throw new AccountHasNoXpubException(index)))
+  override def xpub(): Future[DeterministicKey] = Future {
+    _xpub.isDefined
+  } flatMap {(hasXpub) =>
+    if (hasXpub)
+      Future.successful(_xpub.get)
+    else
+      load() map {(_) =>
+        _xpub.get
+      }
+  }
 
   def hasXpub = _xpub.isDefined
 

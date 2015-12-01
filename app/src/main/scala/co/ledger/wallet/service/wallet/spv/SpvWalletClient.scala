@@ -37,7 +37,7 @@ import android.content.Context
 import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.SerialQueueTask
 import co.ledger.wallet.core.utils.io.IOUtils
-import co.ledger.wallet.core.utils.logs.Logger
+import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.wallet.events.PeerGroupEvents.{StartSynchronization, SynchronizationProgress}
 
 import co.ledger.wallet.wallet.exceptions._
@@ -54,7 +54,9 @@ import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success, Try}
 
 class SpvWalletClient(val context: Context, val name: String, val networkParameters: NetworkParameters)
-  extends Wallet with SerialQueueTask {
+  extends Wallet with SerialQueueTask with Loggable {
+
+  implicit val DisableLogging = false
 
   type JWallet = org.bitcoinj.core.Wallet
   type JSpvBlockchain = org.bitcoinj.core.BlockChain
@@ -223,8 +225,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     if (!isInitialized) {
       if (_walletFile.exists()) {
         val writer = new StringWriter()
-        val reader = new FileReader(_walletFile)
-        IOUtils.copy(reader, writer)
+        IOUtils.copy(_walletFile, writer)
         _persistentState = Try(new JSONObject(writer.toString)).toOption
       }
       _persistentState = _persistentState.orElse(Some(new JSONObject()))
@@ -239,7 +240,6 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       } else if (_accounts.length == 0) {
         _accounts = _accounts :+ createSpvAccountInstance(0)
       }
-
     }
   }
 
@@ -251,6 +251,10 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     if (_persistentState.isEmpty) {
       throw new IllegalStateException("Error during save: client is not initialized")
     }
+    if (!_walletFile.getParentFile.exists()) {
+      _walletFile.getParentFile.mkdirs()
+    }
+    _persistentState.get.put(AccountCountKey, _accounts.length)
     val input = new StringReader(_persistentState.get.toString)
     IOUtils.copy(input, _walletFile)
   }
