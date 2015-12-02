@@ -102,7 +102,7 @@ class HomeActivity extends BaseActivity {
     TrustletPromotionDialog.isShowable.onSuccess {
       case true =>
         TeeAPI.defaultInstance.isDeviceEligible.onSuccess {
-          case true => runOnUiThread(TrustletPromotionDialog.show(getFragmentManager))
+          case true => runOnUiThread(TrustletPromotionDialog.show(getSupportFragmentManager))
           case _ => // Nothing to do
         }
       case _ => // Nothing to do
@@ -136,18 +136,18 @@ class HomeActivity extends BaseActivity {
   }
 
   private[this] def openIncomingTransactionDialog(tx: IncomingTransactionAPI#IncomingTransaction): Unit = {
-    new IncomingTransactionDialogFragment(tx).show(getFragmentManager, IncomingTransactionDialogFragment.DefaultTag)
+    new IncomingTransactionDialogFragment(tx).show(getSupportFragmentManager, IncomingTransactionDialogFragment.DefaultTag)
   }
 
   private[this] def ensureFragmentIsSetup(): Unit = {
     val dongleCount = PairedDongle.all.length
-    if (dongleCount == 0 && getFragmentManager.findFragmentByTag(HomeActivityContentFragment.NoPairedDeviceFragmentTag) == null) {
-      getFragmentManager
+    if (dongleCount == 0 && getSupportFragmentManager.findFragmentByTag(HomeActivityContentFragment.NoPairedDeviceFragmentTag) == null) {
+      getSupportFragmentManager
         .beginTransaction()
         .replace(R.id.fragment_container, new HomeActivityContentFragment, HomeActivityContentFragment.NoPairedDeviceFragmentTag)
         .commitAllowingStateLoss()
-    } else if (dongleCount > 0 && getFragmentManager.findFragmentByTag(HomeActivityContentFragment.PairedDeviceFragmentTag) == null) {
-      getFragmentManager
+    } else if (dongleCount > 0 && getSupportFragmentManager.findFragmentByTag(HomeActivityContentFragment.PairedDeviceFragmentTag) == null) {
+      getSupportFragmentManager
         .beginTransaction()
         .replace(R.id.fragment_container, new HomeActivityContentFragment, HomeActivityContentFragment.PairedDeviceFragmentTag)
         .commitAllowingStateLoss()
@@ -193,7 +193,7 @@ class HomeActivity extends BaseActivity {
       .setTitle(R.string.pairing_failure_dialog_title)
       .setContentText(contentTextId)
       .setIcon(R.drawable.ic_big_red_failure)
-      .create().show(getFragmentManager, "ErrorDialog")
+      .create().show(getSupportFragmentManager, "ErrorDialog")
   }
 
   private[this] def showSuccessDialog(dongleName: String): Unit = {
@@ -201,7 +201,7 @@ class HomeActivity extends BaseActivity {
       .setTitle(R.string.pairing_success_dialog_title)
       .setContentText(TR(R.string.pairing_success_dialog_content).as[String].format(dongleName))
       .setIcon(R.drawable.ic_big_green_success)
-      .create().show(getFragmentManager, "SuccessDialog")
+      .create().show(getSupportFragmentManager, "SuccessDialog")
   }
 
   private[this] def exportLogs(): Unit = {

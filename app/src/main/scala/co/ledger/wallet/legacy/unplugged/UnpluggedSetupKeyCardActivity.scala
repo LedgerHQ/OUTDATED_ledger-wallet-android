@@ -32,11 +32,12 @@ package co.ledger.wallet.legacy.unplugged
 
 import java.util
 
-import android.app.{Dialog, DialogFragment}
+import android.app.Dialog
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
 import android.net.Uri
 import android.os.Bundle
+import android.support.v4.app.DialogFragment
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AlertDialog.Builder
 import android.text.InputFilter.LengthFilter
@@ -77,7 +78,7 @@ class UnpluggedSetupKeyCardActivity extends UnpluggedSetupActivity with ResultHa
     scannerView.removeViewAt(1)
 
     manualSeedButton onClick {
-      new UnpluggedSetupKeyCardActivity.SeedPromptAlertDialogFragment().show(getFragmentManager,
+      new UnpluggedSetupKeyCardActivity.SeedPromptAlertDialogFragment().show(getSupportFragmentManager,
         "KeycardPrompt")
     }
 

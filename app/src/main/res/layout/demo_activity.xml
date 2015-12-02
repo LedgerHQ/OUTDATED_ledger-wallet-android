@@ -9,117 +9,19 @@
     android:clipChildren="false"
     android:layout_centerHorizontal="true">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Balance: 0 BTC"
-        android:layout_marginLeft="@dimen/extra_large_margin"
-        android:layout_marginRight="@dimen/extra_large_margin"
-        android:layout_marginBottom="@dimen/large_margin"
-        android:layout_marginTop="@dimen/huge_margin"
-        android:id="@+id/textView3"/>
+   <android.support.design.widget.TabLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       app:tabMode="scrollable"
+       app:tabGravity="fill"
+       android:id="@+id/tabs"
+       />
 
-    <LinearLayout
-        android:orientation="horizontal"
+    <android.support.v4.view.ViewPager
+        android:id="@+id/viewpager"
         android:layout_width="match_parent"
-        android:gravity="center"
-        android:layout_height="wrap_content">
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Add account"
-            android:id="@+id/button2"
-            android:layout_gravity="center_horizontal"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Synchronize"
-            android:id="@+id/sync"
-            android:layout_gravity="center_horizontal"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Refresh"
-            android:id="@+id/refresh"
-            android:layout_gravity="center_horizontal"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <co.ledger.wallet.core.widget.TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Accounts:"
-            android:textSize="@dimen/medium_font_size"
-            app:kerning="@dimen/medium_font_spacing"
-            android:layout_marginLeft="@dimen/extra_large_margin"
-            android:layout_marginRight="@dimen/extra_large_margin"
-            android:layout_marginBottom="@dimen/large_margin"
-            android:textColor="@color/black"
-            app:fontStyle="regular"  />
-        <co.ledger.wallet.core.widget.TextView
-            android:id="@+id/account_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"
-            android:textSize="@dimen/medium_font_size"
-            app:kerning="@dimen/medium_font_spacing"
-            android:layout_marginLeft="@dimen/extra_large_margin"
-            android:layout_marginRight="@dimen/extra_large_margin"
-            android:layout_marginBottom="@dimen/large_margin"
-            android:textColor="@color/black"
-            app:fontStyle="regular"  />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/accounts"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textSize="@dimen/medium_font_size"
-        android:layout_marginLeft="@dimen/extra_large_margin"
-        android:layout_marginRight="@dimen/extra_large_margin"
-        android:layout_marginBottom="@dimen/huge_margin"
-        android:lineSpacingExtra="@dimen/almost_very_small_margin"
-        android:textColor="@color/black"
-        android:scrollbars="vertical" />
-
-    <TextView
-        android:id="@+id/text2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Downloading"
-        android:textSize="@dimen/medium_font_size"
-        android:layout_marginLeft="@dimen/extra_large_margin"
-        android:layout_marginRight="@dimen/extra_large_margin"
-        android:lineSpacingExtra="@dimen/almost_very_small_margin"
-        android:textColor="@color/black"
-        android:scrollbars="vertical" />
-
-    <ProgressBar
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/extra_large_margin"
-        android:layout_marginRight="@dimen/extra_large_margin"
-        android:layout_marginBottom="@dimen/huge_margin"
-        android:id="@+id/progressBar"/>
-
-    <TextView
-        android:id="@+id/text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/unplugged_welcome_create_or_recover"
-        android:textSize="@dimen/medium_font_size"
-        android:layout_marginLeft="@dimen/extra_large_margin"
-        android:layout_marginRight="@dimen/extra_large_margin"
-        android:layout_marginBottom="@dimen/huge_margin"
-        android:lineSpacingExtra="@dimen/almost_very_small_margin"
-        android:textColor="@color/black"
-        android:scrollbars="vertical" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        />
 
 </LinearLayout>

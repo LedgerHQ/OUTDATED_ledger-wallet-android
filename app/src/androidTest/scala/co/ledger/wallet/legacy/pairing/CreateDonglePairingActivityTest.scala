@@ -105,7 +105,7 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
       signal.countDown()
     }
 
-    Assert.assertTrue("Current fragment should be scan", getActivity.getFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
+    Assert.assertTrue("Current fragment should be scan", getActivity.getSupportFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
 
     delay {
       activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
@@ -140,7 +140,7 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
       signal.countDown()
     }
 
-    Assert.assertTrue("Current fragment should be scan", getActivity.getFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
+    Assert.assertTrue("Current fragment should be scan", getActivity.getSupportFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
     delay {
       activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
     }
@@ -176,7 +176,7 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
       signal.countDown()
     }
 
-    Assert.assertTrue("Current fragment should be scan", getActivity.getFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
+    Assert.assertTrue("Current fragment should be scan", getActivity.getSupportFragmentManager.findFragmentByTag("ScanPairingQrCodeFragment").isVisible)
     delay {
       activity.setPairingId("1Nro9WkpaKm9axmcfPVp79dAJU1Gx7VmMZ")
     }
@@ -200,7 +200,7 @@ class CreateDonglePairingActivityTest extends ActivityInstrumentationTestCase2[C
     val startTime = System.currentTimeMillis()
     val checkIfFragmentIsPresent = new (() => Unit)  {
       def apply():Unit = {
-        val f = getActivity.getFragmentManager.findFragmentByTag(fragmentTag)
+        val f = getActivity.getSupportFragmentManager.findFragmentByTag(fragmentTag)
         if (f != null && f.isVisible)
           r
         else if (System.currentTimeMillis() - startTime >= timeout)

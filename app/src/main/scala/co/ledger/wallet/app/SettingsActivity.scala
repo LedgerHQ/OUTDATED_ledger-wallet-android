@@ -32,8 +32,8 @@ package co.ledger.wallet.app
 
 import android.content.Intent
 import android.os.Bundle
-import android.preference.Preference.{OnPreferenceChangeListener, OnPreferenceClickListener}
-import android.preference.{Preference, PreferenceFragment}
+import android.support.v7.preference.Preference.{OnPreferenceChangeListener, OnPreferenceClickListener}
+import android.support.v7.preference.{Preference, PreferenceFragmentCompat}
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.BaseActivity
 
@@ -50,13 +50,13 @@ class SettingsActivity extends BaseActivity {
     }
   }
 
-  class SettingsFragment extends PreferenceFragment {
+  class SettingsFragment extends PreferenceFragmentCompat {
 
     override def onCreate(savedInstanceState: Bundle): Unit = {
       super.onCreate(savedInstanceState)
       addPreferencesFromResource(R.xml.settings)
       findPreference("licenses").setOnPreferenceClickListener(new OnPreferenceClickListener {
-        override def onPreferenceClick(preference: Preference): Boolean = {
+         def onPreferenceClick(preference: Preference): Boolean = {
           startActivity(
             new Intent(SettingsActivity.this, classOf[SettingsActivity])
             .putExtra(SettingsActivity.ExtraDisplayLicenses, true)
@@ -74,15 +74,17 @@ class SettingsActivity extends BaseActivity {
       }})
     }
 
+    override def onCreatePreferences(bundle: Bundle, s: String): Unit = ???
   }
 
-  class LicensesFragment extends PreferenceFragment {
+  class LicensesFragment extends PreferenceFragmentCompat {
 
     override def onCreate(savedInstanceState: Bundle): Unit = {
       super.onCreate(savedInstanceState)
       addPreferencesFromResource(R.xml.licenses)
     }
 
+    override def onCreatePreferences(bundle: Bundle, s: String): Unit = ???
   }
 
 }

@@ -35,7 +35,7 @@ import co.ledger.wallet.InstrumentationTestCase
 import co.ledger.wallet.core.crypto.ECKeyPair
 import co.ledger.wallet.core.security.Keystore
 import co.ledger.wallet.core.utils.logs.Logger
-import co.ledger.wallet.legacy.PairingAPI
+import co.ledger.wallet.legacy.{RequireDongleName, RequireChallengeResponse, RequirePairingId, PairingAPI}
 import com.koushikdutta.async.callback.CompletedCallback
 import com.koushikdutta.async.http._
 import com.koushikdutta.async.http.server.AsyncHttpServer.WebSocketRequestCallback

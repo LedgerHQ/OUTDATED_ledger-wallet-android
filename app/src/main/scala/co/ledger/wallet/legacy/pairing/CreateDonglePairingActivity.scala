@@ -76,7 +76,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
       pairingApi = new PairingAPI(this, newKeystore)
     if (pairingApi.future.isEmpty) {
       pairingApi.startPairingProcess()
-      if (!getFragmentManager.findFragmentById(R.id.fragment_container).isInstanceOf[ScanPairingQrCodeFragment]) {
+      if (!getSupportFragmentManager.findFragmentById(R.id.fragment_container).isInstanceOf[ScanPairingQrCodeFragment]) {
         gotToStep(1, TR(R.string.create_dongle_instruction_step_1).as[String], new ScanPairingQrCodeFragment())
       }
     }
@@ -129,7 +129,7 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
   override def gotToStep(stepNumber: Int, instructionText: CharSequence, fragment: BaseFragment): Unit = {
     stepNumberTextView.setText(stepNumber.toString + ".")
     stepInstructionTextView.setText(instructionText)
-    val ft = getFragmentManager.beginTransaction()
+    val ft = getSupportFragmentManager.beginTransaction()
     ft.replace(R.id.fragment_container, fragment, fragment.tag)
     ft.commitAllowingStateLoss()
   }

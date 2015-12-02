@@ -31,8 +31,9 @@
 
 package co.ledger.wallet.core.base
 
-import android.app.{Fragment, NotificationManager}
+import android.app.NotificationManager
 import android.os.Bundle
+import android.support.v4.app.Fragment
 import android.support.v7.app.{AppCompatActivity, ActionBar, ActionBarActivity}
 import co.ledger.wallet.core.concurrent.ExecutionContext
 import co.ledger.wallet.core.concurrent.ExecutionContext.UiContextExecutionContext
@@ -100,7 +101,7 @@ abstract class BaseActivity extends AppCompatActivity with Loggable with UiConte
   }
 
   def setContentFragment(baseFragment: Fragment): Unit = {
-    val ft = getFragmentManager.beginTransaction()
+    val ft = getSupportFragmentManager.beginTransaction()
     ft.replace(R.id.content_view, baseFragment)
     ft.commit()
   }

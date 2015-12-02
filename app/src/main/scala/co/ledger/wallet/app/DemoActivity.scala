@@ -35,13 +35,16 @@ import java.util.Date
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
 import android.os.Bundle
+import android.support.design.widget.TabLayout
+import android.support.v4.app.{Fragment, FragmentPagerAdapter}
+import android.support.v4.view.ViewPager
 import android.support.v7.app.AlertDialog
 import android.text.method.ScrollingMovementMethod
-import android.view.View
+import android.view.{ViewGroup, LayoutInflater, View}
 import android.widget.{Button, ProgressBar, TextView}
 import co.ledger.wallet.R
 import co.ledger.wallet.common._
-import co.ledger.wallet.core.base.{BaseActivity, UiContext, WalletActivity}
+import co.ledger.wallet.core.base.{BaseFragment, BaseActivity, UiContext, WalletActivity}
 import co.ledger.wallet.core.utils.TR
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.wallet.ExtendedPublicKeyProvider
@@ -62,18 +65,28 @@ class DemoActivity extends BaseActivity with WalletActivity with UiContext {
   )
 
   lazy val text = TR(R.id.text).as[TextView]
-  lazy val progress = TR(R.id.progressBar).as[ProgressBar]
+  //lazy val progress = TR(R.id.progressBar).as[ProgressBar]
   lazy val text2 = TR(R.id.text2).as[TextView]
-  lazy val accountCount = TR(R.id.account_count).as[TextView]
-  lazy val accountsList = TR(R.id.accounts).as[TextView]
+  //lazy val accountCount = TR(R.id.account_count).as[TextView]
+  //lazy val accountsList = TR(R.id.accounts).as[TextView]
   lazy val balanceText = TR(R.id.textView3).as[TextView]
   var maxBlockLeft = -1
+  lazy val viewPager = TR(R.id.viewpager).as[ViewPager]
+  lazy val tabLayout = TR(R.id.tabs).as[TabLayout]
+  lazy val viewPagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager) {
+    override def getItem(position: Int): Fragment = ???
+
+    override def getCount: Int = ???
+  }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     Logger.d("UI initialized")
     setContentView(R.layout.demo_activity)
 
+
+
+    /*
     text.setText("onCreate")
     text.setMovementMethod(new ScrollingMovementMethod)
     //wallet.synchronize().map({(_) => updateTransactionList()})
@@ -95,6 +108,7 @@ class DemoActivity extends BaseActivity with WalletActivity with UiContext {
       updateBalance()
     })
     updateBalance()
+    */
   }
 
   def append(text: String): Unit = {
@@ -114,7 +128,7 @@ class DemoActivity extends BaseActivity with WalletActivity with UiContext {
 
   private[this] def updateAccounts(): Unit = {
     wallet.accountsCount().map({(count) =>
-      accountCount.setText(count.toString)
+      //accountCount.setText(count.toString)
     })
 
     val text = new StringBuilder
@@ -132,7 +146,7 @@ class DemoActivity extends BaseActivity with WalletActivity with UiContext {
         throwable.printStackTrace()
         append(s"Failure: ${throwable.toString}")
     } map { _ =>
-      accountsList.setText(text)
+      //accountsList.setText(text)
     }
   }
 
@@ -172,11 +186,11 @@ class DemoActivity extends BaseActivity with WalletActivity with UiContext {
     case BlockDownloaded(left) =>
       if (maxBlockLeft == -1) {
         maxBlockLeft = left
-        progress.setMax(maxBlockLeft)
+        //progress.setMax(maxBlockLeft)
       }
       val p = (((maxBlockLeft - left).toDouble / maxBlockLeft.toDouble) * 100).toInt
       text2.setText(s"Synchronizing $p%")
-      progress.setProgress(maxBlockLeft - left)
+      //progress.setProgress(maxBlockLeft - left)
     case SynchronizationProgress(p, total) =>
       val time = new Date()
       if (lastBlockTime == null)
@@ -185,10 +199,45 @@ class DemoActivity extends BaseActivity with WalletActivity with UiContext {
         text2.setText(s"Synchronizing $p/$total speed: ${100 / (time.getTime - lastBlockTime
           .getTime).toDouble} blocks/s")
       lastBlockTime = time
-      if (progress.getMax != total)
-        progress.setMax(total)
-      progress.setProgress(p)
+      //if (progress.getMax != total)
+      //  progress.setMax(total)
+      //progress.setProgress(p)
     case string: String => append(string)
+  }
+
+}
+
+class DemoHomeFragment extends BaseFragment {
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+    inflater.inflate(R.layout.demo_home_tab, container, false)
+  }
+}
+
+class DemoAccountFragment extends BaseFragment {
+
+  val IndexArgsKey = "IndexArgsKey"
+
+  lazy val accountIndex = getArguments.getInt(IndexArgsKey)
+  lazy  val accountIndexTextView = TR(R.id.account_index).as[TextView]
+
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+    inflater.inflate(R.layout.demo_account_tab, container, false)
+  }
+
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+    super.onViewCreated(view, savedInstanceState)
+    accountIndexTextView.setText(s"Account #$accountIndex")
+  }
+}
+
+object DemoAccountFragment {
+
+  def apply(accountIndex: Int): DemoAccountFragment = {
+    val fragment = new DemoAccountFragment
+    val arguments = new Bundle()
+    arguments.putInt(fragment.IndexArgsKey, accountIndex)
+    fragment.setArguments(arguments)
+    fragment
   }
 
 }

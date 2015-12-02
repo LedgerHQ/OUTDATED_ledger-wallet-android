@@ -31,7 +31,7 @@
 
 package co.ledger.wallet.core.base
 
-import android.app.Fragment
+import android.support.v4.app.Fragment
 import co.ledger.wallet.core.concurrent.ExecutionContext
 import co.ledger.wallet.core.utils.logs.Loggable
 

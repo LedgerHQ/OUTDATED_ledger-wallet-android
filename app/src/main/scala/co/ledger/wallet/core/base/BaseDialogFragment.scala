@@ -30,9 +30,10 @@
  */
 package co.ledger.wallet.core.base
 
-import android.app.{DialogFragment, Dialog}
+import android.app.Dialog
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.support.v4.app.DialogFragment
 import android.view.Window
 
 import co.ledger.wallet.R

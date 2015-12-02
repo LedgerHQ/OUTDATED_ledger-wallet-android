@@ -30,9 +30,9 @@
  */
 package co.ledger.wallet.legacy
 
-import android.app.FragmentManager
 import android.content.{Context, Intent}
 import android.os.Bundle
+import android.support.v4.app.FragmentManager
 import android.view.{LayoutInflater, View, ViewGroup}
 import co.ledger.wallet.R
 import co.ledger.wallet.app.Config
