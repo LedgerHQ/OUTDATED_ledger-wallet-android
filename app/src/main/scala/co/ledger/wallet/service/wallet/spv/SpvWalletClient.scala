@@ -68,10 +68,8 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
   override def synchronize(): Future[Unit] = {
     _synchronizationFuture.getOrElse({
-      _synchronizationFuture = Some(peerGroup() flatMap {(peerGroup) =>
-        Future.sequence((for (account <- _accounts) yield account.load().map({(_) => 1})).toSeq).map({(_) =>
-          peerGroup
-        })
+      _synchronizationFuture = Some(Future.sequence((for (account <- _accounts) yield account.load().map({(_) => 1})).toSeq) flatMap {(_) =>
+        peerGroup()
       } flatMap {(peerGroup) =>
         val promise = Promise[Unit]()
         peerGroup.setFastCatchupTimeSecs(1434979887)
@@ -237,7 +235,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
         _persistentState = Try(new JSONObject(writer.toString)).toOption
       }
       _persistentState = _persistentState.orElse(Some(new JSONObject()))
-
+      Logger.d("Loaded " + _persistentState.get.toString)
       val persistentState = _persistentState.get
       val accountCount = persistentState.optInt(AccountCountKey, 0)
 
@@ -265,6 +263,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     _persistentState.get.put(AccountCountKey, _accounts.length)
     val input = new StringReader(_persistentState.get.toString)
     IOUtils.copy(input, _walletFile)
+    Logger.d("State saved" + _persistentState.get.toString)
   }
 
   /**

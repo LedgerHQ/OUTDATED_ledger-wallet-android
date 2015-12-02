@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 import android.content.Context
 import co.ledger.wallet.core.concurrent.ThreadPoolTask
-import co.ledger.wallet.core.utils.logs.Logger
+import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.wallet.events.PeerGroupEvents.{StartSynchronization,
 SynchronizationProgress}
 import co.ledger.wallet.wallet.events.WalletEvents.{CoinReceived, CoinSent, AccountUpdated,
@@ -54,7 +54,7 @@ import scala.concurrent.{Promise, Future}
 import scala.util.{Try, Failure, Success}
 
 class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
-  extends Account {
+  extends Account with Loggable {
 
   implicit val ec = wallet.ec // Work on the wallet queue
 
@@ -108,6 +108,7 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
         // saving data on multiple location, we save our metadata into the same json for every
         // accounts
         _persistentState = json
+        Logger.d(s"Init account $index ${_persistentState.toString}")
         if (_xpub.isEmpty && !json.has(XpubKey)) {
           _walletFuture = null
           throw new AccountHasNoXpubException(index)

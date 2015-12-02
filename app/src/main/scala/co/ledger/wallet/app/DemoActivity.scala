@@ -45,8 +45,9 @@ import android.widget.{Button, ProgressBar, TextView}
 import co.ledger.wallet.R
 import co.ledger.wallet.common._
 import co.ledger.wallet.core.base.{BaseFragment, BaseActivity, UiContext, WalletActivity}
+import co.ledger.wallet.core.event.MainThreadEventReceiver
 import co.ledger.wallet.core.utils.TR
-import co.ledger.wallet.core.utils.logs.Logger
+import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.wallet.ExtendedPublicKeyProvider
 import co.ledger.wallet.wallet.events.PeerGroupEvents._
 import co.ledger.wallet.wallet.events.WalletEvents._
@@ -64,66 +65,46 @@ class DemoActivity extends BaseActivity with WalletActivity with UiContext {
     "xpub6D4waFVPfPCpX183njE1zjMayNCAnMHV4D989WsFd8ENDwfcdogPfRXSaA4opz3qoLoyCZCHZy9F7GQQnBxF4nNmZfXKKiokb2ABY8Bi8Jz"
   )
 
-  lazy val text = TR(R.id.text).as[TextView]
-  //lazy val progress = TR(R.id.progressBar).as[ProgressBar]
-  lazy val text2 = TR(R.id.text2).as[TextView]
-  //lazy val accountCount = TR(R.id.account_count).as[TextView]
-  //lazy val accountsList = TR(R.id.accounts).as[TextView]
-  lazy val balanceText = TR(R.id.textView3).as[TextView]
-  var maxBlockLeft = -1
   lazy val viewPager = TR(R.id.viewpager).as[ViewPager]
   lazy val tabLayout = TR(R.id.tabs).as[TabLayout]
-  lazy val viewPagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager) {
-    override def getItem(position: Int): Fragment = ???
-
-    override def getCount: Int = ???
-  }
+  private lazy val viewPagerAdapter = new ViewPagerAdapter
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     Logger.d("UI initialized")
     setContentView(R.layout.demo_activity)
-
-
-
-    /*
-    text.setText("onCreate")
-    text.setMovementMethod(new ScrollingMovementMethod)
-    //wallet.synchronize().map({(_) => updateTransactionList()})
-    //updateTransactionList()
-    updateAccounts()
-    progress.setMax(100)
-    TR(R.id.button2).as[Button].setOnClickListener({(view: View) =>
-
-    })
-    TR(R.id.sync).as[Button].setOnClickListener({(view: View) =>
-      wallet.account(0).synchronize().recover {
-        case AccountHasNoXpubException(index) =>
-          showMissingXpubDialog(index)
-        case exception =>
-          append(s"Failure: ${exception.getMessage}")
-      }
-    })
-    TR(R.id.refresh).as[Button].setOnClickListener({(view: View) =>
-      updateBalance()
-    })
-    updateBalance()
-    */
+    viewPagerAdapter.addFragment(DemoOverviewFragment())
+    viewPagerAdapter.addFragment(DemoAccountFragment(0))
+    viewPagerAdapter.addFragment(DemoAccountFragment(1))
+    viewPagerAdapter.addFragment(DemoAccountFragment(3))
+    viewPager.setAdapter(viewPagerAdapter)
+    viewPager.setOffscreenPageLimit(100) // Whew!
+    tabLayout.setupWithViewPager(viewPager)
   }
 
-  def append(text: String): Unit = {
-    this.text.setText(this.text.getText.toString + "\n" + text)
-  }
 
-  private[this] def updateTransactionList(): Unit = {
-    wallet.transactions() map { (transactions) =>
-      text.setText("")
-      for (transaction <- transactions) {
-        append(transaction.getHash.toString)
-      }
-    } recover {
-      case exception => append(s"Error: ${exception.getMessage}")
+  override def onResume(): Unit = {
+    super.onResume()
+    wallet.account(0).synchronize().recover {
+      case AccountHasNoXpubException(index) =>
+        showMissingXpubDialog(index)
+      case exception =>
+        exception.printStackTrace()
     }
+  }
+
+  private class ViewPagerAdapter extends FragmentPagerAdapter(getSupportFragmentManager) {
+    var fragments = Array[Fragment with TabTitleHolder]()
+
+    override def getItem(position: Int): Fragment = fragments(position)
+
+    override def getCount: Int = fragments.length
+
+    def addFragment(fragment: Fragment with TabTitleHolder): Unit = {
+      fragments = fragments :+ fragment
+    }
+
+    override def getPageTitle(position: Int): CharSequence = fragments(position).tabTitle
   }
 
   private[this] def updateAccounts(): Unit = {
@@ -144,21 +125,12 @@ class DemoActivity extends BaseActivity with WalletActivity with UiContext {
         showMissingXpubDialog(index)
       case throwable =>
         throwable.printStackTrace()
-        append(s"Failure: ${throwable.toString}")
+        //append(s"Failure: ${throwable.toString}")
     } map { _ =>
       //accountsList.setText(text)
     }
   }
 
-  private[this] def updateBalance(): Unit = {
-    wallet.balance().map {(b) =>
-      balanceText.setText(s"Balance: ${b.toFriendlyString}")
-    } recover {
-      case throwable: Throwable =>
-        throwable.printStackTrace()
-        append(s"Failure: ${throwable.toString}")
-    }
-  }
 
   private[this] def showMissingXpubDialog(index: Int): Unit = {
     new AlertDialog.Builder(this)
@@ -175,34 +147,13 @@ class DemoActivity extends BaseActivity with WalletActivity with UiContext {
       .show()
   }
 
-  var lastBlockTime: Date = null
+
+
   override def receive: Receive = {
-    case StartSynchronization() => append("Start blockchain sync")
-    case CoinReceived(index, _) => updateBalance()
-    case CoinSent(index, _) => updateBalance()
-    case AccountUpdated(index) => updateBalance()
+
     case AccountCreated(index) => updateAccounts()
-    case TransactionReceived(tx) => append(s"Received ${tx.getHash.toString}")
-    case BlockDownloaded(left) =>
-      if (maxBlockLeft == -1) {
-        maxBlockLeft = left
-        //progress.setMax(maxBlockLeft)
-      }
-      val p = (((maxBlockLeft - left).toDouble / maxBlockLeft.toDouble) * 100).toInt
-      text2.setText(s"Synchronizing $p%")
-      //progress.setProgress(maxBlockLeft - left)
-    case SynchronizationProgress(p, total) =>
-      val time = new Date()
-      if (lastBlockTime == null)
-        text2.setText(s"Synchronizing $p/$total")
-      else
-        text2.setText(s"Synchronizing $p/$total speed: ${100 / (time.getTime - lastBlockTime
-          .getTime).toDouble} blocks/s")
-      lastBlockTime = time
-      //if (progress.getMax != total)
-      //  progress.setMax(total)
-      //progress.setProgress(p)
-    case string: String => append(string)
+    case string: String =>
+    case drop =>
   }
 
 }
@@ -213,7 +164,7 @@ class DemoHomeFragment extends BaseFragment {
   }
 }
 
-class DemoAccountFragment extends BaseFragment {
+class DemoAccountFragment extends BaseFragment with TabTitleHolder {
 
   val IndexArgsKey = "IndexArgsKey"
 
@@ -228,6 +179,12 @@ class DemoAccountFragment extends BaseFragment {
     super.onViewCreated(view, savedInstanceState)
     accountIndexTextView.setText(s"Account #$accountIndex")
   }
+
+  override def tabTitle: String = s"Account #$accountIndex"
+}
+
+trait TabTitleHolder {
+  def tabTitle: String
 }
 
 object DemoAccountFragment {
@@ -239,5 +196,56 @@ object DemoAccountFragment {
     fragment.setArguments(arguments)
     fragment
   }
+
+}
+
+class DemoOverviewFragment extends BaseFragment with TabTitleHolder with MainThreadEventReceiver with Loggable {
+
+  lazy val lastBlockTimeTextView = TR(R.id.last_block_date).as[TextView]
+  //lazy val progress = TR(R.id.progressBar).as[ProgressBar]
+  lazy val lastBlockIndexTextView = TR(R.id.last_block_index).as[TextView]
+  //lazy val accountCount = TR(R.id.account_count).as[TextView]
+  //lazy val accountsList = TR(R.id.accounts).as[TextView]
+  lazy val balanceTextView = TR(R.id.balance).as[TextView]
+
+  override def tabTitle: String = "Overview"
+
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+    inflater.inflate(R.layout.demo_home_tab, container, false)
+  }
+
+
+  override def onResume(): Unit = {
+    super.onResume()
+    register(wallet.eventBus)
+  }
+
+  override def onPause(): Unit = {
+    super.onPause()
+    unregister(wallet.eventBus)
+  }
+
+  private[this] def updateBalance(): Unit = {
+    wallet.balance().map {(b) =>
+      balanceTextView.setText(s"Balance: ${b.toFriendlyString}")
+    } recover {
+      case throwable: Throwable =>
+        throwable.printStackTrace()
+    }
+  }
+
+  override def receive: Receive = {
+    case CoinReceived(index, _) => updateBalance()
+    case CoinSent(index, _) => updateBalance()
+    case AccountUpdated(index) => updateBalance()
+    case event =>
+  }
+
+  def wallet = getActivity.asInstanceOf[DemoActivity].wallet
+}
+
+object DemoOverviewFragment {
+
+  def apply() = new DemoOverviewFragment
 
 }
