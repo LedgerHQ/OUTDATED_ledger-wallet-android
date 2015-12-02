@@ -50,6 +50,7 @@ import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.store.SPVBlockStore
 import org.json.JSONObject
 
+import scala.collection.SortedSet
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success, Try}
 
@@ -117,7 +118,14 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     _accounts(index)
   }
 
-  override def transactions(): Future[Set[Transaction]] = ???
+  override def transactions(): Future[Set[Transaction]] = accounts().flatMap {(accounts: Array[Account]) =>
+    Future sequence  (for (a <- accounts) yield a.transactions()).toSeq
+  } map {(groupedTxs) =>
+    SortedSet[Transaction](groupedTxs.flatten.toList: _*)(Ordering by {(tx: Transaction) =>
+      tx.getUpdateTime
+    }).toSet
+  }
+
   override def balance(): Future[Coin] = {
     init().flatMap({ (_) =>
       val promise = Promise[Coin]()
