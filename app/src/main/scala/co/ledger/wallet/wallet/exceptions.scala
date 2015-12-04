@@ -35,4 +35,7 @@ package object exceptions {
   case class AccountHasNoXpubException(accountIndex: Int)
     extends Exception(s"Account #$accountIndex has no extended public key")
 
+  case class AccountNotFoundException(accountIndex: Int) extends Exception(s"Account " +
+    s"#$accountIndex not found")
+  
 }

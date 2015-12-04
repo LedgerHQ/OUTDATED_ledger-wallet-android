@@ -42,7 +42,7 @@ trait Wallet {
   def accounts(): Future[Array[Account]]
   def accountsCount(): Future[Int]
   def balance(): Future[Coin]
-  def synchronize(): Future[Unit]
+  def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit]
   def transactions(): Future[Set[Transaction]]
 
   def eventBus: EventBus

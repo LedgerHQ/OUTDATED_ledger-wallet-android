@@ -30,8 +30,6 @@
  */
 package co.ledger.wallet.app
 
-import java.util.Date
-
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
 import android.os.Bundle
@@ -39,25 +37,22 @@ import android.support.design.widget.TabLayout
 import android.support.v4.app.{Fragment, FragmentPagerAdapter}
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AlertDialog
-import android.text.method.ScrollingMovementMethod
-import android.view.{ViewGroup, LayoutInflater, View}
-import android.widget.{Button, ProgressBar, TextView}
+import android.view.{LayoutInflater, View, ViewGroup}
+import android.widget.TextView
 import co.ledger.wallet.R
-import co.ledger.wallet.common._
-import co.ledger.wallet.core.base.{BaseFragment, BaseActivity, UiContext, WalletActivity}
+import co.ledger.wallet.core.base.{BaseActivity, BaseFragment, WalletActivity}
 import co.ledger.wallet.core.event.MainThreadEventReceiver
 import co.ledger.wallet.core.utils.TR
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
-import co.ledger.wallet.wallet.ExtendedPublicKeyProvider
-import co.ledger.wallet.wallet.events.PeerGroupEvents._
+import co.ledger.wallet.wallet.{DerivationPath, ExtendedPublicKeyProvider}
 import co.ledger.wallet.wallet.events.WalletEvents._
 import co.ledger.wallet.wallet.exceptions._
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.MainNetParams
 
-import scala.concurrent.Future
+import scala.concurrent.{Promise, Future}
 
-class DemoActivity extends BaseActivity with WalletActivity with UiContext {
+class DemoActivity extends BaseActivity with WalletActivity {
 
   val XPubs = Array(
     "xpub6D4waFVPfPCpRvPkQd9A6n65z3hTp6TvkjnBHG5j2MCKytMuadKgfTUHqwRH77GQqCKTTsUXSZzGYxMGpWpJBdYAYVH75x7yMnwJvra1BUJ",
@@ -74,23 +69,20 @@ class DemoActivity extends BaseActivity with WalletActivity with UiContext {
     Logger.d("UI initialized")
     setContentView(R.layout.demo_activity)
     viewPagerAdapter.addFragment(DemoOverviewFragment())
-    viewPagerAdapter.addFragment(DemoAccountFragment(0))
-    viewPagerAdapter.addFragment(DemoAccountFragment(1))
-    viewPagerAdapter.addFragment(DemoAccountFragment(3))
     viewPager.setAdapter(viewPagerAdapter)
     viewPager.setOffscreenPageLimit(100) // Whew!
     tabLayout.setupWithViewPager(viewPager)
   }
 
-
   override def onResume(): Unit = {
     super.onResume()
-    wallet.account(0).synchronize().recover {
+    wallet.synchronize(_xpubProvider).recover {
       case AccountHasNoXpubException(index) =>
         showMissingXpubDialog(index)
       case exception =>
         exception.printStackTrace()
     }
+    updateAccounts()
   }
 
   private class ViewPagerAdapter extends FragmentPagerAdapter(getSupportFragmentManager) {
@@ -104,47 +96,49 @@ class DemoActivity extends BaseActivity with WalletActivity with UiContext {
       fragments = fragments :+ fragment
     }
 
+    def accountFragmentCount = fragments.count(_.isInstanceOf[DemoAccountFragment])
+
+    def accountFragment(accountIndex: Int): Option[DemoAccountFragment] = {
+      fragments foreach {
+        case accountFragment: DemoAccountFragment =>
+          if (accountFragment.accountIndex == accountIndex)
+            return Some(accountFragment)
+        case fragment =>
+      }
+      None
+    }
+
+    def removeAccountFragments(count: Int): Unit = {
+      val fragmentCount = accountFragmentCount
+      for (i <- 0 until count) {
+        val f = accountFragment(fragmentCount - i - 1)
+        if (f.isDefined)
+          fragments = fragments.filter(_ != f.get)
+      }
+    }
+
     override def getPageTitle(position: Int): CharSequence = fragments(position).tabTitle
   }
 
   private[this] def updateAccounts(): Unit = {
     wallet.accountsCount().map({(count) =>
       //accountCount.setText(count.toString)
+      if (count > viewPagerAdapter.accountFragmentCount) {
+        for (i <- viewPagerAdapter.accountFragmentCount until count) {
+          viewPagerAdapter.addFragment(DemoAccountFragment(i))
+        }
+      } else if (count < viewPagerAdapter.accountFragmentCount) {
+        viewPagerAdapter.removeAccountFragments(viewPagerAdapter.accountFragmentCount - count)
+      }
+      viewPagerAdapter.notifyDataSetChanged()
+      tabLayout.setupWithViewPager(viewPager)
     })
 
-    val text = new StringBuilder
-    wallet.accounts() flatMap { (accounts) =>
-      Future.sequence((for (account <- accounts) yield account.xpub()).toSeq)
-    } map { (xpubs) =>
-      for (index <- xpubs.indices) {
-        text.append(s"Account #$index ${xpubs(index).serializePubB58(MainNetParams.get())}\n")
-      }
-    } recover {
-      case AccountHasNoXpubException(index) =>
-        text.append(s"Account #$index has no xpub yet\n")
-        showMissingXpubDialog(index)
-      case throwable =>
-        throwable.printStackTrace()
-        //append(s"Failure: ${throwable.toString}")
-    } map { _ =>
-      //accountsList.setText(text)
-    }
   }
 
 
   private[this] def showMissingXpubDialog(index: Int): Unit = {
-    new AlertDialog.Builder(this)
-      .setMessage(s"Account #$index has no xpub yet\nWould you like to provide one?")
-      .setPositiveButton("yes", new OnClickListener {
-        override def onClick(dialog: DialogInterface, which: Int): Unit =
-          wallet.account(index).importXpub(new ExtendedPublicKeyProvider {
-            override def generateXpub(path: String): Future[DeterministicKey] = {
-              Logger.d("GENERATE XPUB")
-              Future(DeterministicKey.deserializeB58(XPubs(index), MainNetParams.get()))
-            }
-          })
-      }).setNegativeButton("no", null)
-      .show()
+
   }
 
 
@@ -152,8 +146,27 @@ class DemoActivity extends BaseActivity with WalletActivity with UiContext {
   override def receive: Receive = {
 
     case AccountCreated(index) => updateAccounts()
+    case AccountUpdated(index) => updateAccounts()
     case string: String =>
     case drop =>
+  }
+
+  private val _xpubProvider = new ExtendedPublicKeyProvider {
+    override def generateXpub(path: DerivationPath): Future[DeterministicKey] = Future.successful() flatMap {(_) =>
+      val index = path(2).get.childNum
+      val promise = Promise[DeterministicKey]()
+      new AlertDialog.Builder(DemoActivity.this)
+        .setMessage(s"Account #$index has no xpub yet\nWould you like to provide one?")
+        .setPositiveButton("yes", new OnClickListener {
+          override def onClick(dialog: DialogInterface, which: Int): Unit = {
+            promise.success(DeterministicKey.deserializeB58(XPubs(index.toInt), MainNetParams.get()))
+          }
+        }).setNegativeButton("no", new OnClickListener {
+        override def onClick(dialog: DialogInterface, which: Int): Unit =
+          promise.failure(new Exception("I said no!"))
+      }).show()
+      promise.future
+    }
   }
 
 }
@@ -169,17 +182,31 @@ class DemoAccountFragment extends BaseFragment with TabTitleHolder {
   val IndexArgsKey = "IndexArgsKey"
 
   lazy val accountIndex = getArguments.getInt(IndexArgsKey)
-  lazy  val accountIndexTextView = TR(R.id.account_index).as[TextView]
+  def accountIndexTextView = getView.findViewById(R.id.account_index).asInstanceOf[TextView]
+  def balanceTextView = getView.findViewById(R.id.balance).asInstanceOf[TextView]
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     inflater.inflate(R.layout.demo_account_tab, container, false)
   }
 
-  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    super.onViewCreated(view, savedInstanceState)
-    accountIndexTextView.setText(s"Account #$accountIndex")
+
+  override def onResume(): Unit = {
+    super.onResume()
+    accountIndexTextView.setText(s"Account #${account.index}")
+    account balance() map {(balance) =>
+      balanceTextView.setText(s"Balance: ${balance.toFriendlyString}")
+    }
   }
 
+  override def setUserVisibleHint(isVisibleToUser: Boolean): Unit = {
+    super.setUserVisibleHint(isVisibleToUser)
+
+    if (isVisibleToUser) {
+
+    }
+  }
+
+  lazy val account = getActivity.asInstanceOf[DemoActivity].wallet.account(accountIndex)
   override def tabTitle: String = s"Account #$accountIndex"
 }
 
@@ -218,6 +245,7 @@ class DemoOverviewFragment extends BaseFragment with TabTitleHolder with MainThr
   override def onResume(): Unit = {
     super.onResume()
     register(wallet.eventBus)
+    updateBalance()
   }
 
   override def onPause(): Unit = {

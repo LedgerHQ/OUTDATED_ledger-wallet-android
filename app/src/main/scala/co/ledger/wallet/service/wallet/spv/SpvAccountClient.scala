@@ -33,7 +33,7 @@ package co.ledger.wallet.service.wallet.spv
 import java.io.File
 import java.util
 import java.util.Date
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 import java.util.concurrent.atomic.AtomicReference
 
 import android.content.Context
@@ -64,7 +64,8 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
   type JSpvBlockChain = org.bitcoinj.core.BlockChain
   type JPeerGroup = PeerGroup
 
-  override def synchronize(): Future[Unit] = wallet.synchronize()
+  override def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit] =
+    wallet.synchronize(provider)
 
   override def xpub(): Future[DeterministicKey] = Future {
     _xpub.isDefined
@@ -77,20 +78,15 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
       }
   }
 
-  def hasXpub = _xpub.isDefined
+  def xpub(key: DeterministicKey): Future[Unit] = {
+    _xpub = Some(key)
+    load().flatMap({(_) =>
+      _persistentState.put(XpubKey, key.serializePubB58(wallet.networkParameters))
+      wallet.save()
+    })
+  }
 
-  override def importXpub(provider: ExtendedPublicKeyProvider): Future[Unit] =
-    provider.generateXpub("") flatMap { (key) =>
-      _xpub = Some(key)
-      val promise = Promise[Unit]()
-      wallet.accountPersistedJson(index).flatMap({ (json) =>
-        json.put(XpubKey, key.serializePubB58(wallet.networkParameters))
-        promise.success()
-        wallet.eventBus.post(AccountCreated(index))
-        wallet.save()
-      })
-      promise.future
-    }
+  def hasXpub = _xpub.isDefined
 
   override def transactions(): Future[Set[Transaction]] =
     load().map(_.getTransactions(false).asScala.toSet)
@@ -134,7 +130,6 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
   }
 
   private val _walletEventListener = new AbstractWalletEventListener {
-
 
     override def onCoinsReceived(w: JWallet, tx: Transaction, prevBalance: Coin, newBalance: Coin): Unit = {
       super.onCoinsReceived(w, tx, prevBalance, newBalance)

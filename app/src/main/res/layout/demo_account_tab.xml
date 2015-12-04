@@ -1,14 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <co.ledger.wallet.core.widget.TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Account #NUMBER"
-        android:layout_margin="@dimen/large_margin"
-        android:id="@+id/account_index"
-        android:layout_gravity="center_horizontal" />
-</LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <co.ledger.wallet.core.widget.TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Account #NUMBER"
+            android:layout_margin="@dimen/large_margin"
+            android:id="@+id/account_index"
+            android:layout_gravity="center_horizontal" />
+
+        <co.ledger.wallet.core.widget.TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Balance: 0BTC"
+            android:textSize="@dimen/extra_extra_large_font_size"
+            android:layout_marginLeft="@dimen/extra_large_margin"
+            android:layout_marginRight="@dimen/extra_large_margin"
+            android:layout_marginBottom="@dimen/large_margin"
+            android:id="@+id/balance"
+            />
+
+        <co.ledger.wallet.core.widget.TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Addresses count: 0"
+            android:textSize="@dimen/large_font_size"
+            android:layout_marginLeft="@dimen/extra_large_margin"
+            android:layout_marginRight="@dimen/extra_large_margin"
+            android:layout_marginBottom="@dimen/large_margin"
+            android:id="@+id/last_block_date"
+            />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/transactions"
+            android:layout_height="0dp"
+            android:layout_width="match_parent" />
+
+    </LinearLayout>
+</android.support.v4.widget.NestedScrollView>

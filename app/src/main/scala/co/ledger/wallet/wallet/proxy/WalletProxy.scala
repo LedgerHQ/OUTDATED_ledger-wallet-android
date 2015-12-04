@@ -33,7 +33,7 @@ package co.ledger.wallet.wallet.proxy
 import android.content.{Intent, ComponentName, ServiceConnection, Context}
 import android.os.{Handler, IBinder}
 import co.ledger.wallet.service.wallet.WalletService
-import co.ledger.wallet.wallet.{Account, Wallet}
+import co.ledger.wallet.wallet.{ExtendedPublicKeyProvider, Account, Wallet}
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Transaction, Coin}
 import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.ui
@@ -42,7 +42,8 @@ import scala.concurrent.{Promise, Future}
 
 class WalletProxy(val context: Context, val name: String) extends Wallet {
 
-  override def synchronize(): Future[Unit] = connect().flatMap(_.synchronize())
+  override def synchronize(extendedPublicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
+    connect().flatMap(_.synchronize(extendedPublicKeyProvider))
 
   override def accounts(): Future[Array[Account]] = connect().flatMap(_.accounts()) map {
     (accounts) =>

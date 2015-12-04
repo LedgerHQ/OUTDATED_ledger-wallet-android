@@ -35,5 +35,5 @@ import org.bitcoinj.crypto.DeterministicKey
 import scala.concurrent.Future
 
 trait ExtendedPublicKeyProvider {
-  def generateXpub(path: String): Future[DeterministicKey]
+  def generateXpub(path: DerivationPath): Future[DeterministicKey]
 }
