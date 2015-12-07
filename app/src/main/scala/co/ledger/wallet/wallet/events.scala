@@ -30,13 +30,14 @@
  */
 package co.ledger.wallet.wallet
 
-import org.bitcoinj.core.{Coin, Transaction}
+import org.bitcoinj.core.{Block, Coin, Transaction}
 
 package object events {
 
   object PeerGroupEvents {
     case class StartSynchronization()
-    case class BlockDownloaded(blockLeft: Int)
+    case class StopSynchronization()
+    case class BlockDownloaded(block: Block)
     case class SynchronizationProgress(current: Int, total: Int)
   }
 

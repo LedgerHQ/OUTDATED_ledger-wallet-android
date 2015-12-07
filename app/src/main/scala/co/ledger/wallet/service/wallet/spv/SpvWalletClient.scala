@@ -39,20 +39,16 @@ import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.SerialQueueTask
 import co.ledger.wallet.core.utils.io.IOUtils
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
-import co.ledger.wallet.wallet.events.PeerGroupEvents.{StartSynchronization, SynchronizationProgress}
-
-import co.ledger.wallet.wallet.events.WalletEvents.AccountCreated
-
-import co.ledger.wallet.wallet.exceptions._
-import co.ledger.wallet.wallet.{ExtendedPublicKeyProvider, EarliestTransactionTimeProvider,
-Account, Wallet}
 import co.ledger.wallet.wallet.DerivationPath.dsl._
-
+import co.ledger.wallet.wallet.events.PeerGroupEvents.{BlockDownloaded, StartSynchronization,
+SynchronizationProgress}
+import co.ledger.wallet.wallet.events.WalletEvents.AccountCreated
+import co.ledger.wallet.wallet.exceptions._
+import co.ledger.wallet.wallet.{Account, EarliestTransactionTimeProvider, ExtendedPublicKeyProvider, Wallet}
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core._
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.net.discovery.DnsDiscovery
-import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.store.SPVBlockStore
 import org.json.JSONObject
 
@@ -92,42 +88,30 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
         wallets = w
         peerGroup()
       } flatMap {(peerGroup) =>
-        if (_accounts.length == 0) {
-          throw AccountHasNoXpubException(0)
-        } else if (_accounts.length == 1 && _persistentState.get.has(FastCatchupTimestamp)) {
-          _accounts(0).xpub() flatMap {(xpub) =>
-            earliestTransactionTimeProvider.getEarliestTransactionTime(xpub)
-          } map {(fastCatchupDate) =>
-            _persistentState.get.put(FastCatchupTimestamp, fastCatchupDate.getTime / 1000L)
-            save()
-            peerGroup
-          }
-        } else {
-          Future.successful(peerGroup)
-        }
-      } flatMap {(peerGroup) =>
-        if (_persistentState.get.has(FastCatchupTimestamp))
-          peerGroup.setFastCatchupTimeSecs(_persistentState.get.getLong(FastCatchupTimestamp))
         val promise = Promise[Unit]()
+        var maxBlocksLeft: Option[Int] = None
         peerGroup.startBlockChainDownload(new AbstractPeerEventListener {
           override def onBlocksDownloaded(peer: Peer, block: Block, filteredBlock: FilteredBlock, blocksLeft: Int): Unit = {
             super.onBlocksDownloaded(peer, block, filteredBlock, blocksLeft)
             // Notify download progression
+            if (maxBlocksLeft.isEmpty)
+              maxBlocksLeft = Some(blocksLeft)
+            eventBus.post(
+              SynchronizationProgress(maxBlocksLeft.get - blocksLeft, maxBlocksLeft.get)
+            )
+            eventBus.post(BlockDownloaded(block))
           }
 
           override def onTransaction(peer: Peer, t: Transaction): Unit = {
             super.onTransaction(peer, t)
             // If we received a transaction matching a wallet and we have no account + 1, stop
             // synchronizing and wait for an xpub
-            /*
-            wallets.find({(w) =>
-              false
-            }).foreach({(_) =>
+            val lastAccount  = wallets.last
+            if (false || lastAccount.isTransactionRelevant(t)) {
               peerGroup.stopAsync()
               _peerGroup = None
               promise.failure(AccountHasNoXpubException(_accounts.length))
-            })
-            */
+            }
           }
         })
         promise.future
@@ -146,7 +130,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     _synchronizationFuture.get
   }
 
-
+  override def isSynchronizing(): Future[Boolean] = Future {_synchronizationFuture.isDefined}
 
   def toto = {
     _synchronizationFuture.getOrElse({
@@ -197,6 +181,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
   private val _accountPool = new AtomicReference[Map[Int, SpvAccountClient]](Map())
   override def account(index: Int): Account = {
+    /*
     if (_accountPool.get().contains(index)) {
       _accountPool.get()(index)
     } else {
@@ -204,6 +189,8 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
      _accountPool.set(_accountPool.get() + (index -> account))
       account
     }
+    */
+    _accounts(index)
   }
 
   override def transactions(): Future[Set[Transaction]] = accounts().flatMap {(accounts: Array[Account]) =>
@@ -236,15 +223,6 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   }
   override def accountsCount(): Future[Int] = init().map({(_) => _accounts.length})
 
-  def notifyEmptyAccountIsUsed(): Unit = {
-    if (_peerGroup.isEmpty)
-      throw new IllegalStateException("Wallet is not initialized")
-    val index = _persistentState.get.optInt(AccountCountKey, 0)
-    _accounts = _accounts :+ createSpvAccountInstance(index)
-    _persistentState.get.put(AccountCountKey, _accounts.length)
-    save()
-  }
-
   def accountPersistedJson(index: Int): Future[JSONObject] = {
     val key: DeterministicKey = null
 
@@ -260,8 +238,6 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     })
   }
 
-
-
   def rootPath(): DeterministicKey = null
 
   val eventBus =  EventBus
@@ -275,13 +251,14 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       if (_peerGroup.isDefined)
         Future.successful(_peerGroup.get)
       else {
-        if (_accounts.length == 0 || !_accounts(0).hasXpub)
+        if (_accounts.length == 0)
           throw new AccountHasNoXpubException(0)
 
         val blockStoreFileExist = blockStoreFile.exists()
 
         def createPeerGroup(): Future[JPeerGroup] = {
           _peerGroup = Option(new JPeerGroup(networkParameters, blockChain))
+          _peerGroup.get.setFastCatchupTimeSecs(_persistentState.get.getLong(FastCatchupTimestamp))
           _peerGroup.get.setDownloadTxDependencies(false)
           _peerGroup.get.addPeerDiscovery(new DnsDiscovery(networkParameters))
           _peerGroup.get.startAsync()
@@ -301,20 +278,26 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
         }
 
         // Create the peer group
-        blockChain.getChainHead // Will throw if a corruption is detected
-
+        blockChain.getChainHead
         if (!blockStoreFileExist) {
           _accounts(0).xpub() flatMap {(xpub) =>
             earliestTransactionTimeProvider.getEarliestTransactionTime(xpub)
           } flatMap {(time) =>
-            val input = context.getAssets.open(Config.CheckpointFilePath)
-            CheckpointManager.checkpoint(networkParameters, input, blockStore, time.getTime)
-            createPeerGroup()
-          } recoverWith {
-            case throwable: Throwable => // Complete without checkpoints
+            _persistentState.get.put(FastCatchupTimestamp, time.getTime / 1000L)
+            var input: InputStream = null
+            Logger.i(s"Head before checkpoints: ${blockStore.getChainHead.getHeight}")
+            val loadCheckpoint = Try {
+              input = context.getAssets.open(Config.CheckpointFilePath)
+              CheckpointManager.checkpoint(networkParameters, input, blockStore, time.getTime / 1000L)
+            }
+            Logger.i(s"Head after checkpoints: ${blockStore.getChainHead.getHeight}")
+            if (input != null)
+              input.close()
+            if (loadCheckpoint.isFailure) {
               Logger.e("Fail to load checkpoints")
-              throwable.printStackTrace()
-              createPeerGroup()
+              loadCheckpoint.failed.get.printStackTrace()
+            }
+            createPeerGroup()
           }
         } else {
           createPeerGroup()
@@ -324,9 +307,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   }
 
   private def init(): Future[Unit] = Future {
-    _persistentState.isDefined
-  } map { (isInitialized) =>
-    if (!isInitialized) {
+    if (_persistentState.isEmpty) {
       if (_walletFile.exists()) {
         val writer = new StringWriter()
         IOUtils.copy(_walletFile, writer)
@@ -337,17 +318,16 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       val persistentState = _persistentState.get
       val accountCount = persistentState.optInt(AccountCountKey, 0)
 
-      val accounts = new ArrayBuffer[SpvAccountClient](accountCount)
+      _accounts = Array()
       for (index <- 0 until accountCount) {
-        accounts(index) = createSpvAccountInstance(index)
+        _accounts = _accounts :+ createSpvAccountInstance(index)
       }
-      _accounts = accounts.toArray
     }
   }
 
   private def createSpvAccountInstance(index: Int): SpvAccountClient = {
-    if (index != _accounts.length)
-      throw new IllegalArgumentException(s"Wrong index, expect ${_accounts.length}")
+    require(index == _accounts.length, s"Wrong index, expect ${_accounts.length} got $index")
+    require(_persistentState.isDefined, "Persistent state must be initialized before inflating accounts")
     _accounts = _accounts :+ new SpvAccountClient(this, index)
     _accounts(index)
   }
@@ -382,24 +362,8 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   lazy val earliestTransactionTimeProvider = new EarliestTransactionTimeProvider {
     override def getEarliestTransactionTime(deterministicKey: DeterministicKey): Future[Date] = {
       // Derive the first 20 addresses from both public and change chain
-      Future.successful(new Date(1434979887 * 1000))
+      Future.successful(new Date(1434979887L * 1000L - (60L * 60L * 24L * 7L)))
     }
-  }
-
-}
-
-object SpvWalletClient {
-
-  def peerGroup(implicit context: Context): PeerGroup = {
-    _peerGroup
-  }
-
-  // Temporary
-  private val _peerGroup = {
-    val p = new PeerGroup(MainNetParams.get())
-    p.start()
-
-    p
   }
 
 }

@@ -120,8 +120,9 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
           }
           wallet.blockChain.addWallet(w)
           w.autosaveToFile(_walletFile, 500L, TimeUnit.MILLISECONDS, null)
+          Logger.i(s"Add wallet ${_xpub.get.serializePubB58(wallet.networkParameters)} to peergroup")
           peerGroup.addWallet(w)
-          w.addEventListener(_walletEventListener)
+          //w.addEventListener(_walletEventListener)
           w
         })
       }

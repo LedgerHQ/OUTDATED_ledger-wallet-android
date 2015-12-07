@@ -38,12 +38,13 @@ import android.support.v4.app.{Fragment, FragmentPagerAdapter}
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AlertDialog
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.TextView
+import android.widget.{ProgressBar, TextView}
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{BaseActivity, BaseFragment, WalletActivity}
 import co.ledger.wallet.core.event.MainThreadEventReceiver
 import co.ledger.wallet.core.utils.TR
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
+import co.ledger.wallet.wallet.events.PeerGroupEvents._
 import co.ledger.wallet.wallet.{DerivationPath, ExtendedPublicKeyProvider}
 import co.ledger.wallet.wallet.events.WalletEvents._
 import co.ledger.wallet.wallet.exceptions._
@@ -66,7 +67,6 @@ class DemoActivity extends BaseActivity with WalletActivity {
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-    Logger.d("UI initialized")
     setContentView(R.layout.demo_activity)
     viewPagerAdapter.addFragment(DemoOverviewFragment())
     viewPager.setAdapter(viewPagerAdapter)
@@ -122,7 +122,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
 
   private[this] def updateAccounts(): Unit = {
     wallet.accountsCount().map({(count) =>
-      //accountCount.setText(count.toString)
+      Logger.d(s"Update accounts $count")
       if (count > viewPagerAdapter.accountFragmentCount) {
         for (i <- viewPagerAdapter.accountFragmentCount until count) {
           viewPagerAdapter.addFragment(DemoAccountFragment(i))
@@ -132,7 +132,9 @@ class DemoActivity extends BaseActivity with WalletActivity {
       }
       viewPagerAdapter.notifyDataSetChanged()
       tabLayout.setupWithViewPager(viewPager)
-    })
+    }) recover {
+      case throwable: Throwable => throwable.printStackTrace()
+    }
 
   }
 
@@ -144,7 +146,6 @@ class DemoActivity extends BaseActivity with WalletActivity {
 
 
   override def receive: Receive = {
-
     case AccountCreated(index) => updateAccounts()
     case AccountUpdated(index) => updateAccounts()
     case string: String =>
@@ -229,8 +230,7 @@ object DemoAccountFragment {
 class DemoOverviewFragment extends BaseFragment with TabTitleHolder with MainThreadEventReceiver with Loggable {
 
   lazy val lastBlockTimeTextView = TR(R.id.last_block_date).as[TextView]
-  //lazy val progress = TR(R.id.progressBar).as[ProgressBar]
-  lazy val lastBlockIndexTextView = TR(R.id.last_block_index).as[TextView]
+  lazy val progress = TR(R.id.progress).as[ProgressBar]
   //lazy val accountCount = TR(R.id.account_count).as[TextView]
   //lazy val accountsList = TR(R.id.accounts).as[TextView]
   lazy val balanceTextView = TR(R.id.balance).as[TextView]
@@ -266,6 +266,11 @@ class DemoOverviewFragment extends BaseFragment with TabTitleHolder with MainThr
     case CoinReceived(index, _) => updateBalance()
     case CoinSent(index, _) => updateBalance()
     case AccountUpdated(index) => updateBalance()
+    case SynchronizationProgress(current, total) =>
+      progress.setMax(total)
+      progress.setProgress(current)
+    case BlockDownloaded(block) =>
+      lastBlockTimeTextView.setText(s"Last block time: ${block.getTime.toString}")
     case event =>
   }
 

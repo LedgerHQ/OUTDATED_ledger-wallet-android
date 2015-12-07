@@ -62,6 +62,8 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
 
   override def accountsCount(): Future[Int] = connect().flatMap(_.accountsCount())
 
+  override def isSynchronizing(): Future[Boolean] = connect().flatMap(_.isSynchronizing())
+
   val eventBus =  EventBus
     .builder()
     .throwSubscriberException(true)
@@ -107,4 +109,5 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
     override def onServiceConnected(name: ComponentName, service: IBinder): Unit = promise
       .success(service.asInstanceOf[WalletService#Binder])
   }
+
 }

@@ -31,21 +31,12 @@
             android:id="@+id/last_block_date"
             />
 
-        <co.ledger.wallet.core.widget.TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Last block index: "
-            android:textSize="@dimen/large_font_size"
-            android:layout_marginLeft="@dimen/extra_large_margin"
-            android:layout_marginRight="@dimen/extra_large_margin"
-            android:layout_marginBottom="@dimen/large_margin"
-            android:id="@+id/last_block_index"
-            />
 
         <ProgressBar
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/progress"
+            style="@android:style/Widget.ProgressBar.Horizontal"
             android:layout_marginLeft="@dimen/extra_large_margin"
             android:layout_marginRight="@dimen/extra_large_margin"
             android:layout_gravity="center_horizontal" />
