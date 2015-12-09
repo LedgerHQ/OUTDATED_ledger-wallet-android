@@ -1,6 +1,6 @@
 /**
  *
- * SpvSynchronizationHelper
+ * WalletDatabaseReader
  * Ledger wallet
  *
  * Created by Pierre Pollastri on 09/12/15.
@@ -28,37 +28,35 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.service.wallet.spv
+package co.ledger.wallet.service.wallet.database
 
-import java.io.{InputStream, File}
-import java.util.Date
+import android.database.Cursor
+import android.database.sqlite.{SQLiteQueryBuilder, SQLiteDatabase}
+import DatabaseStructure._
+import co.ledger.wallet.service.wallet.database.cursor.AccountCursor
 
-import co.ledger.wallet.service.wallet.database.WalletDatabaseOpenHelper
-import org.bitcoinj.core.{Wallet => JWallet, _}
-import org.bitcoinj.net.discovery.{PeerDiscovery, DnsDiscovery}
+class WalletDatabaseReader(database: SQLiteDatabase) {
 
-import scala.concurrent.{Promise, Future}
-
-class SpvSynchronizationHelper(
-                                networkParameters: NetworkParameters,
-                                directory: File,
-                                database: WalletDatabaseOpenHelper) {
-
-  def setup(wallets: Array[JWallet], fastCatchupDate: Date, checkpoints: InputStream): Future[SpvAppKit] = {
-    val promise = Promise[SpvAppKit]()
-
-    promise.future
+  def allAccounts(): AccountCursor = {
+    import DatabaseStructure.AccountTableColumns._
+    AccountCursor(
+      database.query(
+        AccountTableName,
+        AccountTableColumns.projection,
+        null,
+        null,
+        null,
+        null,
+        s"$Index ASC"
+      )
+    )
   }
 
-  def synchronize(): Future[SpvAppKit] = {
-    null
-  }
+  def allOperations(offset: Int = 0, limit: Int = -1): Cursor = null
 
-  def discovery = _discovery
-  def discovery_=(discovery: PeerDiscovery): Unit = {
-    require(discovery != null)
-    _discovery = discovery
-  }
-  private[this] var _discovery: PeerDiscovery = new DnsDiscovery(networkParameters)
+  def accountOperations(accountIndex: Int, offset: Int = 0, limit: Int = -1): Cursor = null
 
+  def operationInputs(operationUid: String): Cursor = null
+
+  def operationOutputs(operationUid: String): Cursor = null
 }

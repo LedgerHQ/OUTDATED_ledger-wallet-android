@@ -44,6 +44,16 @@ object DatabaseStructure {
     val Name = "name"
     val Color = "color"
     val Hidden = "hidden"
+    val Xpub58 = "xpub58"
+
+    val projection = Array(Index, Name, Color, Hidden, Xpub58)
+    object ProjectionIndex {
+      val Index = 0
+      val Name = 1
+      val Color = 2
+      val Hidden = 3
+      val Xpub58 = 4
+    }
   }
 
   object OperationTableColumns extends BaseColumns {
@@ -56,6 +66,19 @@ object DatabaseStructure {
     val Value = "value"
     val Type = "type"
     val BlockHash = "block_hash"
+
+    val projection = Array(Uid, AccountId, Hash, Fees, Time, LockTime, Value, Type, BlockHash)
+    object ProjectionIndex {
+      val Uid = 0
+      val AccountId = 1
+      val Hash = 2
+      val Fees = 3
+      val Time = 4
+      val LockTime = 5
+      val Value = 6
+      val Type = 7
+      val BlockHash = 8
+    }
   }
 
   object InputTableColumns extends BaseColumns {
@@ -68,6 +91,20 @@ object DatabaseStructure {
     val PreviousTx = "previous_tx"
     val ScriptSig = "script_sig"
     val Address = "address"
+
+    val projection = Array(Id, OperationUId, Index, Path, Value, Coinbase, PreviousTx, ScriptSig,
+      Address)
+    object ProjectionIndex {
+      val Id = 0
+      val OperationUId = 1
+      val Index = 2
+      val Path = 3
+      val Value = 4
+      val Coinbase = 5
+      val PreviousTx = 6
+      val ScriptSig = 7
+      val Address = 8
+    }
   }
 
   object OutputTableColumns extends BaseColumns {
@@ -78,6 +115,17 @@ object DatabaseStructure {
     val Value = "value"
     val PubKeyScript = "pk_script"
     val Address = "address"
+
+    val projection = Array(Id, OperationUId, Index, Path, Value, PubKeyScript, Address)
+    object ProjectionIndex {
+      val Id = 0
+      val OperationUId = 1
+      val Index = 2
+      val Path = 3
+      val Value = 4
+      val PubKeyScript = 5
+      val Address = 6
+    }
   }
 
 }

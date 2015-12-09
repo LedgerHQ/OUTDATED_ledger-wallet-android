@@ -42,16 +42,24 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
   }
 
   override def onCreate(db: SQLiteDatabase): Unit = {
-
+    db.execSQL(CreateAccountsTable)
+    db.execSQL(CreateOperationsTable)
+    db.execSQL(CreateInputsTable)
+    db.execSQL(CreateOutputsTable)
   }
+
+  lazy val writer: WalletDatabaseWriter = new WalletDatabaseWriter(getWritableDatabase)
+  lazy val reader: WalletDatabaseReader = new WalletDatabaseReader(getReadableDatabase)
 
   val CreateAccountsTable = {
     import DatabaseStructure.AccountTableColumns._
     s"""
        CREATE TABLE IF NOT EXISTS $AccountTableName(
        | $Index INTEGER PRIMARY KEY ASC,
-       | $Name TEXT NOT NULL,
+       | $Name TEXT,
+       | $Color INTEGER,
        | $Hidden INTEGER DEFAULT 0,
+       | $Xpub58 TEXT NOT NULL
        |)
      """.stripMargin
   }

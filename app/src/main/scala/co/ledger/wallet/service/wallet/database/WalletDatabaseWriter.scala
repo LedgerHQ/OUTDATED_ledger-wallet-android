@@ -1,6 +1,6 @@
 /**
  *
- * SpvSynchronizationHelper
+ * WalletDatabaseInsertHelper
  * Ledger wallet
  *
  * Created by Pierre Pollastri on 09/12/15.
@@ -28,37 +28,10 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.service.wallet.spv
+package co.ledger.wallet.service.wallet.database
 
-import java.io.{InputStream, File}
-import java.util.Date
+import android.database.sqlite.SQLiteDatabase
 
-import co.ledger.wallet.service.wallet.database.WalletDatabaseOpenHelper
-import org.bitcoinj.core.{Wallet => JWallet, _}
-import org.bitcoinj.net.discovery.{PeerDiscovery, DnsDiscovery}
-
-import scala.concurrent.{Promise, Future}
-
-class SpvSynchronizationHelper(
-                                networkParameters: NetworkParameters,
-                                directory: File,
-                                database: WalletDatabaseOpenHelper) {
-
-  def setup(wallets: Array[JWallet], fastCatchupDate: Date, checkpoints: InputStream): Future[SpvAppKit] = {
-    val promise = Promise[SpvAppKit]()
-
-    promise.future
-  }
-
-  def synchronize(): Future[SpvAppKit] = {
-    null
-  }
-
-  def discovery = _discovery
-  def discovery_=(discovery: PeerDiscovery): Unit = {
-    require(discovery != null)
-    _discovery = discovery
-  }
-  private[this] var _discovery: PeerDiscovery = new DnsDiscovery(networkParameters)
+class WalletDatabaseWriter(database: SQLiteDatabase) {
 
 }
