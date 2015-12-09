@@ -1,9 +1,9 @@
 /**
  *
- * Account
+ * SpvKit
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 09/12/15.
  *
  * The MIT License (MIT)
  *
@@ -28,22 +28,18 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
+package co.ledger.wallet.service.wallet.spv
 
-import co.ledger.wallet.core.concurrent.AsyncCursor
-import org.bitcoinj.core.{Transaction, Address, Coin}
-import org.bitcoinj.crypto.DeterministicKey
+import org.bitcoinj.core.{Wallet => JWallet, PeerGroup, BlockChain}
+import org.bitcoinj.store.BlockStore
 
-import scala.concurrent.Future
+class SpvAppKit(
+  val blockStore: BlockStore,
+  val blockChain: BlockChain,
+  val peerGroup: PeerGroup) {
 
-trait Account {
+  private[this] var _wallets = Array[JWallet]()
 
-  def index: Int
-  def wallet: Wallet
+  def wallets = _wallets
 
-  def freshPublicAddress(): Future[Address]
-  def xpub(): Future[DeterministicKey]
-  def balance(): Future[Coin]
-  def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit]
-  def operations(batchSize: Int = Wallet.DefaultOperationsBatchSize): Future[AsyncCursor[Operation]]
 }

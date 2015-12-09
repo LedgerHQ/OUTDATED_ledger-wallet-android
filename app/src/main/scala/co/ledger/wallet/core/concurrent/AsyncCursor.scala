@@ -1,9 +1,9 @@
 /**
  *
- * Account
+ * AsyncCursor
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 09/12/15.
  *
  * The MIT License (MIT)
  *
@@ -28,22 +28,19 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
-
-import co.ledger.wallet.core.concurrent.AsyncCursor
-import org.bitcoinj.core.{Transaction, Address, Coin}
-import org.bitcoinj.crypto.DeterministicKey
+package co.ledger.wallet.core.concurrent
 
 import scala.concurrent.Future
 
-trait Account {
-
-  def index: Int
-  def wallet: Wallet
-
-  def freshPublicAddress(): Future[Address]
-  def xpub(): Future[DeterministicKey]
-  def balance(): Future[Coin]
-  def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit]
-  def operations(batchSize: Int = Wallet.DefaultOperationsBatchSize): Future[AsyncCursor[Operation]]
+trait AsyncCursor[T] {
+  def count: Int
+  def seek(position: Int): Unit
+  def next(): Either[T, Future[T]]
+  def batchSize: Int
+  def close(): Unit
+  def position: Int
+  def isLast: Boolean = position + 1 == count
+  def moveToFirst(): Unit = seek(0)
+  def moveToLast(): Unit = seek(count - 1)
+  def requery(): Future[Array[T]]
 }

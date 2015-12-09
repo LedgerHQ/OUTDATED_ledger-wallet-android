@@ -30,28 +30,33 @@
  */
 package co.ledger.wallet.app
 
-import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
+import android.content.{DialogInterface, Intent}
+import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.app.{Fragment, FragmentPagerAdapter}
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AlertDialog
+import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{ProgressBar, TextView}
 import co.ledger.wallet.R
+import co.ledger.wallet.common._
 import co.ledger.wallet.core.base.{BaseActivity, BaseFragment, WalletActivity}
 import co.ledger.wallet.core.event.MainThreadEventReceiver
 import co.ledger.wallet.core.utils.TR
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
+import co.ledger.wallet.core.widget.DividerItemDecoration
 import co.ledger.wallet.wallet.events.PeerGroupEvents._
-import co.ledger.wallet.wallet.{DerivationPath, ExtendedPublicKeyProvider}
 import co.ledger.wallet.wallet.events.WalletEvents._
 import co.ledger.wallet.wallet.exceptions._
+import co.ledger.wallet.wallet.{Account, DerivationPath, ExtendedPublicKeyProvider, Operation}
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.MainNetParams
 
-import scala.concurrent.{Promise, Future}
+import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.{Future, Promise}
 
 class DemoActivity extends BaseActivity with WalletActivity {
 
@@ -121,8 +126,9 @@ class DemoActivity extends BaseActivity with WalletActivity {
   }
 
   private[this] def updateAccounts(): Unit = {
-    wallet.accountsCount().map({(count) =>
-      Logger.d(s"Update accounts $count")
+    wallet.accounts().map({(accounts) =>
+      _accounts = Some(accounts)
+      val count = accounts.length
       if (count > viewPagerAdapter.accountFragmentCount) {
         for (i <- viewPagerAdapter.accountFragmentCount until count) {
           viewPagerAdapter.addFragment(DemoAccountFragment(i))
@@ -144,10 +150,9 @@ class DemoActivity extends BaseActivity with WalletActivity {
   }
 
 
-
   override def receive: Receive = {
     case AccountCreated(index) => updateAccounts()
-    case AccountUpdated(index) => updateAccounts()
+    case AccountUpdated(index) =>
     case string: String =>
     case drop =>
   }
@@ -170,6 +175,9 @@ class DemoActivity extends BaseActivity with WalletActivity {
     }
   }
 
+  def account(index: Int): Option[Account] = _accounts.getOrElse(Array()).lift(index)
+  private[this] var _accounts: Option[Array[Account]] = None
+
 }
 
 class DemoHomeFragment extends BaseFragment {
@@ -183,13 +191,20 @@ class DemoAccountFragment extends BaseFragment with TabTitleHolder {
   val IndexArgsKey = "IndexArgsKey"
 
   lazy val accountIndex = getArguments.getInt(IndexArgsKey)
+  private lazy val transactionRecyclerViewAdapter = new TransactionRecyclerViewAdapter
   def accountIndexTextView = getView.findViewById(R.id.account_index).asInstanceOf[TextView]
   def balanceTextView = getView.findViewById(R.id.balance).asInstanceOf[TextView]
+  def transactionRecyclerView = getView.findViewById(R.id.transactions).asInstanceOf[RecyclerView]
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     inflater.inflate(R.layout.demo_account_tab, container, false)
   }
 
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+    super.onViewCreated(view, savedInstanceState)
+    transactionRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))
+    transactionRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity, null))
+  }
 
   override def onResume(): Unit = {
     super.onResume()
@@ -197,17 +212,75 @@ class DemoAccountFragment extends BaseFragment with TabTitleHolder {
     account balance() map {(balance) =>
       balanceTextView.setText(s"Balance: ${balance.toFriendlyString}")
     }
-  }
-
-  override def setUserVisibleHint(isVisibleToUser: Boolean): Unit = {
-    super.setUserVisibleHint(isVisibleToUser)
-
-    if (isVisibleToUser) {
-
+    transactionRecyclerView.setAdapter(transactionRecyclerViewAdapter)
+    account operations() map {(cursor) =>
+      //Logger.d(s"Received ops ${operations.length}")
+      //transactionRecyclerViewAdapter.clear()
+      //transactionRecyclerViewAdapter.append(operations)
     }
   }
 
-  lazy val account = getActivity.asInstanceOf[DemoActivity].wallet.account(accountIndex)
+
+  override def onPause(): Unit = {
+    super.onPause()
+    //transactionRecyclerView.setAdapter(null)
+  }
+
+  private class TransactionRecyclerViewAdapter extends RecyclerView.Adapter[TransactionViewHolder] {
+
+    private val _transactions = new ArrayBuffer[Operation]()
+    private lazy val _inflater = LayoutInflater.from(getActivity)
+
+    override def getItemCount: Int = _transactions.length
+
+    def append(tx: Operation): Unit = {
+      _transactions += tx
+      notifyDataSetChanged()
+    }
+
+    def append(txs: Seq[Operation]): Unit = {
+      _transactions ++= txs
+      notifyDataSetChanged()
+      Logger.d(s"Append ${txs.length}")
+    }
+
+    def clear(): Unit = {
+      _transactions.clear()
+    }
+
+    override def onBindViewHolder(holder: TransactionViewHolder, position: Int): Unit = {
+      holder.refresh(_transactions(position))
+    }
+
+    override def onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder = {
+      val v = _inflater.inflate(R.layout.demo_transaction_card, parent, false)
+      new TransactionViewHolder(v)
+    }
+  }
+
+  private class TransactionViewHolder(v: View) extends RecyclerView.ViewHolder(v) {
+
+    lazy val address = v.findViewById(R.id.address).asInstanceOf[TextView]
+    lazy val amount = v.findViewById(R.id.amount).asInstanceOf[TextView]
+
+    def refresh(operation: Operation): Unit = {
+      if (operation.isSending) {
+        address.setText(operation.recipients.lift(0).getOrElse("Unknown").toString)
+        amount.setText(s"-${operation.amount.toPlainString}")
+      } else {
+        address.setText(operation.senders.lift(0).getOrElse("Unknown").toString)
+        amount.setText(s"+${operation.amount.toPlainString}")
+      }
+      v.setOnClickListener({(v: View) =>
+        val intent = new Intent(Intent.ACTION_VIEW, Uri.parse(s"https://blockchain" +
+          s".info/tx/${operation.hash.toString}"))
+        getActivity.startActivity(intent)
+      })
+    }
+
+  }
+
+  lazy val account = getActivity.asInstanceOf[DemoActivity].account(accountIndex).get // Bad bad bad
   override def tabTitle: String = s"Account #$accountIndex"
 }
 

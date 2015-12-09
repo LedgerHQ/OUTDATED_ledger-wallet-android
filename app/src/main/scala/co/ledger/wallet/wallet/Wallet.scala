@@ -30,6 +30,7 @@
  */
 package co.ledger.wallet.wallet
 
+import co.ledger.wallet.core.concurrent.AsyncCursor
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Transaction, Coin}
 
@@ -38,14 +39,18 @@ import scala.concurrent.Future
 trait Wallet {
 
   def name: String
-  def account(index: Int): Account
+  def account(index: Int): Future[Account]
   def accounts(): Future[Array[Account]]
   def accountsCount(): Future[Int]
   def balance(): Future[Coin]
   def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit]
   def isSynchronizing(): Future[Boolean]
-  def transactions(): Future[Set[Transaction]]
-
+  def operations(batchSize: Int = Wallet.DefaultOperationsBatchSize): Future[AsyncCursor[Operation]]
   def eventBus: EventBus
+
+}
+
+object Wallet {
+  val DefaultOperationsBatchSize = 20
 
 }

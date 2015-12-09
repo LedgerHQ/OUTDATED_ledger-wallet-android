@@ -32,8 +32,9 @@ package co.ledger.wallet.wallet.proxy
 
 import android.content.{Intent, ComponentName, ServiceConnection, Context}
 import android.os.{Handler, IBinder}
+import co.ledger.wallet.core.concurrent.AsyncCursor
 import co.ledger.wallet.service.wallet.WalletService
-import co.ledger.wallet.wallet.{ExtendedPublicKeyProvider, Account, Wallet}
+import co.ledger.wallet.wallet.{Operation, ExtendedPublicKeyProvider, Account, Wallet}
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Transaction, Coin}
 import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.ui
@@ -56,7 +57,9 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
 
   override def account(index: Int): Account = new AccountProxy(this, index)
 
-  override def transactions(): Future[Set[Transaction]] = connect().flatMap(_.transactions())
+  override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = {
+    connect().flatMap(_.operations(batchSize))
+  }
 
   override def balance(): Future[Coin] = connect().flatMap(_.balance())
 

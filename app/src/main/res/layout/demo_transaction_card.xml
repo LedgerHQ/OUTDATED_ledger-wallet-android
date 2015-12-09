@@ -1,41 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-    <!-- A CardView that contains a TextView -->
-<android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/card_view"
-    android:layout_gravity="center"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    card_view:contentPadding="@dimen/medium_margin"
-    card_view:cardCornerRadius="4dp">
-    <RelativeLayout
-        android:layout_width="match_parent"
+    android:padding="@dimen/large_margin"
+    android:orientation="horizontal">
+    <co.ledger.wallet.core.widget.TextView
+        android:id="@+id/address"
+        android:text="3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"
+        android:layout_width="wrap_content"
+        android:ellipsize="middle"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <co.ledger.wallet.core.widget.TextView
-            android:id="@+id/info_text"
-            android:text="3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"
-            android:layout_width="wrap_content"
-            android:ellipsize="middle"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_marginLeft="0dp"
-            android:singleLine="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="0dp"
+        android:singleLine="true"
 
-            android:layout_alignParentTop="true"
-            android:layout_marginTop="0dp"
-            android:layout_toStartOf="@+id/amount"
-            android:layout_toLeftOf="@+id/amount" />
-        <co.ledger.wallet.core.widget.TextView
-            android:id="@+id/amount"
-            android:text="+0.001 BTC"
-            android:layout_width="wrap_content"
-            android:ellipsize="middle"
-            android:layout_marginLeft="@dimen/medium_margin"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true" />
-    </RelativeLayout>
-</android.support.v7.widget.CardView>
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="0dp"
+        android:layout_toStartOf="@+id/amount"
+        android:layout_toLeftOf="@+id/amount" />
+    <co.ledger.wallet.core.widget.TextView
+        android:id="@+id/amount"
+        android:text="+0.001 BTC"
+        android:layout_width="wrap_content"
+        android:ellipsize="middle"
+        android:layout_marginLeft="@dimen/medium_margin"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+</RelativeLayout>

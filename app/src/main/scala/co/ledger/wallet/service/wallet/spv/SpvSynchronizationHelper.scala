@@ -1,9 +1,9 @@
 /**
  *
- * Account
+ * SpvSynchronizationHelper
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 09/12/15.
  *
  * The MIT License (MIT)
  *
@@ -28,22 +28,33 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
+package co.ledger.wallet.service.wallet.spv
 
-import co.ledger.wallet.core.concurrent.AsyncCursor
-import org.bitcoinj.core.{Transaction, Address, Coin}
-import org.bitcoinj.crypto.DeterministicKey
+import java.io.{InputStream, File}
+import java.util.Date
 
-import scala.concurrent.Future
+import org.bitcoinj.core.{Wallet => JWallet, _}
+import org.bitcoinj.net.discovery.{PeerDiscovery, DnsDiscovery}
 
-trait Account {
+import scala.concurrent.{Promise, Future}
 
-  def index: Int
-  def wallet: Wallet
+class SpvSynchronizationHelper(networkParameters: NetworkParameters, directory: File, filePrefix: String) {
 
-  def freshPublicAddress(): Future[Address]
-  def xpub(): Future[DeterministicKey]
-  def balance(): Future[Coin]
-  def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit]
-  def operations(batchSize: Int = Wallet.DefaultOperationsBatchSize): Future[AsyncCursor[Operation]]
+  def setup(wallets: Array[JWallet], fastCatchupDate: Date, checkpoints: InputStream): Future[SpvAppKit] = {
+    val promise = Promise[SpvAppKit]()
+
+    promise.future
+  }
+
+  def synchronize(): Future[SpvAppKit] = {
+    null
+  }
+
+  def discovery = _discovery
+  def discovery_=(discovery: PeerDiscovery): Unit = {
+    require(discovery != null)
+    _discovery = discovery
+  }
+  private[this] var _discovery: PeerDiscovery = new DnsDiscovery(networkParameters)
+
 }

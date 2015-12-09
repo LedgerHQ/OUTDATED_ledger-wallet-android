@@ -44,12 +44,13 @@ SynchronizationProgress}
 import co.ledger.wallet.wallet.events.WalletEvents.{CoinReceived, CoinSent, AccountUpdated,
 AccountCreated}
 import co.ledger.wallet.wallet.exceptions.AccountHasNoXpubException
-import co.ledger.wallet.wallet.{ExtendedPublicKeyProvider, Wallet, Account}
+import co.ledger.wallet.wallet.{Operation, ExtendedPublicKeyProvider, Wallet, Account}
 import org.bitcoinj.core._
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.script.Script
 import org.json.JSONObject
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{Promise, Future}
 import scala.util.{Try, Failure, Success}
 
@@ -89,7 +90,21 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
   def hasXpub = _xpub.isDefined
 
   override def transactions(): Future[Set[Transaction]] =
-    load().map(_.getTransactions(false).asScala.toSet)
+    load().map(_.getTransactionsByTime.asScala.toSet)
+
+  override def operations(): Future[Array[Operation]] = transactions() map {(transactions) =>
+    // TODO: Better implementation with a database for caching data and async iteration mechanism
+    val operations = new ArrayBuffer[Operation](transactions.size)
+    for (transaction <- transactions) {
+      val sending = Operation.fromReceptionTransaction(transaction, _walletFuture.value.get.get)
+      val reception = Operation.fromSendingTransaction(transaction, _walletFuture.value.get.get)
+      if (sending.isDefined)
+        operations += sending.get
+      if (reception.isDefined)
+        operations += reception.get
+    }
+    operations.toArray.sortWith(_.date.getTime > _.date.getTime)
+  }
 
   override def balance(): Future[Coin] = load().map({(wallet) => wallet.getBalance})
 
@@ -116,13 +131,13 @@ class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
           if (_walletFile.exists())
             w = org.bitcoinj.core.Wallet.loadFromFile(_walletFile)
           else {
-            w = org.bitcoinj.core.Wallet.fromWatchingKey(wallet.networkParameters, _xpub.get)
+            w = org.bitcoinj.core.Wallet.fromWatchingKey(wallet.networkParameters, _xpub.get, 1434979887L * 1000L - (60L * 60L * 24L * 7L))
           }
           wallet.blockChain.addWallet(w)
           w.autosaveToFile(_walletFile, 500L, TimeUnit.MILLISECONDS, null)
           Logger.i(s"Add wallet ${_xpub.get.serializePubB58(wallet.networkParameters)} to peergroup")
           peerGroup.addWallet(w)
-          //w.addEventListener(_walletEventListener)
+          w.addEventListener(_walletEventListener)
           w
         })
       }
