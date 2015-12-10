@@ -50,7 +50,15 @@ class SpvSynchronizationHelper(
     promise.future
   }
 
-  def synchronize(): Future[SpvAppKit] = {
+  def synchronize(appKit: SpvAppKit): Future[Unit] = {
+    null
+  }
+
+  def loadWalletsFromDatabase(): Future[Array[JWallet]] = {
+    null
+  }
+
+  def startPeerGroup(wallets: Array[JWallet]): Future[SpvAppKit] = {
     null
   }
 

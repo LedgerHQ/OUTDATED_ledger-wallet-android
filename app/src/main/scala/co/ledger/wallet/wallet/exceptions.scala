@@ -37,5 +37,7 @@ package object exceptions {
 
   case class AccountNotFoundException(accountIndex: Int) extends Exception(s"Account " +
     s"#$accountIndex not found")
-  
+
+  case class WalletNotSetupException() extends Exception(s"Wallet needs to be setup first")
+  case class WalletAlreadySetupException() extends Exception(s"Wallet is already setup")
 }

@@ -30,16 +30,41 @@
  */
 package co.ledger.wallet.service.wallet.spv
 
+import co.ledger.wallet.service.wallet.database.model.AccountRow
 import org.bitcoinj.core.{Wallet => JWallet, PeerGroup, BlockChain}
 import org.bitcoinj.store.BlockStore
 
 class SpvAppKit(
   val blockStore: BlockStore,
   val blockChain: BlockChain,
-  val peerGroup: PeerGroup) {
+  val peerGroup: PeerGroup,
+  val accounts: Array[(AccountRow, JWallet)]) {
 
-  private[this] var _wallets = Array[JWallet]()
+  def close(): Unit = {
 
-  def wallets = _wallets
+  }
+
+}
+
+class SpvAppKitBuilder(private val blockStore: BlockStore = null,
+                       private val blockChain: BlockChain = null,
+                       private val peerGroup: PeerGroup = null,
+                       private val accounts: Array[(AccountRow, JWallet)] = Array()) {
+
+  def copy(blockStore: BlockStore = blockStore,
+           blockChain: BlockChain = blockChain,
+           peerGroup: PeerGroup = peerGroup,
+           accounts: Array[(AccountRow, JWallet)] = accounts): SpvAppKitBuilder = {
+    new SpvAppKitBuilder(blockStore, blockChain, peerGroup, accounts)
+  }
+
+  def withBlockStore(blockStore: BlockStore) = copy(blockStore = blockStore)
+  def withBlockChain(blockChain: BlockChain) = copy(blockChain = blockChain)
+  def withPeerGroup(peerGroup: PeerGroup) = copy(peerGroup = peerGroup)
+  def addAccount(accountRow: AccountRow, wallet: JWallet) = {
+    copy(accounts = (accounts :+ (accountRow, wallet)).sortBy(_._1.index))
+  }
+
+  def build() = new SpvAppKit(blockStore, blockChain, peerGroup, accounts)
 
 }

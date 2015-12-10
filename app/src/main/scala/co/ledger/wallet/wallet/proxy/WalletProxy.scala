@@ -34,6 +34,7 @@ import android.content.{Intent, ComponentName, ServiceConnection, Context}
 import android.os.{Handler, IBinder}
 import co.ledger.wallet.core.concurrent.AsyncCursor
 import co.ledger.wallet.service.wallet.WalletService
+import co.ledger.wallet.service.wallet.spv.SpvAccountClient
 import co.ledger.wallet.wallet.{Operation, ExtendedPublicKeyProvider, Account, Wallet}
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Transaction, Coin}
@@ -46,16 +47,21 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
   override def synchronize(extendedPublicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
     connect().flatMap(_.synchronize(extendedPublicKeyProvider))
 
+  override def setup(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
+    connect().flatMap(_.setup(publicKeyProvider))
+
   override def accounts(): Future[Array[Account]] = connect().flatMap(_.accounts()) map {
     (accounts) =>
       val proxies = new Array[Account](accounts.length)
-      for (index <- accounts.indices) {
-        proxies(index) = new AccountProxy(this, account(index).index)
+      for (account <- accounts) {
+        proxies(account.index) = AccountProxy(this, account)
       }
       proxies
   }
 
-  override def account(index: Int): Account = new AccountProxy(this, index)
+
+  override def account(index: Int): Future[Account] =
+    connect().flatMap(_.account(index)).map(AccountProxy(this, _))
 
   override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = {
     connect().flatMap(_.operations(batchSize))

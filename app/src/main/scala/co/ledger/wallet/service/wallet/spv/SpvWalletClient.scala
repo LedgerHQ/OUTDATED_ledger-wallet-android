@@ -30,14 +30,20 @@
  */
 package co.ledger.wallet.service.wallet.spv
 
+import java.util.Date
+
 import android.content.Context
+import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.{AsyncCursor, SerialQueueTask}
 import co.ledger.wallet.core.utils.logs.Loggable
 import co.ledger.wallet.service.wallet.database.WalletDatabaseOpenHelper
-import co.ledger.wallet.wallet.{Operation, ExtendedPublicKeyProvider, Account, Wallet}
+import co.ledger.wallet.wallet._
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Wallet => JWallet, _}
 import co.ledger.wallet.common._
+import co.ledger.wallet.wallet.exceptions._
+import co.ledger.wallet.wallet.DerivationPath.dsl._
+import org.bitcoinj.crypto.DeterministicKey
 
 import scala.concurrent.Future
 
@@ -64,13 +70,36 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
   val eventBus: EventBus = new EventBus()
 
+  val rootPath = 44.h/0.h
+
+  override def setup(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
+    Future.successful() flatMap {(_) =>
+      publicKeyProvider.generateXpub(rootPath/1.h)
+    } flatMap {(xpub) =>
+      _earliestCreationTimeProvider.getEarliestTransactionTime(xpub) map {(date) =>
+        (xpub, date)
+      }
+    } flatMap {
+      case (xpub, date) =>
+        val checpoints = context.getAssets.open(Config.CheckpointFilePath)
+        val wallet = JWallet.fromWatchingKey(networkParameters, xpub, date.getTime / 1000L)
+        _spvSynchronizationHelper.setup(Array(wallet), date, checpoints)
+    } map setupWithAppKit
+
   private def init(): Future[Unit] = Future.successful() flatMap {(_) =>
     if (_spvAppKit.isEmpty) {
-      _spvSynchronizationHelper
-      null
+      _spvSynchronizationHelper.loadWalletsFromDatabase() flatMap {(accounts) =>
+        if (accounts.isEmpty)
+          throw WalletNotSetupException()
+        _spvSynchronizationHelper.startPeerGroup(accounts) map setupWithAppKit
+      }
     } else {
-     Future.successful()
+     Future.successful(_spvAppKit.get)
     }
+  }
+
+  private def setupWithAppKit(appKit: SpvAppKit): Unit = {
+
   }
 
   private[this] var _accounts = Array[SpvAccountClient]()
@@ -79,7 +108,14 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   private[this] lazy val _spvSynchronizationHelper =
     new SpvSynchronizationHelper(
       networkParameters,
-      context.getDir(s"spv}", Context.MODE_PRIVATE),
+      context.getDir(s"spv", Context.MODE_PRIVATE),
       _database
     )
+
+  private[this] lazy val _earliestCreationTimeProvider = new EarliestTransactionTimeProvider {
+    override def getEarliestTransactionTime(deterministicKey: DeterministicKey): Future[Date] = {
+      // Derive the first 20 addresses from both public and change chain
+      Future.successful(new Date(1434979887 * 1000))
+    }
+  }
 }

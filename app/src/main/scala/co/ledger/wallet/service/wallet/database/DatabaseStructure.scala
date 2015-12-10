@@ -38,6 +38,7 @@ object DatabaseStructure {
   val OperationTableName = "operation"
   val InputTableName = "input"
   val OutputTableName = "output"
+  val OperationsInputsTableName = "operations_inputs"
 
   object AccountTableColumns extends BaseColumns {
     val Index = "index"
@@ -45,14 +46,16 @@ object DatabaseStructure {
     val Color = "color"
     val Hidden = "hidden"
     val Xpub58 = "xpub58"
+    val CreationTime = "creation_time"
 
-    val projection = Array(Index, Name, Color, Hidden, Xpub58)
+    val projection = Array(Index, Name, Color, Hidden, Xpub58, CreationTime)
     object ProjectionIndex {
       val Index = 0
       val Name = 1
       val Color = 2
       val Hidden = 3
       val Xpub58 = 4
+      val CreationTime = 5
     }
   }
 
@@ -82,8 +85,7 @@ object DatabaseStructure {
   }
 
   object InputTableColumns extends BaseColumns {
-    val Id = "id"
-    val OperationUId = "operation_Uid"
+    val Uid = "uid"
     val Index = "index"
     val Path = "path"
     val Value = "value"
@@ -92,10 +94,10 @@ object DatabaseStructure {
     val ScriptSig = "script_sig"
     val Address = "address"
 
-    val projection = Array(Id, OperationUId, Index, Path, Value, Coinbase, PreviousTx, ScriptSig,
+    val projection = Array(Uid, Index, Path, Value, Coinbase, PreviousTx, ScriptSig,
       Address)
     object ProjectionIndex {
-      val Id = 0
+      val Uid = 0
       val OperationUId = 1
       val Index = 2
       val Path = 3
@@ -108,24 +110,29 @@ object DatabaseStructure {
   }
 
   object OutputTableColumns extends BaseColumns {
-    val Id = "id"
-    val OperationUId = "operation_Uid"
+    val Uid = "uid"
+    val TransactionHash = "transaction_hash"
     val Index = "index"
     val Path = "path"
     val Value = "value"
     val PubKeyScript = "pk_script"
     val Address = "address"
 
-    val projection = Array(Id, OperationUId, Index, Path, Value, PubKeyScript, Address)
+    val projection = Array(Uid, TransactionHash, Index, Path, Value, PubKeyScript, Address)
     object ProjectionIndex {
-      val Id = 0
-      val OperationUId = 1
+      val Uid = 0
+      val TransactionHash = 1
       val Index = 2
       val Path = 3
       val Value = 4
       val PubKeyScript = 5
       val Address = 6
     }
+  }
+
+  object OperationsInputsTableColumns extends BaseColumns {
+    val OperationUid = "operation_uid"
+    val InputUid = "input_uid"
   }
 
 }

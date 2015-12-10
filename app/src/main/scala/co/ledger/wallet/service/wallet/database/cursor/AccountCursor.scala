@@ -40,5 +40,6 @@ case class AccountCursor(override val self: Cursor) extends CursorExtension(self
   def color = self.getInt(Color)
   def isHidden = self.getInt(Hidden) != 0
   def xpub58 = self.getString(Xpub58)
+  def creationTime = self.getLong(CreationTime)
 
 }

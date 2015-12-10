@@ -42,10 +42,12 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
   }
 
   override def onCreate(db: SQLiteDatabase): Unit = {
-    db.execSQL(CreateAccountsTable)
-    db.execSQL(CreateOperationsTable)
-    db.execSQL(CreateInputsTable)
-    db.execSQL(CreateOutputsTable)
+    CreateAccountsTable on db
+    CreateAccountsTable on db
+    CreateOperationsTable on db
+    CreateInputsTable on db
+    CreateOutputsTable on db
+    CreateOperationsInputsTable on db
   }
 
   lazy val writer: WalletDatabaseWriter = new WalletDatabaseWriter(getWritableDatabase)
@@ -59,7 +61,8 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
        | $Name TEXT,
        | $Color INTEGER,
        | $Hidden INTEGER DEFAULT 0,
-       | $Xpub58 TEXT NOT NULL
+       | $Xpub58 TEXT NOT NULL,
+       | $CreationTime INTEGER NOT NULL,
        |)
      """.stripMargin
   }
@@ -87,17 +90,14 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
     import DatabaseStructure.InputTableColumns._
     s"""
        CREATE TABLE IF NOT EXISTS $InputTableName(
-       | $Id INTEGER PRIMARY KEY AUTOINCREMENT,
+       | $Uid TEXT PRIMARY KEY,
        | $Index INTEGER NOT NULL,
-       | $OperationUId TEXT NOT NULL,
        | $Path TEXT,
        | $Value INTEGER NOT NULL,
        | $Coinbase INTEGER,
        | $PreviousTx TEXT NOT NULL,
        | $ScriptSig TEXT NOT NULL,
-       | $Address TEXT,
-       | FOREIGN KEY($OperationUId) REFERENCE $OperationTableName(${OperationTableColumns.Uid})
-       | ON DELETE CASCADE
+       | $Address TEXT
        |)
      """.stripMargin
   }
@@ -106,17 +106,33 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
     import DatabaseStructure.OutputTableColumns._
     s"""
        CREATE TABLE IF NOT EXISTS $OutputTableName(
-       | $Id INTEGER PRIMARY KEY AUTOINCREMENT,
+       | $Uid INTEGER PRIMARY KEY AUTOINCREMENT,
        | $Index INTEGER NOT NULL,
-       | $OperationUId TEXT NOT NULL,
+       | $TransactionHash TEXT NOT NULL,
        | $Path TEXT,
        | $Value INTEGER NOT NULL,
        | $PubKeyScript TEXT NOT NULL,
        | $Address TEXT,
-       | FOREIGN KEY($OperationUId) REFERENCE $OperationTableName(${OperationTableColumns.Uid})
-       | ON DELETE CASCADE
        |)
      """.stripMargin
+  }
+
+  val CreateOperationsInputsTable = {
+    import DatabaseStructure.OperationsInputsTableColumns._
+    s"""
+       CREATE TABLE IF NOT EXISTS $OutputTableName(
+       | $OperationUid TEXT NOT NULL,
+       | $InputUid TEXT NOT NULL
+       |)
+     """.stripMargin
+  }
+
+  private implicit class SqlString(val sql: String) {
+
+    def on(db: SQLiteDatabase): Unit = {
+      db.execSQL(sql)
+    }
+
   }
 
 }

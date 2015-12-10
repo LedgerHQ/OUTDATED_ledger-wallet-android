@@ -30,13 +30,18 @@
  */
 package co.ledger.wallet.wallet.proxy
 
+
+import co.ledger.wallet.core.concurrent.AsyncCursor
 import co.ledger.wallet.wallet.{Operation, ExtendedPublicKeyProvider, Account}
 import org.bitcoinj.core.{Address, Transaction, Coin}
 import org.bitcoinj.crypto.DeterministicKey
 import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
+import scala.collection.mutable
 import scala.concurrent.Future
 
-class AccountProxy(val wallet: WalletProxy, val index: Int) extends Account {
+class AccountProxy(val wallet: WalletProxy, account: Account) extends Account {
+
+  val index: Int = account.index
 
   override def freshPublicAddress(): Future[Address] = connect().flatMap(_.freshPublicAddress())
 
@@ -45,15 +50,31 @@ class AccountProxy(val wallet: WalletProxy, val index: Int) extends Account {
 
   override def xpub(): Future[DeterministicKey] = connect().flatMap(_.xpub())
 
-  override def transactions(): Future[Set[Transaction]] = connect().flatMap(_.transactions())
-
-  override def operations(): Future[Array[Operation]] = connect().flatMap(_.operations())
+  override def operations(batchSize: Int): Future[AsyncCursor[Operation]] =
+    connect().flatMap(_.operations(batchSize))
 
   override def balance(): Future[Coin] = connect().flatMap(_.balance())
 
   private def connect(): Future[Account] = {
-    wallet.connect().map({(w) =>
+    wallet.connect().flatMap({(w) =>
       w.account(index)
     })
   }
+}
+
+object AccountProxy {
+
+  private val _proxyPool: mutable.WeakHashMap[Long, AccountProxy] = mutable.WeakHashMap()
+
+  def apply(wallet: WalletProxy, account: Account): AccountProxy = {
+    val id = wallet.##.toLong | account.index << 32
+    _proxyPool.get(id) match {
+      case Some(proxy) => proxy
+      case None =>
+        val proxy = new AccountProxy(wallet, account)
+        _proxyPool += (id -> proxy)
+        proxy
+    }
+  }
+
 }

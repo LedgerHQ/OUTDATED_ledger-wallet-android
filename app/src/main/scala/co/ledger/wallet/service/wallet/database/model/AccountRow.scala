@@ -1,9 +1,9 @@
 /**
  *
- * WalletRef
+ * AccountRow
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 10/12/15.
  *
  * The MIT License (MIT)
  *
@@ -28,30 +28,16 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
+package co.ledger.wallet.service.wallet.database.model
 
-import co.ledger.wallet.core.concurrent.AsyncCursor
-import de.greenrobot.event.EventBus
-import org.bitcoinj.core.{Transaction, Coin}
+import co.ledger.wallet.service.wallet.database.cursor.AccountCursor
 
-import scala.concurrent.Future
-
-trait Wallet {
-
-  def name: String
-  def account(index: Int): Future[Account]
-  def accounts(): Future[Array[Account]]
-  def accountsCount(): Future[Int]
-  def balance(): Future[Coin]
-  def setup(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit]
-  def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit]
-  def isSynchronizing(): Future[Boolean]
-  def operations(batchSize: Int = Wallet.DefaultOperationsBatchSize): Future[AsyncCursor[Operation]]
-  def eventBus: EventBus
-
-}
-
-object Wallet {
-  val DefaultOperationsBatchSize = 20
+class AccountRow(cursor: AccountCursor) {
+  val index = cursor.index
+  val name = cursor.name
+  val color = cursor.color
+  val isHidden = cursor.isHidden
+  val xpub58 = cursor.xpub58
+  val creationTime = cursor.creationTime
 
 }
