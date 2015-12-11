@@ -40,7 +40,7 @@ import android.support.v4.view.ViewPager
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.{ProgressBar, TextView}
+import android.widget.{Toast, ProgressBar, TextView}
 import co.ledger.wallet.R
 import co.ledger.wallet.common._
 import co.ledger.wallet.core.base.{BaseActivity, BaseFragment, WalletActivity}
@@ -57,6 +57,7 @@ import org.bitcoinj.params.MainNetParams
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success}
 
 class DemoActivity extends BaseActivity with WalletActivity {
 
@@ -81,13 +82,30 @@ class DemoActivity extends BaseActivity with WalletActivity {
 
   override def onResume(): Unit = {
     super.onResume()
+    synchronize()
+    updateAccounts()
+  }
+
+  def synchronize(): Unit = {
     wallet.synchronize(_xpubProvider).recover {
       case AccountHasNoXpubException(index) =>
         showMissingXpubDialog(index)
+      case WalletNotSetupException() =>
+        Toast.makeText(this, "Wallet not setup", Toast.LENGTH_LONG).show()
+        setup()
       case exception =>
         exception.printStackTrace()
     }
-    updateAccounts()
+  }
+
+  def setup(): Unit = {
+    wallet.setup(_xpubProvider) onComplete {
+      case Success(_) =>
+        Toast.makeText(this, "Setup successful", Toast.LENGTH_LONG).show()
+      case Failure(t) =>
+        t.printStackTrace()
+        Toast.makeText(this, "Setup failed", Toast.LENGTH_LONG).show()
+    }
   }
 
   private class ViewPagerAdapter extends FragmentPagerAdapter(getSupportFragmentManager) {
@@ -126,7 +144,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
   }
 
   private[this] def updateAccounts(): Unit = {
-    wallet.accounts().map({(accounts) =>
+    wallet.accounts().map({ (accounts) =>
       _accounts = Some(accounts)
       val count = accounts.length
       if (count > viewPagerAdapter.accountFragmentCount) {
@@ -158,14 +176,15 @@ class DemoActivity extends BaseActivity with WalletActivity {
   }
 
   private val _xpubProvider = new ExtendedPublicKeyProvider {
-    override def generateXpub(path: DerivationPath): Future[DeterministicKey] = Future.successful() flatMap {(_) =>
-      val index = path(2).get.childNum
+    override def generateXpub(path: DerivationPath): Future[DeterministicKey] = Future.successful() flatMap { (_) =>
+      val index = path(2).get.index
       val promise = Promise[DeterministicKey]()
       new AlertDialog.Builder(DemoActivity.this)
         .setMessage(s"Account #$index has no xpub yet\nWould you like to provide one?")
         .setPositiveButton("yes", new OnClickListener {
           override def onClick(dialog: DialogInterface, which: Int): Unit = {
-            promise.success(DeterministicKey.deserializeB58(XPubs(index.toInt), MainNetParams.get()))
+            promise.success(DeterministicKey.deserializeB58(XPubs(index.toInt), MainNetParams.get
+            ()))
           }
         }).setNegativeButton("no", new OnClickListener {
         override def onClick(dialog: DialogInterface, which: Int): Unit =
@@ -176,12 +195,14 @@ class DemoActivity extends BaseActivity with WalletActivity {
   }
 
   def account(index: Int): Option[Account] = _accounts.getOrElse(Array()).lift(index)
+
   private[this] var _accounts: Option[Array[Account]] = None
 
 }
 
 class DemoHomeFragment extends BaseFragment {
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState:
+  Bundle): View = {
     inflater.inflate(R.layout.demo_home_tab, container, false)
   }
 }
@@ -192,11 +213,15 @@ class DemoAccountFragment extends BaseFragment with TabTitleHolder {
 
   lazy val accountIndex = getArguments.getInt(IndexArgsKey)
   private lazy val transactionRecyclerViewAdapter = new TransactionRecyclerViewAdapter
+
   def accountIndexTextView = getView.findViewById(R.id.account_index).asInstanceOf[TextView]
+
   def balanceTextView = getView.findViewById(R.id.balance).asInstanceOf[TextView]
+
   def transactionRecyclerView = getView.findViewById(R.id.transactions).asInstanceOf[RecyclerView]
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState:
+  Bundle): View = {
     inflater.inflate(R.layout.demo_account_tab, container, false)
   }
 
@@ -209,11 +234,11 @@ class DemoAccountFragment extends BaseFragment with TabTitleHolder {
   override def onResume(): Unit = {
     super.onResume()
     accountIndexTextView.setText(s"Account #${account.index}")
-    account balance() map {(balance) =>
+    account balance() map { (balance) =>
       balanceTextView.setText(s"Balance: ${balance.toFriendlyString}")
     }
     transactionRecyclerView.setAdapter(transactionRecyclerViewAdapter)
-    account operations() map {(cursor) =>
+    account operations() map { (cursor) =>
       //Logger.d(s"Received ops ${operations.length}")
       //transactionRecyclerViewAdapter.clear()
       //transactionRecyclerViewAdapter.append(operations)
@@ -271,7 +296,7 @@ class DemoAccountFragment extends BaseFragment with TabTitleHolder {
         address.setText(operation.senders.lift(0).getOrElse("Unknown").toString)
         amount.setText(s"+${operation.amount.toPlainString}")
       }
-      v.setOnClickListener({(v: View) =>
+      v.setOnClickListener({ (v: View) =>
         val intent = new Intent(Intent.ACTION_VIEW, Uri.parse(s"https://blockchain" +
           s".info/tx/${operation.hash.toString}"))
         getActivity.startActivity(intent)
@@ -280,7 +305,9 @@ class DemoAccountFragment extends BaseFragment with TabTitleHolder {
 
   }
 
-  lazy val account = getActivity.asInstanceOf[DemoActivity].account(accountIndex).get // Bad bad bad
+  lazy val account = getActivity.asInstanceOf[DemoActivity].account(accountIndex).get
+
+  // Bad bad bad
   override def tabTitle: String = s"Account #$accountIndex"
 }
 
@@ -300,7 +327,8 @@ object DemoAccountFragment {
 
 }
 
-class DemoOverviewFragment extends BaseFragment with TabTitleHolder with MainThreadEventReceiver with Loggable {
+class DemoOverviewFragment extends BaseFragment with TabTitleHolder with MainThreadEventReceiver
+with Loggable {
 
   lazy val lastBlockTimeTextView = TR(R.id.last_block_date).as[TextView]
   lazy val progress = TR(R.id.progress).as[ProgressBar]
@@ -310,7 +338,8 @@ class DemoOverviewFragment extends BaseFragment with TabTitleHolder with MainThr
 
   override def tabTitle: String = "Overview"
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState:
+  Bundle): View = {
     inflater.inflate(R.layout.demo_home_tab, container, false)
   }
 
@@ -327,7 +356,7 @@ class DemoOverviewFragment extends BaseFragment with TabTitleHolder with MainThr
   }
 
   private[this] def updateBalance(): Unit = {
-    wallet.balance().map {(b) =>
+    wallet.balance().map { (b) =>
       balanceTextView.setText(s"Balance: ${b.toFriendlyString}")
     } recover {
       case throwable: Throwable =>

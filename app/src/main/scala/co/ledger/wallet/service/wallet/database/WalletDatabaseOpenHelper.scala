@@ -43,7 +43,6 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
 
   override def onCreate(db: SQLiteDatabase): Unit = {
     CreateAccountsTable on db
-    CreateAccountsTable on db
     CreateOperationsTable on db
     CreateInputsTable on db
     CreateOutputsTable on db
@@ -53,78 +52,78 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
   lazy val writer: WalletDatabaseWriter = new WalletDatabaseWriter(getWritableDatabase)
   lazy val reader: WalletDatabaseReader = new WalletDatabaseReader(getReadableDatabase)
 
-  val CreateAccountsTable = {
+  lazy val CreateAccountsTable = {
     import DatabaseStructure.AccountTableColumns._
     s"""
-       CREATE TABLE IF NOT EXISTS $AccountTableName(
-       | $Index INTEGER PRIMARY KEY ASC,
-       | $Name TEXT,
-       | $Color INTEGER,
-       | $Hidden INTEGER DEFAULT 0,
-       | $Xpub58 TEXT NOT NULL,
-       | $CreationTime INTEGER NOT NULL,
+       CREATE TABLE $AccountTableName (
+       | `$Index` INTEGER PRIMARY KEY ASC,
+       | `$Name` TEXT,
+       | `$Color` INTEGER,
+       | `$Hidden` INTEGER DEFAULT 0,
+       | `$Xpub58` TEXT NOT NULL,
+       | `$CreationTime` INTEGER NOT NULL
        |)
-     """.stripMargin
+     """.stripMargin.replace("\n", "")
   }
 
-  val CreateOperationsTable = {
+  lazy val CreateOperationsTable = {
     import DatabaseStructure.OperationTableColumns._
     s"""
-       CREATE TABLE IF NOT EXISTS $AccountTableName(
-       | $Uid TEXT PRIMARY KEY,
-       | $AccountId INTEGER NOT NULL,
-       | $Hash TEXT NOT NULL,
-       | $Fees INTEGER NOT NULL,
-       | $Time INTEGER NOT NULL,
-       | $LockTime INTEGER NOT NULL,
-       | $Value INTEGER NOT NULL,
-       | $Type INTEGER NOT NULL,
-       | $BlockHash TEXT,
-       | FOREIGN KEY($AccountId) REFERENCE $AccountTableName(${AccountTableColumns.Index}) ON
+       CREATE TABLE IF NOT EXISTS $OperationTableName (
+       | `$Uid` TEXT PRIMARY KEY,
+       | `$AccountId` INTEGER NOT NULL,
+       | `$Hash` TEXT NOT NULL,
+       | `$Fees` INTEGER NOT NULL,
+       | `$Time` INTEGER NOT NULL,
+       | `$LockTime` INTEGER NOT NULL,
+       | `$Value` INTEGER NOT NULL,
+       | `$Type` INTEGER NOT NULL,
+       | `$BlockHash` TEXT,
+       | FOREIGN KEY(`$AccountId`) REFERENCES $AccountTableName(`${AccountTableColumns.Index}`) ON
        | DELETE CASCADE
        |)
-     """.stripMargin
+     """.stripMargin.stripLineEnd
   }
 
-  val CreateInputsTable = {
+  lazy val CreateInputsTable = {
     import DatabaseStructure.InputTableColumns._
     s"""
-       CREATE TABLE IF NOT EXISTS $InputTableName(
-       | $Uid TEXT PRIMARY KEY,
-       | $Index INTEGER NOT NULL,
-       | $Path TEXT,
-       | $Value INTEGER NOT NULL,
-       | $Coinbase INTEGER,
-       | $PreviousTx TEXT NOT NULL,
-       | $ScriptSig TEXT NOT NULL,
-       | $Address TEXT
+       CREATE TABLE IF NOT EXISTS $InputTableName (
+       | `$Uid` TEXT PRIMARY KEY,
+       | `$Index` INTEGER NOT NULL,
+       | `$Path` TEXT,
+       | `$Value` INTEGER NOT NULL,
+       | `$Coinbase` INTEGER,
+       | `$PreviousTx` TEXT NOT NULL,
+       | `$ScriptSig` TEXT NOT NULL,
+       | `$Address` TEXT
        |)
-     """.stripMargin
+     """.stripMargin.stripLineEnd
   }
 
-  val CreateOutputsTable = {
+  lazy val CreateOutputsTable = {
     import DatabaseStructure.OutputTableColumns._
     s"""
-       CREATE TABLE IF NOT EXISTS $OutputTableName(
-       | $Uid INTEGER PRIMARY KEY AUTOINCREMENT,
-       | $Index INTEGER NOT NULL,
-       | $TransactionHash TEXT NOT NULL,
-       | $Path TEXT,
-       | $Value INTEGER NOT NULL,
-       | $PubKeyScript TEXT NOT NULL,
-       | $Address TEXT,
+       CREATE TABLE IF NOT EXISTS $OutputTableName (
+       | `$Uid` TEXT PRIMARY KEY,
+       | `$Index` INTEGER NOT NULL,
+       | `$TransactionHash` TEXT NOT NULL,
+       | `$Path` TEXT,
+       | `$Value` INTEGER NOT NULL,
+       | `$PubKeyScript` TEXT NOT NULL,
+       | `$Address` TEXT
        |)
-     """.stripMargin
+     """.stripMargin.stripLineEnd
   }
 
-  val CreateOperationsInputsTable = {
+  lazy val CreateOperationsInputsTable = {
     import DatabaseStructure.OperationsInputsTableColumns._
     s"""
-       CREATE TABLE IF NOT EXISTS $OutputTableName(
-       | $OperationUid TEXT NOT NULL,
-       | $InputUid TEXT NOT NULL
+       CREATE TABLE IF NOT EXISTS $OperationsInputsTableName (
+       | `$OperationUid` TEXT NOT NULL,
+       | `$InputUid` TEXT NOT NULL
        |)
-     """.stripMargin
+     """.stripMargin.stripLineEnd
   }
 
   private implicit class SqlString(val sql: String) {

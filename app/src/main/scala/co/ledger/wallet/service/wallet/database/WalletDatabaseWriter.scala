@@ -30,8 +30,49 @@
  */
 package co.ledger.wallet.service.wallet.database
 
+import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
+import DatabaseStructure._
+import co.ledger.wallet.service.wallet.database.model.AccountRow
+
+import scala.util.Try
 
 class WalletDatabaseWriter(database: SQLiteDatabase) {
+
+  def deleteAllAccounts(): Int = {
+    import DatabaseStructure.AccountTableColumns._
+    database.delete(AccountTableName, "1", null)
+  }
+
+  def createAccountRow(index: Option[Int] = None,
+                       name: Option[String] = None,
+                       color: Option[Int] = None,
+                       hidden: Option[Boolean] = None,
+                       xpub58: Option[String] = None,
+                       creationTime: Option[Long] = None)
+  : Boolean = {
+    import DatabaseStructure.AccountTableColumns._
+    val values = new ContentValues()
+    index.foreach((index) => values.put(Index, Integer.valueOf(index)))
+    name.foreach(values.put(Name, _))
+    color.foreach((color) => values.put(Color, Integer.valueOf(color)))
+    hidden.foreach(values.put(Hidden, _))
+    xpub58.foreach(values.put(Xpub58, _))
+    creationTime.foreach((time) => values.put(CreationTime, java.lang.Long.valueOf(time)))
+    database.insertOrThrow(AccountTableName, null, values) != -1
+  }
+
+  def transaction[A](f: => A) = {
+    beginTransaction()
+    val r = Try(f)
+    if (r.isSuccess)
+      commitTransaction()
+    endTransaction()
+    r
+  }
+
+  def beginTransaction() = database.beginTransaction()
+  def commitTransaction() = database.setTransactionSuccessful()
+  def endTransaction() = database.endTransaction()
 
 }

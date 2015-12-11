@@ -41,7 +41,7 @@ object DatabaseStructure {
   val OperationsInputsTableName = "operations_inputs"
 
   object AccountTableColumns extends BaseColumns {
-    val Index = "index"
+    val Index = "account_index"
     val Name = "name"
     val Color = "color"
     val Hidden = "hidden"

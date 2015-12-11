@@ -30,9 +30,14 @@
  */
 package co.ledger.wallet.service.wallet.spv
 
+import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.service.wallet.database.model.AccountRow
-import org.bitcoinj.core.{Wallet => JWallet, PeerGroup, BlockChain}
+import com.google.common.util.concurrent.{ListenableFuture, FutureCallback, Futures}
+import org.bitcoinj.core.{Wallet => JWallet, DownloadProgressTracker, PeerGroup, BlockChain}
 import org.bitcoinj.store.BlockStore
+import scala.concurrent.ExecutionContext.Implicits.global
+
+import scala.concurrent.{Promise, Future}
 
 class SpvAppKit(
   val blockStore: BlockStore,
@@ -40,8 +45,32 @@ class SpvAppKit(
   val peerGroup: PeerGroup,
   val accounts: Array[(AccountRow, JWallet)]) {
 
+  accounts foreach {
+    case (accountRow, wallet) =>
+      blockChain.addWallet(wallet)
+      peerGroup.addWallet(wallet)
+  }
+
+  def start(): Future[SpvAppKit] = _startFuture
+
+  def synchronize(tracker: DownloadProgressTracker): Future[Unit] = start() map {(_) =>
+    Logger.d("START DOWNLOAD BLOCKCHAIN")("DEBUG", false)
+    peerGroup.startBlockChainDownload(tracker)
+  }
+
   def close(): Unit = {
 
+  }
+
+  private[this] lazy val _startFuture = {
+    val promise = Promise[SpvAppKit]()
+    Logger.d("START FUTURE NOW")("DEBUG", false)
+    Futures.addCallback(peerGroup.startAsync().asInstanceOf[ListenableFuture[Any]], new FutureCallback[Any] {
+      override def onFailure(t: Throwable): Unit = promise.failure(t)
+
+      override def onSuccess(result: Any): Unit = promise.success(SpvAppKit.this)
+    })
+    promise.future
   }
 
 }

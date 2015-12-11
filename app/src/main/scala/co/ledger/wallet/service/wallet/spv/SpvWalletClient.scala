@@ -35,17 +35,17 @@ import java.util.Date
 import android.content.Context
 import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.{AsyncCursor, SerialQueueTask}
-import co.ledger.wallet.core.utils.logs.Loggable
+import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
 import co.ledger.wallet.service.wallet.database.WalletDatabaseOpenHelper
+import co.ledger.wallet.wallet.DerivationPath.dsl._
 import co.ledger.wallet.wallet._
+import co.ledger.wallet.wallet.events.PeerGroupEvents._
+import co.ledger.wallet.wallet.exceptions._
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Wallet => JWallet, _}
-import co.ledger.wallet.common._
-import co.ledger.wallet.wallet.exceptions._
-import co.ledger.wallet.wallet.DerivationPath.dsl._
 import org.bitcoinj.crypto.DeterministicKey
 
-import scala.concurrent.Future
+import scala.concurrent.{Promise, Future}
 
 class SpvWalletClient(val context: Context, val name: String, val networkParameters: NetworkParameters)
   extends Wallet with SerialQueueTask with Loggable {
@@ -56,7 +56,38 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
   override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = ???
 
-  override def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] = ???
+  override def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
+  init() flatMap {(appKit) =>
+    val promise = Promise[Unit]()
+    var _max = Int.MaxValue
+    Logger.d("SYNCHRONIZE")
+    appKit.synchronize(new DownloadProgressTracker() {
+
+      override def startDownload(blocks: Int): Unit = {
+        super.startDownload(blocks)
+        Logger.d("START DOWNLOAD")
+      }
+
+
+      override def onBlocksDownloaded(peer: Peer, block: Block, filteredBlock: FilteredBlock,
+                                      blocksLeft: Int): Unit = {
+        super.onBlocksDownloaded(peer, block, filteredBlock, blocksLeft)
+        if (_max == Int.MaxValue)
+          _max = blocksLeft
+
+        Logger.d(s"Sync ${_max - blocksLeft}/${_max}")
+        if ((_max - blocksLeft) % 100 == 0)
+          eventBus.post(SynchronizationProgress(_max - blocksLeft, _max))
+        eventBus.post(BlockDownloaded(block))
+      }
+
+      override def doneDownload(): Unit = {
+        super.doneDownload()
+        promise.success()
+      }
+    })
+    promise.future
+  }
 
   override def accounts(): Future[Array[Account]] = init() map {(_) =>
     _accounts.asInstanceOf[Array[Account]]
@@ -74,48 +105,56 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
   override def setup(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
     Future.successful() flatMap {(_) =>
-      publicKeyProvider.generateXpub(rootPath/1.h)
+      publicKeyProvider.generateXpub(rootPath/0.h)
     } flatMap {(xpub) =>
       _earliestCreationTimeProvider.getEarliestTransactionTime(xpub) map {(date) =>
         (xpub, date)
       }
     } flatMap {
       case (xpub, date) =>
-        val checpoints = context.getAssets.open(Config.CheckpointFilePath)
-        val wallet = JWallet.fromWatchingKey(networkParameters, xpub, date.getTime / 1000L)
-        _spvSynchronizationHelper.setup(Array(wallet), date, checpoints)
-    } map setupWithAppKit
+        val checkpoints = context.getAssets.open(Config.CheckpointFilePath)
+        _spvAppKitFactory.setup(Array(xpub), date, checkpoints)
+    } map setupWithAppKit map {(_) => null}
 
-  private def init(): Future[Unit] = Future.successful() flatMap {(_) =>
+
+  override def needsSetup(): Future[Boolean] = init().map((_) => true).recover {
+    case WalletNotSetupException() => false
+    case throwable: Throwable => throw throwable
+  }
+
+  private def init(): Future[SpvAppKit] = Future.successful() flatMap {(_) =>
     if (_spvAppKit.isEmpty) {
-      _spvSynchronizationHelper.loadWalletsFromDatabase() flatMap {(accounts) =>
-        if (accounts.isEmpty)
-          throw WalletNotSetupException()
-        _spvSynchronizationHelper.startPeerGroup(accounts) map setupWithAppKit
+      _spvAppKitFactory.loadFromDatabase().map(setupWithAppKit) recover {
+        case NoAppKitToLoadException() => throw WalletNotSetupException()
+        case throwable: Throwable =>
+          throwable.printStackTrace()
+          throw throwable
       }
     } else {
      Future.successful(_spvAppKit.get)
     }
   }
 
-  private def setupWithAppKit(appKit: SpvAppKit): Unit = {
-
+  private def setupWithAppKit(appKit: SpvAppKit): SpvAppKit = {
+    _spvAppKit = Some(appKit)
+    appKit
   }
 
   private[this] var _accounts = Array[SpvAccountClient]()
   private[this] var _spvAppKit: Option[SpvAppKit] = None
   private[this] lazy val _database = new WalletDatabaseOpenHelper(context, name)
-  private[this] lazy val _spvSynchronizationHelper =
-    new SpvSynchronizationHelper(
+  private[this] lazy val _spvAppKitFactory =
+    new SpvAppKitFactory(
+      ec,
       networkParameters,
-      context.getDir(s"spv", Context.MODE_PRIVATE),
+      context.getDir(s"spv_$name", Context.MODE_PRIVATE),
       _database
     )
 
   private[this] lazy val _earliestCreationTimeProvider = new EarliestTransactionTimeProvider {
     override def getEarliestTransactionTime(deterministicKey: DeterministicKey): Future[Date] = {
       // Derive the first 20 addresses from both public and change chain
-      Future.successful(new Date(1434979887 * 1000))
+      Future.successful(new Date(1434979887000L))
     }
   }
 }

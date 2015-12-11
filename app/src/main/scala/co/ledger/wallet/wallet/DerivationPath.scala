@@ -52,6 +52,16 @@ class DerivationPath(p: DerivationPath, val childNum: Long) {
       Some(root)
   }
 
+  def isHardened = childNum >= 0x80000000L
+
+  lazy val index = if (isHardened) childNum - 0x80000000L else childNum
+
+  override def toString: String = {
+    if (parent == this)
+      "m"
+    else
+      s"${parent.toString}/${if (isHardened) index + "'" else index}"
+  }
 }
 
 object DerivationPath {
@@ -75,7 +85,7 @@ object DerivationPath {
           node
         else {
           val hardened = part.endsWith("'") || part.endsWith("h")
-          val childNum = num.toInt.toLong + (if (hardened) 0x80000000L else 0)
+          val childNum = num.toInt.toLong + (if (hardened) 0x80000000L else 0L)
           parse(path.substring(part.length), new DerivationPath(node, childNum))
         }
       }
@@ -86,7 +96,7 @@ object DerivationPath {
   object dsl {
 
     implicit class DPInt(val num: Int) {
-      def h: DerivationPath = new DerivationPath(Root, num + 0x80000000)
+      def h: DerivationPath = new DerivationPath(Root, num.toLong + 0x80000000L)
     }
 
     implicit def Int2DerivationPath(num: Int): DerivationPath = new DerivationPath(Root, num)

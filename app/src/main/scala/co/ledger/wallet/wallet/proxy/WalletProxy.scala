@@ -59,6 +59,7 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
       proxies
   }
 
+  override def needsSetup(): Future[Boolean] = connect().flatMap(_.needsSetup())
 
   override def account(index: Int): Future[Account] =
     connect().flatMap(_.account(index)).map(AccountProxy(this, _))

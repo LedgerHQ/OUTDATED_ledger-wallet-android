@@ -47,6 +47,7 @@ trait Wallet {
   def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit]
   def isSynchronizing(): Future[Boolean]
   def operations(batchSize: Int = Wallet.DefaultOperationsBatchSize): Future[AsyncCursor[Operation]]
+  def needsSetup(): Future[Boolean]
   def eventBus: EventBus
 
 }
