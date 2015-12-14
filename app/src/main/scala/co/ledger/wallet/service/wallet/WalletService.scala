@@ -42,7 +42,7 @@ class WalletService extends Service {
   private var _wallet: SpvWalletClient = null // Temporary implementation
   def wallet(name: String): Wallet = {
     if (_wallet == null)
-      _wallet = new SpvWalletClient(this, name, MainNetParams.get())
+      _wallet = new SpvWalletClient(this, s"wallet_$name", MainNetParams.get())
     _wallet
   }
 

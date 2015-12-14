@@ -33,7 +33,9 @@ package co.ledger.wallet.service.wallet.spv
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import com.google.common.util.concurrent.{ListenableFuture, FutureCallback, Futures}
-import org.bitcoinj.core.{Wallet => JWallet, DownloadProgressTracker, PeerGroup, BlockChain}
+import org.bitcoinj.core.{Wallet => JWallet, Context, DownloadProgressTracker, PeerGroup,
+BlockChain}
+import org.bitcoinj.net.discovery.DnsDiscovery
 import org.bitcoinj.store.BlockStore
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -51,6 +53,8 @@ class SpvAppKit(
       peerGroup.addWallet(wallet)
   }
 
+  peerGroup.addPeerDiscovery(new DnsDiscovery(Context.get().getParams))
+
   def start(): Future[SpvAppKit] = _startFuture
 
   def synchronize(tracker: DownloadProgressTracker): Future[Unit] = start() map {(_) =>
@@ -59,7 +63,8 @@ class SpvAppKit(
   }
 
   def close(): Unit = {
-
+    peerGroup.stop()
+    blockStore.close()
   }
 
   private[this] lazy val _startFuture = {

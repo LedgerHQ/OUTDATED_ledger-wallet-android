@@ -32,23 +32,31 @@ package co.ledger.wallet.service.wallet.spv
 
 import co.ledger.wallet.core.concurrent.AsyncCursor
 import co.ledger.wallet.core.utils.logs.Loggable
+import co.ledger.wallet.service.wallet.database.model.AccountRow
 import co.ledger.wallet.wallet.{Operation, ExtendedPublicKeyProvider, Account}
-import org.bitcoinj.core.{Address, Coin}
+import org.bitcoinj.core.{Wallet, Address, Coin}
 import org.bitcoinj.crypto.DeterministicKey
 
 import scala.concurrent.Future
 
-class SpvAccountClient(val wallet: SpvWalletClient, val index: Int)
+class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
   extends Account with Loggable {
 
   implicit val ec = wallet.ec // Work on the wallet queue
-  override def freshPublicAddress(): Future[Address] = ???
+
+  val row = data._1
+  val xpubWatcher = data._2
+
+  val index = row.index
+
+  override def freshPublicAddress(): Future[Address] = Future.successful(xpubWatcher.freshReceiveAddress())
 
   override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = ???
 
-  override def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit] = ???
+  override def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit] =
+    wallet.synchronize(provider)
 
-  override def xpub(): Future[DeterministicKey] = ???
+  override def xpub(): Future[DeterministicKey] = Future.successful(xpubWatcher.getWatchingKey)
 
-  override def balance(): Future[Coin] = ???
+  override def balance(): Future[Coin] = Future.successful(xpubWatcher.getBalance)
 }

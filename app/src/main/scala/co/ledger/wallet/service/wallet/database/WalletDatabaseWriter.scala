@@ -33,6 +33,7 @@ package co.ledger.wallet.service.wallet.database
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import DatabaseStructure._
+import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 
 import scala.util.Try
@@ -67,6 +68,8 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     val r = Try(f)
     if (r.isSuccess)
       commitTransaction()
+    else
+      r.failed.get.printStackTrace()
     endTransaction()
     r
   }

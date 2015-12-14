@@ -69,20 +69,20 @@ class SpvAppKitFactory(executionContext: ExecutionContext,
 
     val blockChain = new BlockChain(networkParameters, blockStore)
     val peerGroup = new PeerGroup(networkParameters, blockChain)
-    peerGroup.addPeerDiscovery(discovery)
 
     val accounts = createAccountsFromXpub(wallets, time)
-    val builder = new SpvAppKitBuilder()
+    var builder = new SpvAppKitBuilder()
       .withBlockStore(blockStore)
       .withBlockChain(blockChain)
       .withPeerGroup(peerGroup)
     accounts.foreach {
-      case (row, wallet) => builder.addAccount(row, wallet)
+      case (row, wallet) => builder = builder.addAccount(row, wallet)
     }
     builder.build()
   }
 
   def loadFromDatabase(): Future[SpvAppKit] = Future {
+    Context.propagate(Context.getOrCreate(networkParameters))
     val accounts = allAccounts()
     Logger.d(s"Accounts count == ${accounts.length}")
     if (accounts.length == 0 || !chainFile.exists()) throw NoAppKitToLoadException()
@@ -93,12 +93,12 @@ class SpvAppKitFactory(executionContext: ExecutionContext,
     if (blockStore.getChainHead.getHeight == 0)
       throw CorruptedBlockStoreException()
 
-    val builder = new SpvAppKitBuilder()
+    var builder = new SpvAppKitBuilder()
       .withBlockStore(blockStore)
       .withBlockChain(blockChain)
       .withPeerGroup(peerGroup)
     accounts.foreach {
-      case (row, wallet) => builder.addAccount(row, wallet)
+      case (row, wallet) => builder = builder.addAccount(row, wallet)
     }
     builder.build()
   }
@@ -107,6 +107,7 @@ class SpvAppKitFactory(executionContext: ExecutionContext,
   private def allAccounts() = {
     val cursor = database.reader.allAccounts()
     val wallets = new Array[(AccountRow, JWallet)](cursor.getCount)
+    Logger.d(s"Number of accounts ${cursor.getCount}")
     if (cursor.getCount > 0) {
       cursor.moveToFirst()
       var index = 0

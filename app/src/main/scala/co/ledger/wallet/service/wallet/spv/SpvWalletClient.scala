@@ -45,6 +45,7 @@ import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Wallet => JWallet, _}
 import org.bitcoinj.crypto.DeterministicKey
 
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{Promise, Future}
 
 class SpvWalletClient(val context: Context, val name: String, val networkParameters: NetworkParameters)
@@ -57,45 +58,74 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = ???
 
   override def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
-  init() flatMap {(appKit) =>
-    val promise = Promise[Unit]()
-    var _max = Int.MaxValue
-    Logger.d("SYNCHRONIZE")
-    appKit.synchronize(new DownloadProgressTracker() {
+  Future.successful() flatMap {(_) =>
+    if (_syncFuture.isEmpty) {
+      _syncFuture = Some(init() flatMap { (appKit) =>
+        val promise = Promise[Unit]()
+        var _max = Int.MaxValue
+        Logger.d("SYNCHRONIZE")
+        appKit.synchronize(new DownloadProgressTracker() {
 
-      override def startDownload(blocks: Int): Unit = {
-        super.startDownload(blocks)
-        Logger.d("START DOWNLOAD")
-      }
+          override def startDownload(blocks: Int): Unit = {
+            super.startDownload(blocks)
+            Logger.d("START DOWNLOAD")
+          }
+
+          override def onBlocksDownloaded(peer: Peer, block: Block, filteredBlock: FilteredBlock,
+                                          blocksLeft: Int): Unit = {
+            super.onBlocksDownloaded(peer, block, filteredBlock, blocksLeft)
+            if (_max == Int.MaxValue)
+              _max = blocksLeft
+
+            if ((_max - blocksLeft) % 100 == 0)
+              eventBus.post(SynchronizationProgress(_max - blocksLeft, _max))
+            eventBus.post(BlockDownloaded(block))
+          }
 
 
-      override def onBlocksDownloaded(peer: Peer, block: Block, filteredBlock: FilteredBlock,
-                                      blocksLeft: Int): Unit = {
-        super.onBlocksDownloaded(peer, block, filteredBlock, blocksLeft)
-        if (_max == Int.MaxValue)
-          _max = blocksLeft
+          override def onTransaction(peer: Peer, t: Transaction): Unit = {
+            super.onTransaction(peer, t)
+            Logger.d(s"Transaction received ${t.getHashAsString} before futuring")("D", false)
+            Future {
+              Logger.d(s"Transaction received ${t.getHashAsString}")("D", false)
+              val lastAccount = _accounts.last
+              Logger.d(s"Is relevant ${lastAccount.xpubWatcher.isTransactionRelevant(t)}")("D", false)
+              if (lastAccount.xpubWatcher.isTransactionRelevant(t)) {
+                clearAppKit()
+                promise.failure(new AccountHasNoXpubException(_accounts.length))
+              }
+            } recover {
+              case throwable: Throwable => throwable.printStackTrace()
+            }
 
-        Logger.d(s"Sync ${_max - blocksLeft}/${_max}")
-        if ((_max - blocksLeft) % 100 == 0)
-          eventBus.post(SynchronizationProgress(_max - blocksLeft, _max))
-        eventBus.post(BlockDownloaded(block))
-      }
+          }
 
-      override def doneDownload(): Unit = {
-        super.doneDownload()
-        promise.success()
-      }
-    })
-    promise.future
+          override def doneDownload(): Unit = {
+            super.doneDownload()
+            promise.success()
+          }
+        })
+        promise.future
+      } andThen {
+        case all => _syncFuture = None
+      })
+    }
+    _syncFuture.get
   }
+
 
   override def accounts(): Future[Array[Account]] = init() map {(_) =>
     _accounts.asInstanceOf[Array[Account]]
   }
 
-  override def isSynchronizing(): Future[Boolean] = ???
+  override def isSynchronizing(): Future[Boolean] = Future {
+    _syncFuture.isDefined
+  }
 
-  override def balance(): Future[Coin] = ???
+  override def balance(): Future[Coin] =
+    Future.sequence((for (a <- _accounts) yield a.balance()).toSeq).map {(balances) =>
+      balances.reduce(_ add _)
+    }
 
   override def accountsCount(): Future[Int] = init() map {(_) => _accounts.length}
 
@@ -114,7 +144,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       case (xpub, date) =>
         val checkpoints = context.getAssets.open(Config.CheckpointFilePath)
         _spvAppKitFactory.setup(Array(xpub), date, checkpoints)
-    } map setupWithAppKit map {(_) => null}
+    } map setupWithAppKit map {unit => ()}
 
 
   override def needsSetup(): Future[Boolean] = init().map((_) => true).recover {
@@ -137,7 +167,14 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
   private def setupWithAppKit(appKit: SpvAppKit): SpvAppKit = {
     _spvAppKit = Some(appKit)
+    _accounts = appKit.accounts.map((d) => new SpvAccountClient(this, d))
+    Logger.d(s"Accounts init ${appKit.accounts.length} ${_accounts.length}")
     appKit
+  }
+
+  private def clearAppKit(): Unit = {
+    val appKit = _spvAppKit.get.close()
+    _spvAppKit = None
   }
 
   private[this] var _accounts = Array[SpvAccountClient]()
@@ -150,6 +187,8 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       context.getDir(s"spv_$name", Context.MODE_PRIVATE),
       _database
     )
+
+  private[this] var _syncFuture: Option[Future[Unit]] = None
 
   private[this] lazy val _earliestCreationTimeProvider = new EarliestTransactionTimeProvider {
     override def getEarliestTransactionTime(deterministicKey: DeterministicKey): Future[Date] = {
