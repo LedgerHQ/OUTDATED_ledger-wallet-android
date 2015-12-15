@@ -30,13 +30,18 @@
  */
 package co.ledger.wallet.service.wallet.spv
 
+import java.util
+import java.util.concurrent.Executor
+
 import co.ledger.wallet.core.concurrent.AsyncCursor
-import co.ledger.wallet.core.utils.logs.Loggable
+import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import co.ledger.wallet.wallet.{Operation, ExtendedPublicKeyProvider, Account}
-import org.bitcoinj.core.{Wallet, Address, Coin}
+import org.bitcoinj.core._
 import org.bitcoinj.crypto.DeterministicKey
+import co.ledger.wallet.wallet.events.WalletEvents._
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
@@ -46,7 +51,6 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
 
   val row = data._1
   val xpubWatcher = data._2
-
   val index = row.index
 
   override def freshPublicAddress(): Future[Address] = Future.successful(xpubWatcher.freshReceiveAddress())
@@ -59,4 +63,37 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
   override def xpub(): Future[DeterministicKey] = Future.successful(xpubWatcher.getWatchingKey)
 
   override def balance(): Future[Coin] = Future.successful(xpubWatcher.getBalance)
+
+  def release(): Unit = {
+    xpubWatcher.removeEventListener(_eventListener)
+  }
+
+  xpubWatcher.addEventListener(_eventListener, new Executor {
+    override def execute(command: Runnable): Unit = ec.execute(command)
+  })
+
+  private[this] lazy val _eventListener = new WalletEventListener
+
+  private class WalletEventListener extends AbstractWalletEventListener {
+
+    override def onKeysAdded(keys: util.List[ECKey]): Unit = {
+      super.onKeysAdded(keys)
+      Logger.d(s"Keys added: ${keys.size()}")
+      for (key <- keys.asScala) {
+        Logger.d(s"Add key ${Address.fromP2SHHash(wallet.networkParameters, key.getPubKeyHash)}")
+      }
+    }
+
+    override def onCoinsReceived(w: Wallet, tx: Transaction, prevBalance: Coin, newBalance: Coin)
+    : Unit = {
+      super.onCoinsReceived(w, tx, prevBalance, newBalance)
+      wallet.eventBus.post(CoinReceived(index, newBalance))
+      wallet.eventBus.post(TransactionReceived(index, tx))
+    }
+
+    override def onWalletChanged(w: Wallet): Unit = {
+      super.onWalletChanged(w)
+
+    }
+  }
 }

@@ -30,12 +30,13 @@
  */
 package co.ledger.wallet.service.wallet.spv
 
-import co.ledger.wallet.core.utils.logs.Logger
+import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import com.google.common.util.concurrent.{ListenableFuture, FutureCallback, Futures}
 import org.bitcoinj.core.{Wallet => JWallet, Context, DownloadProgressTracker, PeerGroup,
 BlockChain}
 import org.bitcoinj.net.discovery.DnsDiscovery
+import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.store.BlockStore
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -45,7 +46,10 @@ class SpvAppKit(
   val blockStore: BlockStore,
   val blockChain: BlockChain,
   val peerGroup: PeerGroup,
-  val accounts: Array[(AccountRow, JWallet)]) {
+  val accounts: Array[(AccountRow, JWallet)]) extends Loggable {
+
+  peerGroup.setDownloadTxDependencies(false)
+  peerGroup.addPeerDiscovery(new DnsDiscovery(Context.get().getParams))
 
   accounts foreach {
     case (accountRow, wallet) =>
@@ -53,7 +57,9 @@ class SpvAppKit(
       peerGroup.addWallet(wallet)
   }
 
-  peerGroup.addPeerDiscovery(new DnsDiscovery(Context.get().getParams))
+  peerGroup.setFastCatchupTimeSecs(accounts(0)._1.creationTime)
+
+  implicit val DisableLogging = false
 
   def start(): Future[SpvAppKit] = _startFuture
 
@@ -63,12 +69,29 @@ class SpvAppKit(
   }
 
   def close(): Unit = {
+    Logger.d("Closing app kit")
+    Logger.d(s"Current chain height ${blockChain.getBestChainHeight}")
+    Logger.d(s"Current first account height ${accounts(0)._2.getLastBlockSeenHeight}")
     peerGroup.stop()
     blockStore.close()
   }
 
   private[this] lazy val _startFuture = {
     val promise = Promise[SpvAppKit]()
+    var lastBlockHeight = Int.MaxValue
+    accounts foreach {
+      case (_, wallet) =>
+        if (wallet.getLastBlockSeenHeight < lastBlockHeight)
+          lastBlockHeight = wallet.getLastBlockSeenHeight
+    }
+    blockChain.getChainHead
+    Logger.d("Opening app kit")
+    Logger.d(s"Current chain height ${blockChain.getBestChainHeight}")
+    Logger.d(s"Current first account height ${accounts(0)._2.getLastBlockSeenHeight}")
+    Logger.d(s"First account xpub ${accounts(0)._2.getWatchingKey.serializePubB58(MainNetParams
+      .get())}")
+    Logger.d(s"Creation time ${accounts(0)._2.getEarliestKeyCreationTime}")
+    Logger.d(s"Fast catchup ${peerGroup.getFastCatchupTimeSecs}")
     Logger.d("START FUTURE NOW")("DEBUG", false)
     Futures.addCallback(peerGroup.startAsync().asInstanceOf[ListenableFuture[Any]], new FutureCallback[Any] {
       override def onFailure(t: Throwable): Unit = promise.failure(t)

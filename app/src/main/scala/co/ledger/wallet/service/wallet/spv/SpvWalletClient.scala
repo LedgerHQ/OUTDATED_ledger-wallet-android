@@ -35,21 +35,28 @@ import java.util.Date
 import android.content.Context
 import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.{AsyncCursor, SerialQueueTask}
+import co.ledger.wallet.core.utils.Preferences
 import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
 import co.ledger.wallet.service.wallet.database.WalletDatabaseOpenHelper
 import co.ledger.wallet.wallet.DerivationPath.dsl._
 import co.ledger.wallet.wallet._
 import co.ledger.wallet.wallet.events.PeerGroupEvents._
+import co.ledger.wallet.wallet.events.WalletEvents._
 import co.ledger.wallet.wallet.exceptions._
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Wallet => JWallet, _}
 import org.bitcoinj.crypto.DeterministicKey
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{Promise, Future}
 
 class SpvWalletClient(val context: Context, val name: String, val networkParameters: NetworkParameters)
   extends Wallet with SerialQueueTask with Loggable {
+
+  val NeededAccountIndexKey = "n_index"
+  val NeededAccountCreationTimeKey = "n_time"
+  val ResumeBlockchainDownloadKey = "max_block_left"
 
   implicit val DisableLogging = false
 
@@ -62,8 +69,9 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     if (_syncFuture.isEmpty) {
       _syncFuture = Some(init() flatMap { (appKit) =>
         val promise = Promise[Unit]()
-        var _max = Int.MaxValue
+        var _max = _resumeBlockchainDownloadMaxBlock.getOrElse(Int.MaxValue)
         Logger.d("SYNCHRONIZE")
+        val lastAccount = _accounts.last
         appKit.synchronize(new DownloadProgressTracker() {
 
           override def startDownload(blocks: Int): Unit = {
@@ -74,30 +82,23 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
           override def onBlocksDownloaded(peer: Peer, block: Block, filteredBlock: FilteredBlock,
                                           blocksLeft: Int): Unit = {
             super.onBlocksDownloaded(peer, block, filteredBlock, blocksLeft)
-            if (_max == Int.MaxValue)
-              _max = blocksLeft
-
-            if ((_max - blocksLeft) % 100 == 0)
-              eventBus.post(SynchronizationProgress(_max - blocksLeft, _max))
-            eventBus.post(BlockDownloaded(block))
-          }
-
-
-          override def onTransaction(peer: Peer, t: Transaction): Unit = {
-            super.onTransaction(peer, t)
-            Logger.d(s"Transaction received ${t.getHashAsString} before futuring")("D", false)
             Future {
-              Logger.d(s"Transaction received ${t.getHashAsString}")("D", false)
-              val lastAccount = _accounts.last
-              Logger.d(s"Is relevant ${lastAccount.xpubWatcher.isTransactionRelevant(t)}")("D", false)
-              if (lastAccount.xpubWatcher.isTransactionRelevant(t)) {
-                clearAppKit()
-                promise.failure(new AccountHasNoXpubException(_accounts.length))
-              }
-            } recover {
-              case throwable: Throwable => throwable.printStackTrace()
-            }
+              if (_max == Int.MaxValue)
+                _max = blocksLeft
 
+              if ((_max - blocksLeft) % 100 == 0)
+                eventBus.post(SynchronizationProgress(_max - blocksLeft, _max))
+              eventBus.post(BlockDownloaded(block))
+
+              val relevantTx = block.getTransactions.asScala.find(lastAccount.xpubWatcher.isTransactionRelevant)
+
+              if (relevantTx.isDefined) {
+                Logger.d("FIND RELEVANT TRANSACTION")
+                notifyNewAccountNeed(_accounts.length, block.getTimeSeconds)
+                clearAppKit()
+                promise.failure(AccountHasNoXpubException(_accounts.length))
+              }
+            }
           }
 
           override def doneDownload(): Unit = {
@@ -123,8 +124,10 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   }
 
   override def balance(): Future[Coin] =
-    Future.sequence((for (a <- _accounts) yield a.balance()).toSeq).map {(balances) =>
-      balances.reduce(_ add _)
+    init() flatMap {unit =>
+      Future.sequence((for (a <- _accounts) yield a.balance()).toSeq).map { (balances) =>
+        balances.reduce(_ add _)
+      }
     }
 
   override def accountsCount(): Future[Int] = init() map {(_) => _accounts.length}
@@ -166,15 +169,31 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   }
 
   private def setupWithAppKit(appKit: SpvAppKit): SpvAppKit = {
+    _neededAccountIndex foreach { index =>
+      if (index >= appKit.accounts.length) {
+        appKit.close()
+        throw AccountHasNoXpubException(index)
+      }
+    }
     _spvAppKit = Some(appKit)
     _accounts = appKit.accounts.map((d) => new SpvAccountClient(this, d))
     Logger.d(s"Accounts init ${appKit.accounts.length} ${_accounts.length}")
     appKit
   }
 
+  private def notifyNewAccountNeed(index: Int, creationTimeSeconds: Long): Unit = {
+    _preferences.writer
+      .putInt(NeededAccountIndexKey, index)
+      .putLong(NeededAccountCreationTimeKey, creationTimeSeconds)
+      .commit()
+    eventBus.post(MissingAccount(index))
+  }
+  
   private def clearAppKit(): Unit = {
     val appKit = _spvAppKit.get.close()
     _spvAppKit = None
+    _accounts.foreach(_.release())
+    _accounts = Array()
   }
 
   private[this] var _accounts = Array[SpvAccountClient]()
@@ -188,12 +207,36 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       _database
     )
 
+  private[this] val _preferences = Preferences("SpvWalletClient")(context)
   private[this] var _syncFuture: Option[Future[Unit]] = None
-
   private[this] lazy val _earliestCreationTimeProvider = new EarliestTransactionTimeProvider {
     override def getEarliestTransactionTime(deterministicKey: DeterministicKey): Future[Date] = {
       // Derive the first 20 addresses from both public and change chain
       Future.successful(new Date(1434979887000L))
     }
   }
+
+  private[this] def _neededAccountIndex = {
+    if (_preferences.reader.contains(NeededAccountIndexKey))
+      Some(_preferences.reader.getInt(NeededAccountIndexKey, 0))
+    else
+      None
+  }
+
+  private[this] def _neededAccountCreationTime = {
+    if (_preferences.reader.contains(NeededAccountCreationTimeKey))
+      Some(_preferences.reader.getLong(NeededAccountCreationTimeKey, 0))
+    else
+      None
+  }
+
+  private[this] def _resumeBlockchainDownloadMaxBlock = {
+    if (_preferences.reader.contains(ResumeBlockchainDownloadKey))
+      Some(_preferences.reader.getInt(ResumeBlockchainDownloadKey, 0))
+    else
+      None
+  }
+
+  private case class OnEmptyAccountReceiveTransactionEvent()
+
 }

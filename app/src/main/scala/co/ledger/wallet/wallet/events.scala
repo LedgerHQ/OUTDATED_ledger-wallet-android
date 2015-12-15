@@ -42,7 +42,8 @@ package object events {
   }
 
   object WalletEvents {
-    case class TransactionReceived(transaction: Transaction)
+    case class MissingAccount(index: Int)
+    case class TransactionReceived(index: Int, transaction: Transaction)
     case class AccountCreated(index: Int)
     case class AccountUpdated(index: Int)
     case class CoinReceived(accountIndex: Int, coin: Coin)

@@ -35,6 +35,9 @@ import android.content.Context
 class Preferences(name: String, c: Context) extends Preferenceable {
   implicit val context = c
   override def PreferencesName: String = name
+
+  def reader = preferences(c)
+  def writer = edit()(c)
 }
 
 object Preferences {

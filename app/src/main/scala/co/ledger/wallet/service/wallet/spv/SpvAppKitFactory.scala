@@ -32,6 +32,7 @@ package co.ledger.wallet.service.wallet.spv
 
 import java.io.{IOException, InputStream, File}
 import java.util.Date
+import java.util.concurrent.TimeUnit
 
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.service.wallet.database.WalletDatabaseOpenHelper
@@ -40,7 +41,7 @@ import org.bitcoinj.core.{Wallet => JWallet, _}
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.net.discovery.{PeerDiscovery, DnsDiscovery}
 import org.bitcoinj.store.SPVBlockStore
-
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Promise, Future}
 
 class SpvAppKitFactory(executionContext: ExecutionContext,
@@ -114,7 +115,19 @@ class SpvAppKitFactory(executionContext: ExecutionContext,
       while (!cursor.isAfterLast) {
         val row = new AccountRow(cursor)
         val xpub = DeterministicKey.deserializeB58(row.xpub58, networkParameters)
-        val wallet = JWallet.fromWatchingKey(networkParameters, xpub, row.creationTime)
+        val walletFile =
+          new File(directory, s"${networkParameters.getId}_${xpub.serializePubB58(networkParameters)}.wallet")
+        val wallet: JWallet = JWallet.fromWatchingKey(networkParameters, xpub, row.creationTime)
+        if (!walletFile.exists()) {
+
+        } else {
+          val saved = JWallet.loadFromFile(walletFile)
+          // TODO: Report bug to bitcoinj + use a wallet factory to prevent recreating wallet
+          // each time
+          for (tx <- saved.getWalletTransactions.asScala)
+            wallet.addWalletTransaction(tx)
+        }
+        wallet.autosaveToFile(walletFile, 1L, TimeUnit.SECONDS, null)
         wallets(index) = (row, wallet)
         index += 1
         cursor.moveToNext()
