@@ -41,6 +41,7 @@ import org.bitcoinj.store.BlockStore
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.{Promise, Future}
+import scala.util.Try
 
 class SpvAppKit(
   val blockStore: BlockStore,
@@ -72,8 +73,8 @@ class SpvAppKit(
     Logger.d("Closing app kit")
     Logger.d(s"Current chain height ${blockChain.getBestChainHeight}")
     Logger.d(s"Current first account height ${accounts(0)._2.getLastBlockSeenHeight}")
-    peerGroup.stop()
-    blockStore.close()
+    Try(peerGroup.stop())
+    Try(blockStore.close())
   }
 
   private[this] lazy val _startFuture = {

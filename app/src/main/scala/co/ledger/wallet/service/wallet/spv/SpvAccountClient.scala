@@ -80,20 +80,32 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
       super.onKeysAdded(keys)
       Logger.d(s"Keys added: ${keys.size()}")
       for (key <- keys.asScala) {
-        Logger.d(s"Add key ${Address.fromP2SHHash(wallet.networkParameters, key.getPubKeyHash)}")
+        Logger.d(s"Add key ${new Address(wallet.networkParameters, key.getPubKeyHash)}")
       }
     }
 
     override def onCoinsReceived(w: Wallet, tx: Transaction, prevBalance: Coin, newBalance: Coin)
     : Unit = {
       super.onCoinsReceived(w, tx, prevBalance, newBalance)
+      Logger.d(s"Receive transaction: ${tx.getHashAsString}")
+      wallet.notifyAccountReception(SpvAccountClient.this, tx)
       wallet.eventBus.post(CoinReceived(index, newBalance))
+      wallet.eventBus.post(TransactionReceived(index, tx))
+    }
+
+
+    override def onCoinsSent(w: Wallet, tx: Transaction, prevBalance: Coin, newBalance:
+    Coin): Unit = {
+      super.onCoinsSent(w, tx, prevBalance, newBalance)
+      Logger.d(s"Send transaction: ${tx.getHashAsString}")
+      wallet.notifyAccountSend(SpvAccountClient.this, tx)
+      wallet.eventBus.post(CoinSent(index, newBalance))
       wallet.eventBus.post(TransactionReceived(index, tx))
     }
 
     override def onWalletChanged(w: Wallet): Unit = {
       super.onWalletChanged(w)
-
+      wallet.eventBus.post(AccountUpdated(index))
     }
   }
 }

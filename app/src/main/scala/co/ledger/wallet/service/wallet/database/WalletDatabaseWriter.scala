@@ -35,6 +35,7 @@ import android.database.sqlite.SQLiteDatabase
 import DatabaseStructure._
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.service.wallet.database.model.AccountRow
+import org.bitcoinj.core.Transaction
 
 import scala.util.Try
 
@@ -61,6 +62,19 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     xpub58.foreach(values.put(Xpub58, _))
     creationTime.foreach((time) => values.put(CreationTime, java.lang.Long.valueOf(time)))
     database.insertOrThrow(AccountTableName, null, values) != -1
+  }
+
+  def updateOrCreateTransaction(tx: Transaction): Boolean = {
+
+    false
+  }
+
+  def updateOrCreateTransactionInput(): Boolean = {
+    false
+  }
+
+  def updateOrCreateTransactionOutput(): Boolean = {
+    false
   }
 
   def transaction[A](f: => A) = {

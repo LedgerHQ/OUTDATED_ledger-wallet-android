@@ -35,10 +35,11 @@ import android.provider.BaseColumns
 object DatabaseStructure {
 
   val AccountTableName = "account"
+  val TransactionTableName = "tx"
   val OperationTableName = "operation"
   val InputTableName = "input"
   val OutputTableName = "output"
-  val OperationsInputsTableName = "operations_inputs"
+  val TransactionsInputsTableName = "transactions_inputs"
 
   object AccountTableColumns extends BaseColumns {
     val Index = "account_index"
@@ -59,28 +60,39 @@ object DatabaseStructure {
     }
   }
 
-  object OperationTableColumns extends BaseColumns {
-    val Uid = "uid"
-    val AccountId = "account_id"
+  object TransactionTableColumns extends BaseColumns {
     val Hash = "hash"
+    val AccountId = "account_id"
     val Fees = "fees"
     val Time = "time"
     val LockTime = "lock_time"
-    val Value = "value"
-    val Type = "type"
     val BlockHash = "block_hash"
+    val BlockHeight = "block_height"
 
-    val projection = Array(Uid, AccountId, Hash, Fees, Time, LockTime, Value, Type, BlockHash)
+    val projection = Array(Hash, AccountId, Fees, Time, LockTime, BlockHash, BlockHeight)
+    object ProjectionIndex {
+      val Hash = 0
+      val AccountId = 1
+      val Fees = 2
+      val Time = 3
+      val LockTime = 4
+      val BlockHash = 5
+      val BlockHeight = 6
+    }
+  }
+
+  object OperationTableColumns extends BaseColumns {
+    val Uid = "uid"
+    val TransactionHash = "transaction_hash"
+    val Type = "operation_type"
+    val Value = "value"
+
+    val projection = Array(Uid, TransactionHash, Type, Value)
     object ProjectionIndex {
       val Uid = 0
-      val AccountId = 1
-      val Hash = 2
-      val Fees = 3
-      val Time = 4
-      val LockTime = 5
-      val Value = 6
-      val Type = 7
-      val BlockHash = 8
+      val TransactionHash = 1
+      val Type = 2
+      val Value = 3
     }
   }
 
@@ -130,8 +142,8 @@ object DatabaseStructure {
     }
   }
 
-  object OperationsInputsTableColumns extends BaseColumns {
-    val OperationUid = "operation_uid"
+  object TransactionsInputsTableColumns extends BaseColumns {
+    val TransactionHash = "transaction_hash"
     val InputUid = "input_uid"
   }
 

@@ -35,6 +35,7 @@ import java.util.Date
 import android.content.Context
 import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.{AsyncCursor, SerialQueueTask}
+import co.ledger.wallet.core.event.{CallingThreadEventReceiver, EventReceiver}
 import co.ledger.wallet.core.utils.Preferences
 import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
 import co.ledger.wallet.service.wallet.database.WalletDatabaseOpenHelper
@@ -67,53 +68,82 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   override def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
   Future.successful() flatMap {(_) =>
     if (_syncFuture.isEmpty) {
-      _syncFuture = Some(init() flatMap { (appKit) =>
-        val promise = Promise[Unit]()
-        var _max = _resumeBlockchainDownloadMaxBlock.getOrElse(Int.MaxValue)
-        Logger.d("SYNCHRONIZE")
-        val lastAccount = _accounts.last
-        appKit.synchronize(new DownloadProgressTracker() {
-
-          override def startDownload(blocks: Int): Unit = {
-            super.startDownload(blocks)
-            Logger.d("START DOWNLOAD")
-          }
-
-          override def onBlocksDownloaded(peer: Peer, block: Block, filteredBlock: FilteredBlock,
-                                          blocksLeft: Int): Unit = {
-            super.onBlocksDownloaded(peer, block, filteredBlock, blocksLeft)
-            Future {
-              if (_max == Int.MaxValue)
-                _max = blocksLeft
-
-              if ((_max - blocksLeft) % 100 == 0)
-                eventBus.post(SynchronizationProgress(_max - blocksLeft, _max))
-              eventBus.post(BlockDownloaded(block))
-
-              val relevantTx = block.getTransactions.asScala.find(lastAccount.xpubWatcher.isTransactionRelevant)
-
-              if (relevantTx.isDefined) {
-                Logger.d("FIND RELEVANT TRANSACTION")
-                notifyNewAccountNeed(_accounts.length, block.getTimeSeconds)
-                clearAppKit()
-                promise.failure(AccountHasNoXpubException(_accounts.length))
-              }
-            }
-          }
-
-          override def doneDownload(): Unit = {
-            super.doneDownload()
-            promise.success()
-          }
-        })
-        promise.future
-      } andThen {
-        case all => _syncFuture = None
-      })
+      _syncFuture = Some(performSynchronization(publicKeyProvider))
     }
     _syncFuture.get
   }
 
+  private[this] def performSynchronization(extendedPublicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] = {
+    init() flatMap { (appKit) =>
+      val promise = Promise[Unit]()
+      var _max = _resumeBlockchainDownloadMaxBlock.getOrElse(Int.MaxValue)
+      Logger.d("SYNCHRONIZE")
+      val accountsCount = _accounts.length
+      val eventHandler = new Object {
+        def onEvent(event: NeedNewAccount): Unit = {
+          if (!promise.isCompleted)
+            promise.failure(AccountHasNoXpubException(accountsCount))
+        }
+      }
+      _internalEventBus.register(eventHandler)
+      appKit.synchronize(new DownloadProgressTracker() {
+
+        override def startDownload(blocks: Int): Unit = {
+          super.startDownload(blocks)
+          Logger.d("START DOWNLOAD")
+        }
+
+        override def onBlocksDownloaded(peer: Peer, block: Block, filteredBlock: FilteredBlock,
+                                        blocksLeft: Int): Unit = {
+          super.onBlocksDownloaded(peer, block, filteredBlock, blocksLeft)
+          Future {
+            if (_max == Int.MaxValue)
+              _max = blocksLeft
+
+            if ((_max - blocksLeft) % 100 == 0)
+              eventBus.post(SynchronizationProgress(_max - blocksLeft, _max))
+            eventBus.post(BlockDownloaded(block))
+          }
+        }
+
+        override def doneDownload(): Unit = {
+          super.doneDownload()
+          promise.success()
+        }
+      })
+      promise.future andThen {
+        case all =>
+          _internalEventBus.unregister(eventBus)
+      }
+    } andThen {
+      case all => _syncFuture = None
+    } recoverWith {
+      case AccountHasNoXpubException(index) =>
+        Logger.d(s"Need $index account")
+        extendedPublicKeyProvider.generateXpub(rootPath/index).flatMap {(xpub) =>
+          _database.writer.createAccountRow(
+            index = Some(index),
+            xpub58 = Some(xpub.serializePubB58(networkParameters)),
+            creationTime = _neededAccountCreationTime
+          )
+          performSynchronization(extendedPublicKeyProvider)
+        } recover {
+          case all => throw AccountHasNoXpubException(index)
+        }
+    }
+  }
+
+  def notifyAccountReception(account: SpvAccountClient, tx: Transaction): Unit = Future {
+    if (account == _accounts.last) {
+      notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
+    }
+  }
+
+  def notifyAccountSend(account: SpvAccountClient, tx: Transaction): Unit = {
+    if (account == _accounts.last) {
+      notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
+    }
+  }
 
   override def accounts(): Future[Array[Account]] = init() map {(_) =>
     _accounts.asInstanceOf[Array[Account]]
@@ -186,6 +216,8 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       .putInt(NeededAccountIndexKey, index)
       .putLong(NeededAccountCreationTimeKey, creationTimeSeconds)
       .commit()
+    clearAppKit()
+    _internalEventBus.post(NeedNewAccount())
     eventBus.post(MissingAccount(index))
   }
   
@@ -199,6 +231,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   private[this] var _accounts = Array[SpvAccountClient]()
   private[this] var _spvAppKit: Option[SpvAppKit] = None
   private[this] lazy val _database = new WalletDatabaseOpenHelper(context, name)
+  private[this] val _internalEventBus = new EventBus()
   private[this] lazy val _spvAppKitFactory =
     new SpvAppKitFactory(
       ec,
@@ -238,5 +271,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   }
 
   private case class OnEmptyAccountReceiveTransactionEvent()
-
+  private case class NeedNewAccount()
 }
+
+

@@ -33,6 +33,7 @@ package co.ledger.wallet.service.wallet.database
 import android.content.Context
 import android.database.sqlite.{SQLiteDatabase, SQLiteOpenHelper}
 import DatabaseStructure._
+import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns._
 
 class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
   SQLiteOpenHelper(context, walletName, null, 2) {
@@ -43,10 +44,11 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
 
   override def onCreate(db: SQLiteDatabase): Unit = {
     CreateAccountsTable on db
+    CreateTransactionsTable on db
     CreateOperationsTable on db
     CreateInputsTable on db
     CreateOutputsTable on db
-    CreateOperationsInputsTable on db
+    CreateTransactionsInputsTable on db
   }
 
   lazy val writer: WalletDatabaseWriter = new WalletDatabaseWriter(getWritableDatabase)
@@ -66,10 +68,10 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
      """.stripMargin.replace("\n", "")
   }
 
-  lazy val CreateOperationsTable = {
-    import DatabaseStructure.OperationTableColumns._
+  lazy val CreateTransactionsTable = {
+    import DatabaseStructure.TransactionTableColumns._
     s"""
-       CREATE TABLE IF NOT EXISTS $OperationTableName (
+       CREATE TABLE IF NOT EXISTS $TransactionTableName (
        | `$Uid` TEXT PRIMARY KEY,
        | `$AccountId` INTEGER NOT NULL,
        | `$Hash` TEXT NOT NULL,
@@ -79,7 +81,22 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
        | `$Value` INTEGER NOT NULL,
        | `$Type` INTEGER NOT NULL,
        | `$BlockHash` TEXT,
+       | `$BlockHeight` INTEGER,
        | FOREIGN KEY(`$AccountId`) REFERENCES $AccountTableName(`${AccountTableColumns.Index}`) ON
+       | DELETE CASCADE
+       |)
+     """.stripMargin.stripLineEnd
+  }
+
+  lazy val CreateOperationsTable = {
+    import DatabaseStructure.OperationTableColumns._
+    s"""
+       CREATE TABLE IF NOT EXISTS $OperationTableName (
+       | `$Uid` TEXT PRIMARY KEY,
+       | `$TransactionHash` TEXT,
+       | `$Value` INTEGER NOT NULL,
+       | `$Type` INTEGER NOT NULL,
+       | FOREIGN KEY(`$TransactionHash`) REFERENCES $TransactionTableName(`${TransactionTableColumns.Hash}`) ON
        | DELETE CASCADE
        |)
      """.stripMargin.stripLineEnd
@@ -116,12 +133,16 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
      """.stripMargin.stripLineEnd
   }
 
-  lazy val CreateOperationsInputsTable = {
-    import DatabaseStructure.OperationsInputsTableColumns._
+  lazy val CreateTransactionsInputsTable = {
+    import DatabaseStructure.TransactionsInputsTableColumns._
     s"""
-       CREATE TABLE IF NOT EXISTS $OperationsInputsTableName (
-       | `$OperationUid` TEXT NOT NULL,
-       | `$InputUid` TEXT NOT NULL
+       CREATE TABLE IF NOT EXISTS $TransactionsInputsTableName (
+       | `$TransactionHash` TEXT NOT NULL,
+       | `$InputUid` TEXT NOT NULL,
+       | FOREIGN KEY (`$TransactionHash`) REFERENCES $TransactionTableName(`${TransactionTableColumns.Hash}`)
+       | ON DELETE CASCADE,
+       | FOREIGN KEY (`$InputUid`) REFERENCES $InputTableName(`${InputTableColumns.Uid}`)
+       | ON DELETE CASCADE
        |)
      """.stripMargin.stripLineEnd
   }
