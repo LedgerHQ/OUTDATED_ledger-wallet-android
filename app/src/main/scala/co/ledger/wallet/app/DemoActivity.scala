@@ -332,12 +332,11 @@ object DemoAccountFragment {
 class DemoOverviewFragment extends BaseFragment with TabTitleHolder with MainThreadEventReceiver
 with Loggable {
 
-  lazy val lastBlockTimeTextView = TR(R.id.last_block_date).as[TextView]
-  lazy val progress = TR(R.id.progress).as[ProgressBar]
+  def lastBlockTimeTextView = TR(R.id.last_block_date).as[TextView]
+  def progress = TR(R.id.progress).as[ProgressBar]
   //lazy val accountCount = TR(R.id.account_count).as[TextView]
   //lazy val accountsList = TR(R.id.accounts).as[TextView]
-  lazy val balanceTextView = TR(R.id.balance).as[TextView]
-
+  def balanceTextView = getView.findViewById(R.id.balance).asInstanceOf[TextView]
   override def tabTitle: String = "Overview"
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState:
@@ -346,8 +345,8 @@ with Loggable {
   }
 
 
-  override def onResume(): Unit = {
-    super.onResume()
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+    super.onViewCreated(view, savedInstanceState)
     register(wallet.eventBus)
     updateBalance()
   }
