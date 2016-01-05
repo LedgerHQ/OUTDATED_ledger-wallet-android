@@ -32,6 +32,7 @@ package co.ledger.wallet.wallet.proxy
 
 import android.content.{Intent, ComponentName, ServiceConnection, Context}
 import android.os.{Handler, IBinder}
+import android.util.Log
 import co.ledger.wallet.core.concurrent.AsyncCursor
 import co.ledger.wallet.service.wallet.WalletService
 import co.ledger.wallet.service.wallet.spv.SpvAccountClient
@@ -53,7 +54,9 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
   override def accounts(): Future[Array[Account]] = connect().flatMap(_.accounts()) map {
     (accounts) =>
       val proxies = new Array[Account](accounts.length)
+      Log.d("Toto", s"RECEIVED ${proxies.length} account to proxify")
       for (account <- accounts) {
+        Log.d("Toto", s"Proxification of ${account.index}")
         proxies(account.index) = AccountProxy(this, account)
       }
       proxies

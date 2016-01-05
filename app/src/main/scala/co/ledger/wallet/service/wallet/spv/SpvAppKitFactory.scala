@@ -38,9 +38,10 @@ import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.service.wallet.database.WalletDatabaseOpenHelper
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import org.bitcoinj.core.{Wallet => JWallet, _}
-import org.bitcoinj.crypto.DeterministicKey
+import org.bitcoinj.crypto.{DeterministicHierarchy, LazyECPoint, DeterministicKey}
 import org.bitcoinj.net.discovery.{PeerDiscovery, DnsDiscovery}
 import org.bitcoinj.store.SPVBlockStore
+import org.bitcoinj.wallet.{DeterministicKeyChain, KeyChainGroup}
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Promise, Future}
 
@@ -114,9 +115,17 @@ class SpvAppKitFactory(executionContext: ExecutionContext,
       var index = 0
       while (!cursor.isAfterLast) {
         val row = new AccountRow(cursor)
-        val xpub = DeterministicKey.deserializeB58(row.xpub58, networkParameters)
+        val xpub = xpub58ToRootAccountKey(row.xpub58)
         val walletFile =
           new File(directory, s"${networkParameters.getId}_${xpub.serializePubB58(networkParameters)}.wallet")
+        try {
+          val walleto: JWallet = JWallet.fromWatchingKey(networkParameters, xpub, row.creationTime)
+          Logger.d(s"Success for ${row.xpub58}")
+        } catch {
+          case throwable: Throwable =>
+            Logger.d(s"Failure for ${row.xpub58}")
+            throwable.printStackTrace()
+        }
         val wallet: JWallet = JWallet.fromWatchingKey(networkParameters, xpub, row.creationTime)
         if (!walletFile.exists()) {
 
@@ -134,6 +143,15 @@ class SpvAppKitFactory(executionContext: ExecutionContext,
       }
     }
     wallets
+  }
+
+  private def xpub58ToRootAccountKey(xpub58: String): DeterministicKey = {
+    val accountKey = DeterministicKey.deserializeB58(xpub58, networkParameters)
+    new DeterministicKey(
+      DeterministicKeyChain.ACCOUNT_ZERO_PATH,
+      accountKey.getChainCode,
+      accountKey.getPubKeyPoint,
+      null, null)
   }
 
   def discovery = _discovery

@@ -31,6 +31,7 @@
 package co.ledger.wallet.wallet.proxy
 
 
+import android.util.Log
 import co.ledger.wallet.core.concurrent.AsyncCursor
 import co.ledger.wallet.wallet.{Operation, ExtendedPublicKeyProvider, Account}
 import org.bitcoinj.core.{Address, Transaction, Coin}
@@ -67,7 +68,7 @@ object AccountProxy {
   private val _proxyPool: mutable.WeakHashMap[Long, AccountProxy] = mutable.WeakHashMap()
 
   def apply(wallet: WalletProxy, account: Account): AccountProxy = {
-    val id = wallet.##.toLong | account.index << 32
+    val id = wallet.##.toLong | account.index.toLong << 32L
     _proxyPool.get(id) match {
       case Some(proxy) => proxy
       case None =>

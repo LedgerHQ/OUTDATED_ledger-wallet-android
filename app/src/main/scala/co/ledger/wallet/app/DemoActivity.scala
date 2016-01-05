@@ -35,7 +35,7 @@ import android.content.{DialogInterface, Intent}
 import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.TabLayout
-import android.support.v4.app.{Fragment, FragmentPagerAdapter}
+import android.support.v4.app.{FragmentStatePagerAdapter, Fragment, FragmentPagerAdapter}
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
@@ -64,7 +64,8 @@ class DemoActivity extends BaseActivity with WalletActivity {
   val XPubs = Array(
     "xpub67tVq9TLPPoaJgTkpz64N6YtB9pCorrwkLjqNgrnxWgGSVBkg2F7WhhRz5eBy7tEb2ZST4RUsC4iuMNGnWbQG69gPrTKmSKZMT3Xo7p9H4n",
     "xpub6D4waFVPfPCpUjYZexFNXjxusXSa5WrRj2iU8v5U6x2EvVuHaSKuo1zQEJA6Lt9dRcjgM1CSQmyq3tmSj5jCSup6WC24vRrHrBUyZkv5Jem",
-    "xpub6D4waFVPfPCpX183njE1zjMayNCAnMHV4D989WsFd8ENDwfcdogPfRXSaA4opz3qoLoyCZCHZy9F7GQQnBxF4nNmZfXKKiokb2ABY8Bi8Jz"
+    "xpub6D4waFVPfPCpX183njE1zjMayNCAnMHV4D989WsFd8ENDwfcdogPfRXSaA4opz3qoLoyCZCHZy9F7GQQnBxF4nNmZfXKKiokb2ABY8Bi8Jz",
+    "xpub6D4waFVPfPCpZtpCLcfWBKLy2BqmWxDGuYVn4DmHyDSeVUDzjD5AsHy98SDmyXoiKmLWpsdfZszbcveZzFaEY6NhZSqw476xXu8LYBosvbG"
   )
 
   lazy val viewPager = TR(R.id.viewpager).as[ViewPager]
@@ -76,7 +77,6 @@ class DemoActivity extends BaseActivity with WalletActivity {
     setContentView(R.layout.demo_activity)
     viewPagerAdapter.addFragment(DemoOverviewFragment())
     viewPager.setAdapter(viewPagerAdapter)
-    viewPager.setOffscreenPageLimit(100) // Whew!
     tabLayout.setupWithViewPager(viewPager)
   }
 
@@ -108,7 +108,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
     }
   }
 
-  private class ViewPagerAdapter extends FragmentPagerAdapter(getSupportFragmentManager) {
+  private class ViewPagerAdapter extends FragmentStatePagerAdapter(getSupportFragmentManager) {
     var fragments = Array[Fragment with TabTitleHolder]()
 
     override def getItem(position: Int): Fragment = fragments(position)
@@ -162,11 +162,9 @@ class DemoActivity extends BaseActivity with WalletActivity {
 
   }
 
-
   private[this] def showMissingXpubDialog(index: Int): Unit = {
 
   }
-
 
   override def receive: Receive = {
     case AccountCreated(index) => updateAccounts()
@@ -194,7 +192,10 @@ class DemoActivity extends BaseActivity with WalletActivity {
     }
   }
 
-  def account(index: Int): Option[Account] = _accounts.getOrElse(Array()).lift(index)
+  def account(index: Int): Option[Account] = {
+      Logger.d(s"Get account at index $index, got ${_accounts.get.apply(index).index}")
+      _accounts.getOrElse(Array()).lift(index)
+    }
 
   private[this] var _accounts: Option[Array[Account]] = None
 
@@ -211,7 +212,7 @@ class DemoAccountFragment extends BaseFragment with TabTitleHolder {
 
   val IndexArgsKey = "IndexArgsKey"
 
-  lazy val accountIndex = getArguments.getInt(IndexArgsKey)
+  def accountIndex = getArguments.getInt(IndexArgsKey)
   private lazy val transactionRecyclerViewAdapter = new TransactionRecyclerViewAdapter
 
   def accountIndexTextView = getView.findViewById(R.id.account_index).asInstanceOf[TextView]
@@ -225,14 +226,12 @@ class DemoAccountFragment extends BaseFragment with TabTitleHolder {
     inflater.inflate(R.layout.demo_account_tab, container, false)
   }
 
+  def account = getActivity.asInstanceOf[DemoActivity].account(accountIndex).get
+
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     super.onViewCreated(view, savedInstanceState)
     transactionRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))
     transactionRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity, null))
-  }
-
-  override def onResume(): Unit = {
-    super.onResume()
     accountIndexTextView.setText(s"Account #${account.index}")
     account balance() map { (balance) =>
       balanceTextView.setText(s"Balance: ${balance.toFriendlyString}")
@@ -243,6 +242,11 @@ class DemoAccountFragment extends BaseFragment with TabTitleHolder {
       //transactionRecyclerViewAdapter.clear()
       //transactionRecyclerViewAdapter.append(operations)
     }
+  }
+
+  override def onResume(): Unit = {
+    super.onResume()
+
   }
 
 
@@ -304,8 +308,6 @@ class DemoAccountFragment extends BaseFragment with TabTitleHolder {
     }
 
   }
-
-  lazy val account = getActivity.asInstanceOf[DemoActivity].account(accountIndex).get
 
   // Bad bad bad
   override def tabTitle: String = s"Account #$accountIndex"
