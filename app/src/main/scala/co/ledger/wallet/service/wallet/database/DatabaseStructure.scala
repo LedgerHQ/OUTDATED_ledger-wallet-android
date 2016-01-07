@@ -94,6 +94,12 @@ object DatabaseStructure {
       val Type = 3
       val Value = 4
     }
+
+    object Types {
+      val Reception = 0x01
+      val Send = 0x02
+    }
+
   }
 
   object InputTableColumns extends BaseColumns {

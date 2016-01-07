@@ -35,7 +35,9 @@ import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import co.ledger.wallet.core.utils.HexUtils
 import co.ledger.wallet.service.wallet.database.DatabaseStructure._
+import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
 import org.bitcoinj.core._
+import org.bitcoinj.crypto.HDUtils
 
 import scala.collection.JavaConverters._
 import scala.util.Try
@@ -64,7 +66,22 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     database.insertOrThrow(AccountTableName, null, values) != -1
   }
 
-  def updateOrCreateTransaction(tx: Transaction): Boolean = {
+  def updateOrCreateOperation(accountId: Int,
+                              transactionHash: String,
+                              operationType: Int,
+                              value: Long): Boolean = {
+    import DatabaseStructure.OperationTableColumns._
+    val uid = Array(transactionHash, operationType, accountId).mkString("_")
+    val values = new ContentValues()
+    values.put(Uid, uid)
+    values.put(AccountId, java.lang.Integer.valueOf(accountId))
+    values.put(TransactionHash, transactionHash)
+    values.put(Type, java.lang.Integer.valueOf(operationType))
+    values.put(Value, JLong(value))
+    updateOrCreate(OperationTableName, values, s"$Uid = ?", Array(uid))
+  }
+
+  def updateOrCreateTransaction(tx: Transaction, bag: DerivationPathBag): Boolean = {
     import DatabaseStructure.TransactionTableColumns._
     val value = new ContentValues()
 
@@ -86,18 +103,20 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     )
 
     for (input <- tx.getInputs.asScala) {
-      updateOrCreateTransactionInput(input, Some(tx))
+      updateOrCreateTransactionInput(input, Some(tx), Some(bag))
     }
 
     val outputs = tx.getOutputs
     for (index <- 0 until outputs.size()) {
-      updateOrCreateTransactionOutput(outputs.get(index), tx, index)
+      updateOrCreateTransactionOutput(outputs.get(index), tx, index, Some(bag))
     }
 
     inserted
   }
 
-  def updateOrCreateTransactionInput(input: TransactionInput, tx: Option[Transaction]): Boolean = {
+  def updateOrCreateTransactionInput(input: TransactionInput,
+                                     tx: Option[Transaction],
+                                     bag: Option[DerivationPathBag]): Boolean = {
     import DatabaseStructure.InputTableColumns._
     var uid: String = null
     val values = new ContentValues()
@@ -108,11 +127,14 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     } else {
       uid = s"${input.getOutpoint.getHash.toString}_${input.getOutpoint.getIndex}"
       values.put(Index, JLong(input.getOutpoint.getIndex))
-      values.put(Path, "0") // Set true path
+      val path = bag.flatMap(_.findKey(input)).map(_.getPath)
+      if (path.isDefined)
+        values.put(Path, HDUtils.formatPath(path.get))
       values.put(Value, JLong(input.getValue))
       values.put(PreviousTx, input.getOutpoint.getHash.toString)
       values.put(ScriptSig, HexUtils.bytesToHex(input.getScriptBytes))
-      values.put(Address, Try(input.getScriptSig.getToAddress(input.getParams).toString).getOrElse(null))
+      values.put(Address, Try(input.getConnectedOutput.getScriptPubKey.getToAddress(input.getParams, true).toString)
+        .getOrElse(null))
     }
 
     values.put(Uid, uid)
@@ -134,7 +156,10 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     inserted
   }
 
-  def updateOrCreateTransactionOutput(output: TransactionOutput, tx: Transaction, index: Int):
+  def updateOrCreateTransactionOutput(output: TransactionOutput,
+                                      tx: Transaction,
+                                      index: Int,
+                                      bag: Option[DerivationPathBag]):
   Boolean = {
     import DatabaseStructure.OutputTableColumns._
     val uid = s"${tx.getHashAsString}_${output.getIndex}"
@@ -143,7 +168,9 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     values.put(Uid, uid)
     values.put(TransactionHash, tx.getHashAsString)
     values.put(Index, JLong(index))
-    values.put(Path, "0")
+    val path = bag.flatMap(_.findKey(output)).map(_.getPath)
+    if (path.isDefined)
+      values.put(Path, HDUtils.formatPath(path.get))
     values.put(Value, JLong(output.getValue))
     values.put(PubKeyScript, HexUtils.bytesToHex(output.getScriptBytes))
     values.put(Address, Try(output.getScriptPubKey.getToAddress(tx.getParams).toString).getOrElse(null))

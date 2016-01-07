@@ -38,6 +38,8 @@ import co.ledger.wallet.core.concurrent.{AsyncCursor, SerialQueueTask}
 import co.ledger.wallet.core.event.{CallingThreadEventReceiver, EventReceiver}
 import co.ledger.wallet.core.utils.Preferences
 import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
+import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns
+import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
 import co.ledger.wallet.service.wallet.database.{WalletDatabaseWriter, WalletDatabaseOpenHelper}
 import co.ledger.wallet.wallet.DerivationPath.dsl._
 import co.ledger.wallet.wallet._
@@ -47,6 +49,7 @@ import co.ledger.wallet.wallet.exceptions._
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Wallet => JWallet, _}
 import org.bitcoinj.crypto.DeterministicKey
+import org.bitcoinj.wallet.WalletTransaction
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
@@ -137,7 +140,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     if (account == _accounts.last) {
       notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
     }
-    pushTransaction(account, tx, false)
+    pushTransaction(account, tx)
     eventBus.post(CoinReceived(account.index, newBalance))
   } recover {
     case throwable: Throwable => throwable.printStackTrace()
@@ -148,24 +151,58 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     if (account == _accounts.last) {
       notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
     }
-    pushTransaction(account, tx, false)
+    pushTransaction(account, tx)
     eventBus.post(CoinSent(account.index, newBalance))
   } recover {
       case throwable: Throwable => throwable.printStackTrace()
     }
 
-  private def pushTransaction(account: SpvAccountClient, tx: Transaction, isReception: Boolean):
-  Unit = {
+  private def pushTransaction(account: SpvAccountClient, tx: Transaction): Unit = {
     val writer = _database.writer
     writer.beginTransaction()
+    val bag = new DerivationPathBag
     try {
-      writer.updateOrCreateTransaction(tx)
+      bag.inflate(tx, account.xpubWatcher)
+      writer.updateOrCreateTransaction(tx, bag)
+      // Create operation now
+      // Create receive send operation
+      val walletTransaction = new WalletTransaction(account.xpubWatcher, tx)
+      val isSend = computeSendOperation(account, walletTransaction, writer)
+      computeReceiveOperation(account, walletTransaction, !isSend, writer)
       writer.commitTransaction()
     } catch {
       case throwable: Throwable => throwable.printStackTrace()
     }
-    // Create operation now
     writer.endTransaction()
+  }
+
+  private def computeSendOperation(account: Account,
+                                   transaction: WalletTransaction,
+                                   writer: WalletDatabaseWriter): Boolean = {
+    if (false) {
+      val value: Coin = null
+      writer.updateOrCreateOperation(
+        account.index,
+        transaction.tx.getHashAsString,
+        OperationTableColumns.Types.Send,
+        value.getValue)
+    }
+    false
+  }
+
+  private def computeReceiveOperation(account: Account,
+                                      transaction: WalletTransaction,
+                                      forceReception: Boolean,
+                                      writer: WalletDatabaseWriter): Boolean = {
+    if (false) {
+      val value: Coin = null
+      writer.updateOrCreateOperation(
+        account.index,
+        transaction.tx.getHashAsString,
+        OperationTableColumns.Types.Reception,
+        value.getValue)
+    }
+    false
   }
 
   override def accounts(): Future[Array[Account]] = init() map {(_) =>
@@ -295,6 +332,11 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
   private case class OnEmptyAccountReceiveTransactionEvent()
   private case class NeedNewAccount()
+
+  private class WalletTransaction(val wallet: JWallet, val tx: Transaction) {
+
+
+  }
 }
 
 
