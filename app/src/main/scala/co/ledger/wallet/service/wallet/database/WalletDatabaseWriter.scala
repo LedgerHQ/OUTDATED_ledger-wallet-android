@@ -32,17 +32,16 @@ package co.ledger.wallet.service.wallet.database
 
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
-import DatabaseStructure._
-import co.ledger.wallet.core.utils.logs.Logger
-import co.ledger.wallet.service.wallet.database.model.AccountRow
-import org.bitcoinj.core.Transaction
+import co.ledger.wallet.core.utils.HexUtils
+import co.ledger.wallet.service.wallet.database.DatabaseStructure._
+import org.bitcoinj.core._
 
+import scala.collection.JavaConverters._
 import scala.util.Try
 
 class WalletDatabaseWriter(database: SQLiteDatabase) {
 
   def deleteAllAccounts(): Int = {
-    import DatabaseStructure.AccountTableColumns._
     database.delete(AccountTableName, "1", null)
   }
 
@@ -65,16 +64,89 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
   }
 
   def updateOrCreateTransaction(tx: Transaction): Boolean = {
+    import DatabaseStructure.TransactionTableColumns._
+    val value = new ContentValues()
 
-    false
+    value.put(Hash, tx.getHashAsString)
+    value.put(Fees, JLong(tx.getFee))
+    value.put(Time, JLong(tx.getUpdateTime.getTime / 1000L))
+    value.put(LockTime, JLong(tx.getLockTime))
+
+    val block: Option[(Sha256Hash, Integer)] = tx.getAppearsInHashes.asScala.toList.sortBy(_._2)
+      .lastOption
+
+    value.put(BlockHash, block.map(_._1.toString).orNull)
+    value.put(BlockHeight, block.map(_._2).orNull)
+
+    val inserted = updateOrCreate(
+      TransactionTableName,
+      value, s"$Hash = ?",
+      Array(tx.getHashAsString)
+    )
+
+    for (input <- tx.getInputs.asScala) {
+      updateOrCreateTransactionInput(input, Some(tx))
+    }
+
+    val outputs = tx.getOutputs
+    for (index <- 0 until outputs.size()) {
+      updateOrCreateTransactionOutput(outputs.get(index), tx, index)
+    }
+
+    inserted
   }
 
-  def updateOrCreateTransactionInput(): Boolean = {
-    false
+  def updateOrCreateTransactionInput(input: TransactionInput, tx: Option[Transaction]): Boolean = {
+    import DatabaseStructure.InputTableColumns._
+    var uid: String = null
+    val values = new ContentValues()
+
+    if (input.isCoinBase) {
+      uid = HexUtils.bytesToHex(input.getScriptBytes)
+      values.put(Coinbase, true)
+    } else {
+      uid = s"${input.getParentTransaction.getHashAsString}_${input.getOutpoint.getIndex}"
+      values.put(Index, JLong(input.getOutpoint.getIndex))
+      values.put(Path, "0") // Set true path
+      values.put(Value, JLong(input.getValue))
+      values.put(PreviousTx, input.getParentTransaction.getHashAsString)
+      values.put(ScriptSig, HexUtils.bytesToHex(input.getScriptBytes))
+      values.put(Address, Try(input.getScriptSig.getToAddress(input.getParams).toString).getOrElse(null))
+    }
+
+    val inserted = updateOrCreate(InputTableName, values, s"$Uid = ?", Array(uid))
+
+    //Optionally add or create a link
+    if (tx.isDefined) {
+      import DatabaseStructure.TransactionsInputsTableColumns._
+      val linkValues = new ContentValues()
+      linkValues.put(TransactionHash, tx.get.getHashAsString)
+      linkValues.put(InputUid, uid)
+      updateOrCreate(
+        TransactionsInputsTableName,
+        linkValues,
+        s"$TransactionHash = ? AND $InputUid = ?",
+        Array(tx.get.getHashAsString, uid)
+      )
+    }
+    inserted
   }
 
-  def updateOrCreateTransactionOutput(): Boolean = {
-    false
+  def updateOrCreateTransactionOutput(output: TransactionOutput, tx: Transaction, index: Int):
+  Boolean = {
+    import DatabaseStructure.OutputTableColumns._
+    val uid = s"${tx.getHashAsString}_${output.getIndex}"
+    val values = new ContentValues()
+
+    values.put(Uid, uid)
+    values.put(TransactionHash, tx.getHashAsString)
+    values.put(Index, JLong(index))
+    values.put(Path, "0")
+    values.put(Value, JLong(output.getValue))
+    values.put(PubKeyScript, HexUtils.bytesToHex(output.getScriptBytes))
+    values.put(Address, Try(output.getScriptPubKey.getToAddress(tx.getParams).toString).getOrElse(null))
+
+    updateOrCreate(OutputTableName, values, s"$Uid = ?", Array(uid))
   }
 
   def transaction[A](f: => A) = {
@@ -88,8 +160,31 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     r
   }
 
+  def updateOrCreate(table: String, values: ContentValues, whereClause: String, whereArgs:
+    Array[String]): Boolean = {
+    if (database.update(table, values, whereClause, whereArgs) == 0) {
+      database.insert(table, null, values)
+      true
+    } else {
+      false
+    }
+  }
+
   def beginTransaction() = database.beginTransaction()
   def commitTransaction() = database.setTransactionSuccessful()
   def endTransaction() = database.endTransaction()
+
+
+  private def JLong(long: Long): java.lang.Long = {
+    java.lang.Long.valueOf(long)
+  }
+
+  private def JLong(coin: Coin): java.lang.Long = {
+    if (coin == null) {
+      null
+    } else {
+      JLong(coin.getValue)
+    }
+  }
 
 }

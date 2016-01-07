@@ -62,17 +62,15 @@ object DatabaseStructure {
 
   object TransactionTableColumns extends BaseColumns {
     val Hash = "hash"
-    val AccountId = "account_id"
     val Fees = "fees"
     val Time = "time"
     val LockTime = "lock_time"
     val BlockHash = "block_hash"
     val BlockHeight = "block_height"
 
-    val projection = Array(Hash, AccountId, Fees, Time, LockTime, BlockHash, BlockHeight)
+    val projection = Array(Hash, Fees, Time, LockTime, BlockHash, BlockHeight)
     object ProjectionIndex {
       val Hash = 0
-      val AccountId = 1
       val Fees = 2
       val Time = 3
       val LockTime = 4
@@ -83,22 +81,24 @@ object DatabaseStructure {
 
   object OperationTableColumns extends BaseColumns {
     val Uid = "uid"
+    val AccountId = "account_id"
     val TransactionHash = "transaction_hash"
     val Type = "operation_type"
     val Value = "value"
 
-    val projection = Array(Uid, TransactionHash, Type, Value)
+    val projection = Array(Uid, AccountId, TransactionHash, Type, Value)
     object ProjectionIndex {
       val Uid = 0
-      val TransactionHash = 1
-      val Type = 2
-      val Value = 3
+      val AccountId = 1
+      val TransactionHash = 2
+      val Type = 3
+      val Value = 4
     }
   }
 
   object InputTableColumns extends BaseColumns {
     val Uid = "uid"
-    val Index = "index"
+    val Index = "idx"
     val Path = "path"
     val Value = "value"
     val Coinbase = "coinbase"
@@ -110,21 +110,20 @@ object DatabaseStructure {
       Address)
     object ProjectionIndex {
       val Uid = 0
-      val OperationUId = 1
-      val Index = 2
-      val Path = 3
-      val Value = 4
-      val Coinbase = 5
-      val PreviousTx = 6
-      val ScriptSig = 7
-      val Address = 8
+      val Index = 1
+      val Path = 2
+      val Value = 3
+      val Coinbase = 4
+      val PreviousTx = 5
+      val ScriptSig = 6
+      val Address = 7
     }
   }
 
   object OutputTableColumns extends BaseColumns {
     val Uid = "uid"
     val TransactionHash = "transaction_hash"
-    val Index = "index"
+    val Index = "idx"
     val Path = "path"
     val Value = "value"
     val PubKeyScript = "pk_script"

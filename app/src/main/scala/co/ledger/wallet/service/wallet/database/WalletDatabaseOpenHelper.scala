@@ -73,17 +73,12 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
     s"""
        CREATE TABLE IF NOT EXISTS $TransactionTableName (
        | `$Uid` TEXT PRIMARY KEY,
-       | `$AccountId` INTEGER NOT NULL,
        | `$Hash` TEXT NOT NULL,
-       | `$Fees` INTEGER NOT NULL,
+       | `$Fees` INTEGER,
        | `$Time` INTEGER NOT NULL,
        | `$LockTime` INTEGER NOT NULL,
-       | `$Value` INTEGER NOT NULL,
-       | `$Type` INTEGER NOT NULL,
        | `$BlockHash` TEXT,
-       | `$BlockHeight` INTEGER,
-       | FOREIGN KEY(`$AccountId`) REFERENCES $AccountTableName(`${AccountTableColumns.Index}`) ON
-       | DELETE CASCADE
+       | `$BlockHeight` INTEGER
        |)
      """.stripMargin.stripLineEnd
   }
@@ -93,10 +88,13 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
     s"""
        CREATE TABLE IF NOT EXISTS $OperationTableName (
        | `$Uid` TEXT PRIMARY KEY,
+       | `$AccountId` INTEGER NOT NULL,
        | `$TransactionHash` TEXT,
        | `$Value` INTEGER NOT NULL,
        | `$Type` INTEGER NOT NULL,
        | FOREIGN KEY(`$TransactionHash`) REFERENCES $TransactionTableName(`${TransactionTableColumns.Hash}`) ON
+       | DELETE CASCADE,
+       | FOREIGN KEY(`$AccountId`) REFERENCES $AccountTableName(`${AccountTableColumns.Index}`) ON
        | DELETE CASCADE
        |)
      """.stripMargin.stripLineEnd
@@ -109,11 +107,13 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
        | `$Uid` TEXT PRIMARY KEY,
        | `$Index` INTEGER NOT NULL,
        | `$Path` TEXT,
-       | `$Value` INTEGER NOT NULL,
+       | `$Value` INTEGER,
        | `$Coinbase` INTEGER,
-       | `$PreviousTx` TEXT NOT NULL,
-       | `$ScriptSig` TEXT NOT NULL,
-       | `$Address` TEXT
+       | `$PreviousTx` TEXT,
+       | `$ScriptSig` TEXT,
+       | `$Address` TEXT,
+       |  FOREIGN KEY (`$PreviousTx`) REFERENCES $TransactionTableName(`${TransactionTableColumns.Hash}`)
+       |  ON DELETE CASCADE
        |)
      """.stripMargin.stripLineEnd
   }

@@ -49,7 +49,7 @@ class SpvAppKit(
   val peerGroup: PeerGroup,
   val accounts: Array[(AccountRow, JWallet)]) extends Loggable {
 
-  peerGroup.setDownloadTxDependencies(false)
+  peerGroup.setDownloadTxDependencies(true)
   peerGroup.addPeerDiscovery(new DnsDiscovery(Context.get().getParams))
 
   accounts foreach {

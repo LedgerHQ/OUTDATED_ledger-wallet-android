@@ -38,7 +38,7 @@ import co.ledger.wallet.core.concurrent.{AsyncCursor, SerialQueueTask}
 import co.ledger.wallet.core.event.{CallingThreadEventReceiver, EventReceiver}
 import co.ledger.wallet.core.utils.Preferences
 import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
-import co.ledger.wallet.service.wallet.database.WalletDatabaseOpenHelper
+import co.ledger.wallet.service.wallet.database.{WalletDatabaseWriter, WalletDatabaseOpenHelper}
 import co.ledger.wallet.wallet.DerivationPath.dsl._
 import co.ledger.wallet.wallet._
 import co.ledger.wallet.wallet.events.PeerGroupEvents._
@@ -133,16 +133,38 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     }
   }
 
-  def notifyAccountReception(account: SpvAccountClient, tx: Transaction): Unit = Future {
+  def notifyAccountReception(account: SpvAccountClient, tx: Transaction, newBalance: Coin): Unit = Future {
     if (account == _accounts.last) {
       notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
     }
+    pushTransaction(account, tx, false)
+    eventBus.post(CoinReceived(account.index, newBalance))
+  } recover {
+    case throwable: Throwable => throwable.printStackTrace()
   }
 
-  def notifyAccountSend(account: SpvAccountClient, tx: Transaction): Unit = {
+  def notifyAccountSend(account: SpvAccountClient, tx: Transaction, newBalance: Coin): Unit =
+    Future {
     if (account == _accounts.last) {
       notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
     }
+    pushTransaction(account, tx, false)
+    eventBus.post(CoinSent(account.index, newBalance))
+  } recover {
+      case throwable: Throwable => throwable.printStackTrace()
+    }
+
+  private def pushTransaction(account: SpvAccountClient, tx: Transaction, isReception: Boolean):
+  Unit = {
+    val writer = _database.writer
+    writer.beginTransaction()
+    try {
+      writer.updateOrCreateTransaction(tx)
+    } catch {
+      case throwable: Throwable => throwable.printStackTrace()
+    }
+    // Create operation now
+    writer.endTransaction()
   }
 
   override def accounts(): Future[Array[Account]] = init() map {(_) =>
