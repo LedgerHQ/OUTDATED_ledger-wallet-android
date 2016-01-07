@@ -160,6 +160,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     writer.beginTransaction()
     try {
       writer.updateOrCreateTransaction(tx)
+      writer.commitTransaction()
     } catch {
       case throwable: Throwable => throwable.printStackTrace()
     }

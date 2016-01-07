@@ -32,6 +32,7 @@ package co.ledger.wallet.service.wallet.database
 
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
+import android.util.Log
 import co.ledger.wallet.core.utils.HexUtils
 import co.ledger.wallet.service.wallet.database.DatabaseStructure._
 import org.bitcoinj.core._
@@ -105,15 +106,16 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
       uid = HexUtils.bytesToHex(input.getScriptBytes)
       values.put(Coinbase, true)
     } else {
-      uid = s"${input.getParentTransaction.getHashAsString}_${input.getOutpoint.getIndex}"
+      uid = s"${input.getOutpoint.getHash.toString}_${input.getOutpoint.getIndex}"
       values.put(Index, JLong(input.getOutpoint.getIndex))
       values.put(Path, "0") // Set true path
       values.put(Value, JLong(input.getValue))
-      values.put(PreviousTx, input.getParentTransaction.getHashAsString)
+      values.put(PreviousTx, input.getOutpoint.getHash.toString)
       values.put(ScriptSig, HexUtils.bytesToHex(input.getScriptBytes))
       values.put(Address, Try(input.getScriptSig.getToAddress(input.getParams).toString).getOrElse(null))
     }
 
+    values.put(Uid, uid)
     val inserted = updateOrCreate(InputTableName, values, s"$Uid = ?", Array(uid))
 
     //Optionally add or create a link
@@ -162,8 +164,11 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
 
   def updateOrCreate(table: String, values: ContentValues, whereClause: String, whereArgs:
     Array[String]): Boolean = {
-    if (database.update(table, values, whereClause, whereArgs) == 0) {
-      database.insert(table, null, values)
+    Log.d("Toto", s"Try to update $table ${whereArgs.head}")
+    if (database.update(table, values, whereClause, whereArgs) <= 0) {
+      Log.d("Toto", s"Failed to update $table ${whereArgs.head}, insert instead")
+      val ret = database.insertOrThrow(table, null, values)
+      Log.d("Toto", s"Insertion of $table ${whereArgs.head} ended with $ret")
       true
     } else {
       false

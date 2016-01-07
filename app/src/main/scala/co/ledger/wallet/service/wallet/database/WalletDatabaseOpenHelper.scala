@@ -72,7 +72,6 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
     import DatabaseStructure.TransactionTableColumns._
     s"""
        CREATE TABLE IF NOT EXISTS $TransactionTableName (
-       | `$Uid` TEXT PRIMARY KEY,
        | `$Hash` TEXT NOT NULL,
        | `$Fees` INTEGER,
        | `$Time` INTEGER NOT NULL,
@@ -87,7 +86,7 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
     import DatabaseStructure.OperationTableColumns._
     s"""
        CREATE TABLE IF NOT EXISTS $OperationTableName (
-       | `$Uid` TEXT PRIMARY KEY,
+       | `$Uid` TEXT PRIMARY KEY NOT NULL,
        | `$AccountId` INTEGER NOT NULL,
        | `$TransactionHash` TEXT,
        | `$Value` INTEGER NOT NULL,
@@ -104,7 +103,7 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
     import DatabaseStructure.InputTableColumns._
     s"""
        CREATE TABLE IF NOT EXISTS $InputTableName (
-       | `$Uid` TEXT PRIMARY KEY,
+       | `$Uid` TEXT PRIMARY KEY NOT NULL,
        | `$Index` INTEGER NOT NULL,
        | `$Path` TEXT,
        | `$Value` INTEGER,
