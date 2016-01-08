@@ -44,6 +44,7 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
 
   override def onCreate(db: SQLiteDatabase): Unit = {
     CreateAccountsTable on db
+    CreateBlockTable on db
     CreateTransactionsTable on db
     CreateOperationsTable on db
     CreateInputsTable on db
@@ -68,6 +69,17 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
      """.stripMargin.replace("\n", "")
   }
 
+  lazy val CreateBlockTable = {
+    import DatabaseStructure.BlockTableColumns._
+    s"""
+       CREATE TABLE IF NOT EXISTS $BlockTableName (
+       | `$Hash` TEXT PRIMARY KEY NOT NULL,
+       | `$Height` INTEGER,
+       | `$Time` INTEGER NOT NULL
+       |)
+     """.stripMargin.stripLineEnd
+  }
+
   lazy val CreateTransactionsTable = {
     import DatabaseStructure.TransactionTableColumns._
     s"""
@@ -77,7 +89,8 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
        | `$Time` INTEGER NOT NULL,
        | `$LockTime` INTEGER NOT NULL,
        | `$BlockHash` TEXT,
-       | `$BlockHeight` INTEGER
+       | FOREIGN KEY(`$BlockHash`) REFERENCES $BlockTableName(`${BlockTableColumns.Hash}`) ON DELETE
+       | CASCADE
        |)
      """.stripMargin.stripLineEnd
   }

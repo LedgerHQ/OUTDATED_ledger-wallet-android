@@ -30,30 +30,29 @@
  */
 package co.ledger.wallet.service.wallet.spv
 
+import java.util
 import java.util.Date
 
 import android.content.Context
 import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.{AsyncCursor, SerialQueueTask}
-import co.ledger.wallet.core.event.{CallingThreadEventReceiver, EventReceiver}
 import co.ledger.wallet.core.utils.Preferences
-import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
+import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns
 import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
-import co.ledger.wallet.service.wallet.database.{WalletDatabaseWriter, WalletDatabaseOpenHelper}
+import co.ledger.wallet.service.wallet.database.{WalletDatabaseOpenHelper, WalletDatabaseWriter}
 import co.ledger.wallet.wallet.DerivationPath.dsl._
 import co.ledger.wallet.wallet._
 import co.ledger.wallet.wallet.events.PeerGroupEvents._
 import co.ledger.wallet.wallet.events.WalletEvents._
 import co.ledger.wallet.wallet.exceptions._
 import de.greenrobot.event.EventBus
+import org.bitcoinj.core.AbstractBlockChain.NewBlockType
 import org.bitcoinj.core.{Wallet => JWallet, _}
 import org.bitcoinj.crypto.DeterministicKey
-import org.bitcoinj.wallet.WalletTransaction
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.{Future, Promise}
 
 class SpvWalletClient(val context: Context, val name: String, val networkParameters: NetworkParameters)
   extends Wallet with SerialQueueTask with Loggable {
@@ -137,39 +136,35 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   }
 
   def notifyAccountReception(account: SpvAccountClient, tx: Transaction, newBalance: Coin): Unit = Future {
-    if (_spvAppKit.isDefined) {
-      pushTransaction(account, tx, _spvAppKit.get.blockChain)
-      if (account == _accounts.last) {
-        notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
-      }
-      eventBus.post(CoinReceived(account.index, newBalance))
+    if (_accounts.length > 0 && account == _accounts.last) {
+      notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
     }
+    pushTransaction(account, tx)
+    eventBus.post(CoinReceived(account.index, newBalance))
   } recover {
     case throwable: Throwable => throwable.printStackTrace()
   }
 
   def notifyAccountSend(account: SpvAccountClient, tx: Transaction, newBalance: Coin): Unit = Future {
-    if (_spvAppKit.isDefined) {
-      pushTransaction(account, tx, _spvAppKit.get.blockChain)
-      if (account == _accounts.last) {
-        notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
-      }
-      eventBus.post(CoinSent(account.index, newBalance))
+    if (_accounts.length > 0 && account == _accounts.last) {
+      notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
     }
+    pushTransaction(account, tx)
+    eventBus.post(CoinSent(account.index, newBalance))
   } recover {
       case throwable: Throwable => throwable.printStackTrace()
     }
 
-  private def pushTransaction(account: SpvAccountClient, tx: Transaction, blockChain: BlockChain): Unit = {
+  private def pushTransaction(account: SpvAccountClient, tx: Transaction): Unit = {
     val writer = _database.writer
     writer.beginTransaction()
     val bag = new DerivationPathBag
     try {
-      bag.inflate(tx, account.xpubWatcher)
-      writer.updateOrCreateTransaction(tx, blockChain, bag)
+      bag.inflate(tx, account.xpubWatcher, account.index)
+      writer.updateOrCreateTransaction(tx, bag)
       // Create operation now
       // Create receive send operation
-      val walletTransaction = new WalletTransaction(account.xpubWatcher, tx)
+      val walletTransaction = new WalletTransaction(account.xpubWatcher, tx, bag)
       val isSend = computeSendOperation(account, walletTransaction, writer)
       computeReceiveOperation(account, walletTransaction, !isSend, writer)
       writer.commitTransaction()
@@ -182,30 +177,35 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   private def computeSendOperation(account: Account,
                                    transaction: WalletTransaction,
                                    writer: WalletDatabaseWriter): Boolean = {
-    if (false) {
-      val value: Coin = null
+    if (transaction.containsWalletInputs) {
+      val value: Coin = transaction.sendValue
       writer.updateOrCreateOperation(
         account.index,
         transaction.tx.getHashAsString,
         OperationTableColumns.Types.Send,
         value.getValue)
+      true
+    } else {
+      false
     }
-    false
   }
 
   private def computeReceiveOperation(account: Account,
                                       transaction: WalletTransaction,
                                       forceReception: Boolean,
                                       writer: WalletDatabaseWriter): Boolean = {
-    if (false) {
-      val value: Coin = null
+    if (forceReception || transaction.numberOfChangeOutput > 1 ||
+      transaction.numberOfPublicOutput > 0) {
+      val value: Coin = transaction.receivedValue
       writer.updateOrCreateOperation(
         account.index,
         transaction.tx.getHashAsString,
         OperationTableColumns.Types.Reception,
         value.getValue)
+      true
+    } else {
+      false
     }
-    false
   }
 
   override def accounts(): Future[Array[Account]] = init() map {(_) =>
@@ -269,6 +269,24 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       }
     }
     _spvAppKit = Some(appKit)
+    appKit.blockChain.addListener(new BlockChainListener {
+      override def reorganize(splitPoint: StoredBlock, oldBlocks: util.List[StoredBlock],
+                              newBlocks: util.List[StoredBlock]): Unit = {
+        // TODO: Handle block reorgs
+      }
+
+      override def notifyNewBestBlock(block: StoredBlock): Unit = Future {
+        _database.writer.updateOrCreateBlock(block)
+      }
+
+      override def notifyTransactionIsInBlock(txHash: Sha256Hash, block: StoredBlock, blockType:
+      NewBlockType, relativityOffset: Int): Boolean = false
+
+      override def receiveFromBlock(tx: Transaction, block: StoredBlock, blockType: NewBlockType,
+                                    relativityOffset: Int): Unit = {}
+
+      override def isTransactionRelevant(tx: Transaction): Boolean = false
+    })
     _accounts = appKit.accounts.map((d) => new SpvAccountClient(this, d))
     Logger.d(s"Accounts init ${appKit.accounts.length} ${_accounts.length}")
     appKit
@@ -336,8 +354,73 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   private case class OnEmptyAccountReceiveTransactionEvent()
   private case class NeedNewAccount()
 
-  private class WalletTransaction(val wallet: JWallet, val tx: Transaction) {
+  private class WalletTransaction(val wallet: JWallet, val tx: Transaction, bag: DerivationPathBag) {
 
+    lazy val containsWalletInputs: Boolean = {
+     inputs.exists(_.isMine)
+    }
+
+    lazy val inputs = tx.getInputs.asScala.map({(input) =>
+      new WalletTransactionInput(input, bag.findPath(input))
+    })
+
+    lazy val outputs = tx.getOutputs.asScala.map({(output) =>
+      new WalletTransactionOutput(output, bag.findPath(output))
+    })
+
+    lazy val numberOfChangeOutput = outputs.count(_.isOnInternalBranch)
+
+    lazy val numberOfPublicOutput = outputs.count(_.isOnExternalBranch)
+
+    def sendValue: Coin = {
+      var value = Coin.ZERO
+      for (input <- inputs if input.isMine) {
+        value = value.add(input.value)
+      }
+      outputs.find(_.isOnInternalBranch).foreach({output =>
+        value = value subtract output.value
+      })
+      value
+    }
+
+    def receivedValue: Coin = {
+      val walletOutputs = outputs.filter(_.isMine)
+      var value = Coin.ZERO
+      if (walletOutputs.length == 1 && outputs.length <= 2 && !inputs.exists(_.isMine)) {
+        value = value.add(walletOutputs(0).value)
+      } else {
+        var internalBranchOutputCount = 0
+        for (output <- walletOutputs) {
+          if (output.isOnInternalBranch)
+            internalBranchOutputCount += 1
+          if (output.isOnExternalBranch || internalBranchOutputCount >= 2)
+            value = value.add(output.value)
+        }
+      }
+      value
+    }
+
+    class WalletTransactionInput(val input: TransactionInput, path: Option[DerivationPath])
+      extends PathInterpreter(path) {
+
+      def value = input.getValue
+
+    }
+
+    class WalletTransactionOutput(val output: TransactionOutput, path: Option[DerivationPath])
+    extends PathInterpreter(path) {
+
+      def value = output.getValue
+
+    }
+
+    class PathInterpreter(val path: Option[DerivationPath]) {
+      def isMine = path.isDefined
+      def isOnExternalBranch = path.exists(_(1).get.index == 0)
+      def isOnInternalBranch = {
+        path.exists(_(1).get.index == 1)
+      }
+    }
 
   }
 }

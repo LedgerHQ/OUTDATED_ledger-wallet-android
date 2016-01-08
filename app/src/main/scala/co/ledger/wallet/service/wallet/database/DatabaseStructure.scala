@@ -35,6 +35,7 @@ import android.provider.BaseColumns
 object DatabaseStructure {
 
   val AccountTableName = "account"
+  val BlockTableName = "block"
   val TransactionTableName = "tx"
   val OperationTableName = "operation"
   val InputTableName = "input"
@@ -60,22 +61,33 @@ object DatabaseStructure {
     }
   }
 
+  object BlockTableColumns extends BaseColumns {
+    val Hash = "block_hash"
+    val Height = "block_height"
+    val Time = "block_time"
+
+    val projection = Array(Hash, Height, Time)
+    object ProjectionIndex {
+      val Hash = 0
+      val Height = 1
+      val Time = 2
+    }
+  }
+
   object TransactionTableColumns extends BaseColumns {
     val Hash = "hash"
     val Fees = "fees"
     val Time = "time"
     val LockTime = "lock_time"
     val BlockHash = "block_hash"
-    val BlockHeight = "block_height"
 
-    val projection = Array(Hash, Fees, Time, LockTime, BlockHash, BlockHeight)
+    val projection = Array(Hash, Fees, Time, LockTime, BlockHash)
     object ProjectionIndex {
       val Hash = 0
       val Fees = 2
       val Time = 3
       val LockTime = 4
       val BlockHash = 5
-      val BlockHeight = 6
     }
   }
 

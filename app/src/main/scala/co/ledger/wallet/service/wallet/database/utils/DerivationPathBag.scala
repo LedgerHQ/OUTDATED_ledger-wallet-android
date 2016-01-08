@@ -30,6 +30,7 @@
  */
 package co.ledger.wallet.service.wallet.database.utils
 
+import co.ledger.wallet.wallet.DerivationPath
 import org.bitcoinj.core.{Transaction, TransactionInput, TransactionOutput, Wallet => JWallet}
 import org.bitcoinj.crypto.DeterministicKey
 
@@ -38,21 +39,23 @@ import scala.util.Try
 
 class DerivationPathBag {
 
-  def inflate(tx: Transaction, wallet: JWallet): Unit = {
+  def inflate(tx: Transaction, wallet: JWallet, accountIndex: Int): Unit = {
     for (input <- tx.getInputs.asScala if Try(input.getConnectedOutput.getScriptPubKey.getPubKeyHash).isSuccess) {
       val hash = input.getConnectedOutput.getScriptPubKey.getPubKeyHash
       val key = wallet.getActiveKeychain.findKeyFromPubHash(hash)
-      _bag(hash) = key
+      if (key != null)
+        _bag(hash) = (key, accountIndex)
     }
 
     for (output <- tx.getOutputs.asScala if output.getScriptPubKey.getPubKeyHash != null) {
       val hash = output.getScriptPubKey.getPubKeyHash
       val key = wallet.getActiveKeychain.findKeyFromPubHash(hash)
-      _bag(hash) = key
+      if (key != null)
+        _bag(hash) = (key, accountIndex)
     }
   }
 
-  def findKey(input: TransactionInput): Option[DeterministicKey] = {
+  def findEntry(input: TransactionInput): Option[(DeterministicKey, Int)] = {
     try
       Option(_bag(input.getConnectedOutput.getScriptPubKey.getPubKeyHash))
     catch {
@@ -60,9 +63,40 @@ class DerivationPathBag {
     }
   }
 
-  def findKey(output: TransactionOutput): Option[DeterministicKey] = {
-    Option(_bag(output.getScriptPubKey.getPubKeyHash))
+  def findEntry(output: TransactionOutput): Option[(DeterministicKey, Int)] = {
+    _bag.lift(output.getScriptPubKey.getPubKeyHash)
   }
 
-  private val _bag = scala.collection.mutable.Map[Array[Byte], DeterministicKey]()
+  def findKey(input: TransactionInput): Option[DeterministicKey] = {
+    findEntry(input).map(_._1)
+  }
+
+  def findKey(output: TransactionOutput): Option[DeterministicKey] = {
+    findEntry(output).map(_._1)
+  }
+
+  def findPath(intput: TransactionInput): Option[DerivationPath] = {
+    findEntry(intput).map(entryToDerivationPath)
+  }
+
+  def findPath(output: TransactionOutput): Option[DerivationPath] = {
+    findEntry(output).map(entryToDerivationPath)
+  }
+
+  private def entryToDerivationPath(entry: (DeterministicKey, Int)): DerivationPath = {
+    entry match {
+      case (key, accountIndex) =>
+        import DerivationPath.dsl._
+        var path = DerivationPath.Root / accountIndex.h
+         for (childNum <- key.getPath.asScala.drop(1)) {
+          if (childNum.isHardened)
+            path = path / childNum.num().h
+          else
+            path = path / childNum.num()
+        }
+        path
+    }
+  }
+
+  private val _bag = scala.collection.mutable.Map[Array[Byte], (DeterministicKey, Int)]()
 }

@@ -35,6 +35,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import co.ledger.wallet.core.crypto.Crypto
 import co.ledger.wallet.core.utils.HexUtils
+import co.ledger.wallet.service.wallet.database
 import co.ledger.wallet.service.wallet.database.DatabaseStructure._
 import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
 import org.bitcoinj.core._
@@ -67,6 +68,15 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     database.insertOrThrow(AccountTableName, null, values) != -1
   }
 
+  def updateOrCreateBlock(block: StoredBlock): Boolean = {
+    import DatabaseStructure.BlockTableColumns._
+    val values = new ContentValues()
+    values.put(Hash, block.getHeader.getHashAsString)
+    values.put(Height, java.lang.Integer.valueOf(block.getHeight))
+    values.put(Time, JLong(block.getHeader.getTimeSeconds))
+    database.insert(BlockTableName, null, values) != -1
+  }
+
   def updateOrCreateOperation(accountId: Int,
                               transactionHash: String,
                               operationType: Int,
@@ -82,8 +92,7 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     updateOrCreate(OperationTableName, values, s"$Uid = ?", Array(uid))
   }
 
-  def updateOrCreateTransaction(tx: Transaction, blockChain: BlockChain, bag: DerivationPathBag):
-  Boolean
+  def updateOrCreateTransaction(tx: Transaction, bag: DerivationPathBag): Boolean
     = {
     import DatabaseStructure.TransactionTableColumns._
     val value = new ContentValues()
@@ -94,14 +103,9 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     value.put(LockTime, JLong(tx.getLockTime))
 
     val block: Option[(Sha256Hash, Integer)] = tx.getAppearsInHashes.asScala.toList.sortBy(_._2)
-      .headOption.flatMap({(blockData) =>
-        Option(blockChain.getBlockStore.get(blockData._1)).map[(Sha256Hash, Integer)]({(block) =>
-          (blockData._1, block.getHeight)
-        })
-    })
+      .headOption
 
     value.put(BlockHash, block.map(_._1.toString).orNull)
-    value.put(BlockHeight, block.map(_._2).orNull)
 
     val inserted = updateOrCreate(
       TransactionTableName,
@@ -134,9 +138,9 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     } else {
       uid = s"${input.getOutpoint.getHash.toString}_${input.getOutpoint.getIndex}"
       values.put(Index, JLong(input.getOutpoint.getIndex))
-      val path = bag.flatMap(_.findKey(input)).map(_.getPath)
+      val path = bag.flatMap(_.findPath(input))
       if (path.isDefined)
-        values.put(Path, HDUtils.formatPath(path.get))
+        values.put(Path, path.get.toString)
       values.put(Value, JLong(input.getValue))
       values.put(PreviousTx, input.getOutpoint.getHash.toString)
       values.put(ScriptSig, HexUtils.bytesToHex(input.getScriptBytes))
@@ -178,9 +182,9 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     values.put(Uid, uid)
     values.put(TransactionHash, tx.getHashAsString)
     values.put(Index, JLong(index))
-    val path = bag.flatMap(_.findKey(output)).map(_.getPath)
+    val path = bag.flatMap(_.findPath(output))
     if (path.isDefined)
-      values.put(Path, HDUtils.formatPath(path.get))
+      values.put(Path, path.get.toString)
     values.put(Value, JLong(output.getValue))
     values.put(PubKeyScript, HexUtils.bytesToHex(output.getScriptBytes))
     values.put(Address, Try(output.getScriptPubKey.getToAddress(tx.getParams).toString).getOrElse(null))
