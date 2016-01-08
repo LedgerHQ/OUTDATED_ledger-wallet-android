@@ -137,33 +137,36 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   }
 
   def notifyAccountReception(account: SpvAccountClient, tx: Transaction, newBalance: Coin): Unit = Future {
-    if (account == _accounts.last) {
-      notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
+    if (_spvAppKit.isDefined) {
+      pushTransaction(account, tx, _spvAppKit.get.blockChain)
+      if (account == _accounts.last) {
+        notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
+      }
+      eventBus.post(CoinReceived(account.index, newBalance))
     }
-    pushTransaction(account, tx)
-    eventBus.post(CoinReceived(account.index, newBalance))
   } recover {
     case throwable: Throwable => throwable.printStackTrace()
   }
 
-  def notifyAccountSend(account: SpvAccountClient, tx: Transaction, newBalance: Coin): Unit =
-    Future {
-    if (account == _accounts.last) {
-      notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
+  def notifyAccountSend(account: SpvAccountClient, tx: Transaction, newBalance: Coin): Unit = Future {
+    if (_spvAppKit.isDefined) {
+      pushTransaction(account, tx, _spvAppKit.get.blockChain)
+      if (account == _accounts.last) {
+        notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
+      }
+      eventBus.post(CoinSent(account.index, newBalance))
     }
-    pushTransaction(account, tx)
-    eventBus.post(CoinSent(account.index, newBalance))
   } recover {
       case throwable: Throwable => throwable.printStackTrace()
     }
 
-  private def pushTransaction(account: SpvAccountClient, tx: Transaction): Unit = {
+  private def pushTransaction(account: SpvAccountClient, tx: Transaction, blockChain: BlockChain): Unit = {
     val writer = _database.writer
     writer.beginTransaction()
     val bag = new DerivationPathBag
     try {
       bag.inflate(tx, account.xpubWatcher)
-      writer.updateOrCreateTransaction(tx, bag)
+      writer.updateOrCreateTransaction(tx, blockChain, bag)
       // Create operation now
       // Create receive send operation
       val walletTransaction = new WalletTransaction(account.xpubWatcher, tx)

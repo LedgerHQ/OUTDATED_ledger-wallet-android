@@ -33,6 +33,7 @@ package co.ledger.wallet.service.wallet.database
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
+import co.ledger.wallet.core.crypto.Crypto
 import co.ledger.wallet.core.utils.HexUtils
 import co.ledger.wallet.service.wallet.database.DatabaseStructure._
 import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
@@ -40,7 +41,7 @@ import org.bitcoinj.core._
 import org.bitcoinj.crypto.HDUtils
 
 import scala.collection.JavaConverters._
-import scala.util.Try
+import scala.util.{Success, Try}
 
 class WalletDatabaseWriter(database: SQLiteDatabase) {
 
@@ -81,7 +82,9 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     updateOrCreate(OperationTableName, values, s"$Uid = ?", Array(uid))
   }
 
-  def updateOrCreateTransaction(tx: Transaction, bag: DerivationPathBag): Boolean = {
+  def updateOrCreateTransaction(tx: Transaction, blockChain: BlockChain, bag: DerivationPathBag):
+  Boolean
+    = {
     import DatabaseStructure.TransactionTableColumns._
     val value = new ContentValues()
 
@@ -91,7 +94,11 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     value.put(LockTime, JLong(tx.getLockTime))
 
     val block: Option[(Sha256Hash, Integer)] = tx.getAppearsInHashes.asScala.toList.sortBy(_._2)
-      .lastOption
+      .headOption.flatMap({(blockData) =>
+        Option(blockChain.getBlockStore.get(blockData._1)).map[(Sha256Hash, Integer)]({(block) =>
+          (blockData._1, block.getHeight)
+        })
+    })
 
     value.put(BlockHash, block.map(_._1.toString).orNull)
     value.put(BlockHeight, block.map(_._2).orNull)
@@ -133,10 +140,13 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
       values.put(Value, JLong(input.getValue))
       values.put(PreviousTx, input.getOutpoint.getHash.toString)
       values.put(ScriptSig, HexUtils.bytesToHex(input.getScriptBytes))
-      values.put(Address, Try(input.getConnectedOutput.getScriptPubKey.getToAddress(input.getParams, true).toString)
-        .getOrElse(null))
+      val address = Try(input.getConnectedOutput.getScriptPubKey.getToAddress(input.getParams, true))
+        .recoverWith({
+          case all => Try(new Address(tx.get.getParams, Utils.sha256hash160(input.getScriptSig.getPubKey)))
+        })
+        .toOption
+      values.put(Address, address.map(_.toString).orNull)
     }
-
     values.put(Uid, uid)
     val inserted = updateOrCreate(InputTableName, values, s"$Uid = ?", Array(uid))
 
