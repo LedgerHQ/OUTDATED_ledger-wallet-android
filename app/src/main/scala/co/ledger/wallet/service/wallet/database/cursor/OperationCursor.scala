@@ -1,6 +1,6 @@
 /**
  *
- * OperationRow
+ * OperationCursor
  * Ledger wallet
  *
  * Created by Pierre Pollastri on 11/01/16.
@@ -28,26 +28,25 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.service.wallet.database.model
+package co.ledger.wallet.service.wallet.database.cursor
 
-import java.util.Date
+import android.database.Cursor
+import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns.FullOperationProjection.AllFieldsProjectionIndex._
 
-import co.ledger.wallet.service.wallet.database.cursor.OperationCursor
-import org.bitcoinj.core.Coin
+case class OperationCursor(override val self: Cursor) extends CursorExtension(self) {
 
-class OperationRow(cursor: OperationCursor) {
-  val uid = cursor.uid
-  val accountIndex = cursor.accountIndex
-  val transactionHash = cursor.transactionHash
-  val operationType = cursor.operationType
-  val value = Coin.valueOf(cursor.value)
-  val senders = cursor.senders.split(",")
-  val recipients = cursor.recipients.split(",")
-  val accountName = cursor.accountName
-  val accountColor = cursor.accountColor
-  val fees = Coin.valueOf(cursor.fees)
-  val time = new Date(cursor.time)
-  val lockTime = cursor.lockTime
-  val blockHash = cursor.blockHash
-  val blockHeight = cursor.blockHeight
+  def uid = self.getString(Uid)
+  def accountIndex = self.getInt(AccountIndex)
+  def transactionHash = self.getString(TransactionHash)
+  def operationType = self.getInt(Type)
+  def value = self.getLong(Value)
+  def senders = self.getString(Senders)
+  def recipients = self.getString(Recipients)
+  def accountName = self.getString(AccountName)
+  def accountColor = self.getInt(AccountColor)
+  def fees = self.getLong(TransactionFees)
+  def time = self.getLong(TransactionTime)
+  def lockTime = self.getLong(TransactionLockTime)
+  def blockHash = self.getString(BlockHash)
+  def blockHeight = self.getLong(BlockHeight)
 }

@@ -109,6 +109,57 @@ object DatabaseStructure {
       val Value = 4
     }
 
+    object FullOperationProjection {
+
+      object Keys {
+        val Uid = s"$OperationTableName.${OperationTableColumns.Uid}"
+        val AccountIndex = s"$OperationTableName.${OperationTableColumns.AccountId}"
+        val TransactionHash = s"$OperationTableName.${OperationTableColumns.TransactionHash}"
+        val Type = s"$OperationTableName.${OperationTableColumns.Type}"
+        val Value = s"$OperationTableName.${OperationTableColumns.Value}"
+        val Senders = s"$OperationTableName.${OperationTableColumns.Senders}"
+        val Recipients = s"$OperationTableName.${OperationTableColumns.Recipients}"
+        val AccountName = s"$AccountTableName.${AccountTableColumns.Name}"
+        val AccountColor = s"$AccountTableName.${AccountTableColumns.Color}"
+        val TransactionFees = s"$TransactionTableName.${TransactionTableColumns.Fees}"
+        val TransactionTime = s"$TransactionTableName.${TransactionTableColumns.Time}"
+        val TransactionLockTime = s"$TransactionTableName.${TransactionTableColumns.LockTime}"
+        val BlockHash = s"$TransactionTableName.${TransactionTableColumns.BlockHash}"
+        val BlockHeight = s"$BlockTableName.${BlockTableColumns.Height}"
+
+        val TransactionJoinKey = s"$TransactionTableName.${TransactionTableColumns.Hash}"
+        val AccountJoinKey = s"$AccountTableColumns.${AccountTableColumns.Index}"
+        val BlockJoinKey = s"$BlockTableColumns.${BlockTableColumns.Hash}"
+
+      }
+
+      val allFieldProjectionKeys = Array(
+        Keys.Uid, Keys.AccountIndex, Keys.TransactionHash, Keys.Type,
+        Keys.Value, Keys.Senders, Keys.Recipients, Keys.AccountName,
+        Keys.AccountColor, Keys.TransactionFees, Keys.TransactionTime,
+        Keys.TransactionLockTime, Keys.BlockHash, Keys.BlockHeight
+      )
+
+      object AllFieldsProjectionIndex {
+        val Uid = 0
+        val AccountIndex = 1
+        val TransactionHash = 2
+        val Type = 3
+        val Value = 4
+        val Senders = 5
+        val Recipients = 6
+        val AccountName = 7
+        val AccountColor = 8
+        val TransactionFees = 9
+        val TransactionTime = 10
+        val TransactionLockTime = 11
+        val BlockHash = 12
+        val BlockHeight = 3
+      }
+
+
+    }
+
     object Types {
       val Reception = 0x01
       val Send = 0x02

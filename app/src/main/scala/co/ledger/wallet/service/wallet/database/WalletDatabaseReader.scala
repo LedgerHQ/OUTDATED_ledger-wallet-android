@@ -37,6 +37,8 @@ import co.ledger.wallet.service.wallet.database.cursor.AccountCursor
 
 class WalletDatabaseReader(database: SQLiteDatabase) {
 
+  import DatabaseStructure._
+
   def allAccounts(): AccountCursor = {
     import DatabaseStructure.AccountTableColumns._
     AccountCursor(
@@ -59,4 +61,26 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
   def operationInputs(operationUid: String): Cursor = null
 
   def operationOutputs(operationUid: String): Cursor = null
+
+  def allFullOperations(offset: Int = 0, limit: Int = -1): Cursor = {
+    import DatabaseStructure.OperationTableColumns.FullOperationProjection._
+    val SelectFullOperation =
+      s"""
+         | SELECT ${allFieldProjectionKeys.mkString(",")} FROM $OperationTableName
+         | JOIN $TransactionTableName ON ${Keys.TransactionHash} = ${Keys.TransactionJoinKey}
+         | JOIN $AccountTableName ON ${Keys.AccountIndex} = ${Keys.AccountJoinKey}
+         | ORDER BY ${Keys.TransactionTime}
+         | LIMIT ($offset, $limit)
+     """.stripMargin
+    SelectFullOperation()
+  }
+
+  private implicit class SqlString(val sql: String) {
+
+    def apply(params: Array[String] = Array()): Cursor = {
+      database.rawQuery(sql, params)
+    }
+
+  }
+
 }

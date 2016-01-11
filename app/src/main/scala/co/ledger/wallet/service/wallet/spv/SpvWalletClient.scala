@@ -197,8 +197,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
                                       transaction: WalletTransaction,
                                       forceReception: Boolean,
                                       writer: WalletDatabaseWriter): Boolean = {
-    if (forceReception || transaction.numberOfChangeOutput > 1 ||
-      transaction.numberOfPublicOutput > 0) {
+    if (forceReception || transaction.numberOfPublicOutput > 0) {
       val value: Coin = transaction.receivedValue
       writer.updateOrCreateOperation(
         account.index,
@@ -404,7 +403,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       for (input <- inputs if input.isMine) {
         value = value.add(input.value)
       }
-      outputs.find(_.isOnInternalBranch).foreach({output =>
+      outputs.filter(_.isOnInternalBranch).foreach({output =>
         value = value subtract output.value
       })
       value
@@ -413,16 +412,9 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     def receivedValue: Coin = {
       val walletOutputs = outputs.filter(_.isMine)
       var value = Coin.ZERO
-      if (walletOutputs.length == 1 && outputs.length <= 2 && !inputs.exists(_.isMine)) {
-        value = value.add(walletOutputs(0).value)
-      } else {
-        var internalBranchOutputCount = 0
-        for (output <- walletOutputs) {
-          if (output.isOnInternalBranch)
-            internalBranchOutputCount += 1
-          if (output.isOnExternalBranch || internalBranchOutputCount >= 2)
-            value = value.add(output.value)
-        }
+      for (output <- walletOutputs) {
+        if (output.isOnExternalBranch || !containsWalletInputs)
+          value = value.add(output.value)
       }
       value
     }
