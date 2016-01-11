@@ -104,6 +104,8 @@ class WalletDatabaseOpenHelper(context: Context, walletName: String) extends
        | `$TransactionHash` TEXT,
        | `$Value` INTEGER NOT NULL,
        | `$Type` INTEGER NOT NULL,
+       | `$Senders` STRING NOT NULL,
+       | `$Recipients` STRING NOT NULL,
        | FOREIGN KEY(`$TransactionHash`) REFERENCES $TransactionTableName(`${TransactionTableColumns.Hash}`) ON
        | DELETE CASCADE,
        | FOREIGN KEY(`$AccountId`) REFERENCES $AccountTableName(`${AccountTableColumns.Index}`) ON

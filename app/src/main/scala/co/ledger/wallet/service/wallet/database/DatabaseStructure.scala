@@ -97,6 +97,8 @@ object DatabaseStructure {
     val TransactionHash = "transaction_hash"
     val Type = "operation_type"
     val Value = "value"
+    val Senders = "senders"
+    val Recipients = "recipients"
 
     val projection = Array(Uid, AccountId, TransactionHash, Type, Value)
     object ProjectionIndex {

@@ -36,7 +36,7 @@ import java.util.Date
 import android.content.Context
 import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.{AsyncCursor, SerialQueueTask}
-import co.ledger.wallet.core.utils.Preferences
+import co.ledger.wallet.core.utils.{BitcoinjUtils, Preferences}
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns
 import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
@@ -52,6 +52,7 @@ import org.bitcoinj.core.{Wallet => JWallet, _}
 import org.bitcoinj.crypto.DeterministicKey
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{Future, Promise}
 
 class SpvWalletClient(val context: Context, val name: String, val networkParameters: NetworkParameters)
@@ -183,7 +184,9 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
         account.index,
         transaction.tx.getHashAsString,
         OperationTableColumns.Types.Send,
-        value.getValue)
+        value.getValue,
+        transaction.senders,
+        transaction.recipients)
       true
     } else {
       false
@@ -201,7 +204,9 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
         account.index,
         transaction.tx.getHashAsString,
         OperationTableColumns.Types.Reception,
-        value.getValue)
+        value.getValue,
+        transaction.senders,
+        transaction.recipients)
       true
     } else {
       false
@@ -371,6 +376,28 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     lazy val numberOfChangeOutput = outputs.count(_.isOnInternalBranch)
 
     lazy val numberOfPublicOutput = outputs.count(_.isOnExternalBranch)
+
+    lazy val senders = {
+      val senders = new ArrayBuffer[String](inputs.length)
+      for (input <- inputs) {
+        val address = BitcoinjUtils.toAddress(input.input, networkParameters)
+        if (address.isDefined)
+          senders += address.get.toString
+        else if (input.input.isCoinBase)
+          senders += "coinbase"
+      }
+      senders.toArray
+    }
+
+    lazy val recipients = {
+      val recipients = ArrayBuffer[String]()
+      for (output <- outputs) {
+        BitcoinjUtils.toAddress(output.output, networkParameters).map(_.toString).foreach({(a) =>
+          recipients += a
+        })
+      }
+      recipients.toArray
+    }
 
     def sendValue: Coin = {
       var value = Coin.ZERO

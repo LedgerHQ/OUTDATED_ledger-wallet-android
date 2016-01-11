@@ -33,16 +33,14 @@ package co.ledger.wallet.service.wallet.database
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
-import co.ledger.wallet.core.crypto.Crypto
-import co.ledger.wallet.core.utils.HexUtils
-import co.ledger.wallet.service.wallet.database
+import co.ledger.wallet.core.utils.{BitcoinjUtils, HexUtils}
 import co.ledger.wallet.service.wallet.database.DatabaseStructure._
 import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
 import org.bitcoinj.core._
-import org.bitcoinj.crypto.HDUtils
+import org.bitcoinj.params.MainNetParams
 
 import scala.collection.JavaConverters._
-import scala.util.{Success, Try}
+import scala.util.Try
 
 class WalletDatabaseWriter(database: SQLiteDatabase) {
 
@@ -80,7 +78,9 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
   def updateOrCreateOperation(accountId: Int,
                               transactionHash: String,
                               operationType: Int,
-                              value: Long): Boolean = {
+                              value: Long,
+                              senders: Array[String],
+                              recipients: Array[String]): Boolean = {
     import DatabaseStructure.OperationTableColumns._
     val uid = Array(transactionHash, operationType, accountId).mkString("_")
     val values = new ContentValues()
@@ -89,6 +89,8 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     values.put(TransactionHash, transactionHash)
     values.put(Type, java.lang.Integer.valueOf(operationType))
     values.put(Value, JLong(value))
+    values.put(Senders, senders.mkString(","))
+    values.put(Recipients, recipients.mkString(","))
     updateOrCreate(OperationTableName, values, s"$Uid = ?", Array(uid))
   }
 
@@ -144,11 +146,7 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
       values.put(Value, JLong(input.getValue))
       values.put(PreviousTx, input.getOutpoint.getHash.toString)
       values.put(ScriptSig, HexUtils.bytesToHex(input.getScriptBytes))
-      val address = Try(input.getConnectedOutput.getScriptPubKey.getToAddress(input.getParams, true))
-        .recoverWith({
-          case all => Try(new Address(tx.get.getParams, Utils.sha256hash160(input.getScriptSig.getPubKey)))
-        })
-        .toOption
+      val address = BitcoinjUtils.toAddress(input, tx.map(_.getParams).getOrElse(MainNetParams.get()))
       values.put(Address, address.map(_.toString).orNull)
     }
     values.put(Uid, uid)
@@ -187,8 +185,7 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
       values.put(Path, path.get.toString)
     values.put(Value, JLong(output.getValue))
     values.put(PubKeyScript, HexUtils.bytesToHex(output.getScriptBytes))
-    values.put(Address, Try(output.getScriptPubKey.getToAddress(tx.getParams).toString).getOrElse(null))
-
+    values.put(Address, BitcoinjUtils.toAddress(output, tx.getParams).map(_.toString).orNull)
     updateOrCreate(OutputTableName, values, s"$Uid = ?", Array(uid))
   }
 
