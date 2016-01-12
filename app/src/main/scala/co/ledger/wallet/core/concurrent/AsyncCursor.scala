@@ -34,13 +34,17 @@ import scala.concurrent.Future
 
 trait AsyncCursor[T] {
   def count: Int
-  def seek(position: Int): Unit
-  def next(): Either[T, Future[T]]
-  def batchSize: Int
+  def chunkSize: Int
+  def chunkCount: Int
+  def loadedChunkCount: Int
+
+  def loadChunk(index: Int): Future[Array[T]]
+  def loadAllChunks(): Future[Array[T]]
+  def chunk(index: Int): Option[Array[T]]
+
+  def item(index: Int): Option[T]
+  def loadItem(index: Int): Future[T]
+
   def close(): Unit
-  def position: Int
-  def isLast: Boolean = position + 1 == count
-  def moveToFirst(): Unit = seek(0)
-  def moveToLast(): Unit = seek(count - 1)
-  def requery(): Future[Array[T]]
+  def requery(): Future[AsyncCursor[T]]
 }

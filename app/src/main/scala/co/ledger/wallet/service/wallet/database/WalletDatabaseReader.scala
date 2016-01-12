@@ -72,12 +72,12 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
          | ORDER BY ${Keys.TransactionTime}
          | LIMIT ($offset, $limit)
      """.stripMargin
-    SelectFullOperation()
+    SelectFullOperation.execute()
   }
 
   private implicit class SqlString(val sql: String) {
 
-    def apply(params: Array[String] = Array()): Cursor = {
+    def execute(params: Array[String] = Array()): Cursor = {
       database.rawQuery(sql, params)
     }
 
