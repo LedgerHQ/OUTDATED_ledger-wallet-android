@@ -128,8 +128,8 @@ object DatabaseStructure {
         val BlockHeight = s"$BlockTableName.${BlockTableColumns.Height}"
 
         val TransactionJoinKey = s"$TransactionTableName.${TransactionTableColumns.Hash}"
-        val AccountJoinKey = s"$AccountTableColumns.${AccountTableColumns.Index}"
-        val BlockJoinKey = s"$BlockTableColumns.${BlockTableColumns.Hash}"
+        val AccountJoinKey = s"$AccountTableName.${AccountTableColumns.Index}"
+        val BlockJoinKey = s"$BlockTableName.${BlockTableColumns.Hash}"
 
       }
 

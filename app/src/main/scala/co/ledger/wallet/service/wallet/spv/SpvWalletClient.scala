@@ -35,10 +35,11 @@ import java.util.Date
 
 import android.content.Context
 import co.ledger.wallet.app.Config
-import co.ledger.wallet.core.concurrent.{AsyncCursor, SerialQueueTask}
+import co.ledger.wallet.core.concurrent.{AbstractAsyncCursor, AsyncCursor, SerialQueueTask}
 import co.ledger.wallet.core.utils.{BitcoinjUtils, Preferences}
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns
+import co.ledger.wallet.service.wallet.database.cursor.OperationCursor
 import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
 import co.ledger.wallet.service.wallet.database.{WalletDatabaseOpenHelper, WalletDatabaseWriter}
 import co.ledger.wallet.wallet.DerivationPath.dsl._
@@ -66,7 +67,18 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
   override def account(index: Int): Future[Account] = init() map {(_) => _accounts(index)}
 
-  override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = ???
+  override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = Future {
+    new AbstractAsyncCursor[Operation](ec, batchSize) {
+      override protected def performQuery(from: Int, to: Int): Array[Operation] = {
+        OperationCursor.toArray(_database.reader.allFullOperations(from, to - from))
+          .asInstanceOf[Array[Operation]]
+      }
+
+      override def count: Int = _database.reader.operationCount()
+
+      override def requery(): Future[AsyncCursor[Operation]] = operations(batchSize)
+    }
+  }
 
   override def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
   Future.successful() flatMap {(_) =>
@@ -443,5 +455,4 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
   }
 }
-
 

@@ -32,6 +32,9 @@ package co.ledger.wallet.service.wallet.database.cursor
 
 import android.database.Cursor
 import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns.FullOperationProjection.AllFieldsProjectionIndex._
+import co.ledger.wallet.service.wallet.database.model.OperationRow
+
+import scala.collection.mutable.ArrayBuffer
 
 case class OperationCursor(override val self: Cursor) extends CursorExtension(self) {
 
@@ -49,4 +52,20 @@ case class OperationCursor(override val self: Cursor) extends CursorExtension(se
   def lockTime = self.getLong(TransactionLockTime)
   def blockHash = self.getString(BlockHash)
   def blockHeight = self.getLong(BlockHeight)
+}
+
+object OperationCursor {
+
+  def toArray(cursor: Cursor): Array[OperationRow] = {
+    val c = OperationCursor(cursor)
+    val ops = new ArrayBuffer[OperationRow](c.getCount)
+    if (c.moveToFirst()) {
+      do {
+        ops += new OperationRow(c)
+      } while (c.moveToNext())
+    }
+    c.close()
+    ops.toArray
+  }
+
 }

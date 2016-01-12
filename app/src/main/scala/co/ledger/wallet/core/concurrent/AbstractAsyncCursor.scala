@@ -31,11 +31,14 @@
 package co.ledger.wallet.core.concurrent
 
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.{ExecutionContext => EC, Future, Promise}
+import scala.reflect.ClassTag
 import scala.util.Try
 
-abstract class AbstractAsyncCursor[A](ec: ExecutionContext, override val chunkSize: Int) extends
-AsyncCursor[A] {
+abstract class AbstractAsyncCursor[A : ClassTag](executionContext: EC, override val chunkSize: Int)
+  extends AsyncCursor[A] {
+
+  implicit val ec = executionContext
 
   require(chunkSize > 0, "Chunk size must be more than 0")
 
@@ -94,7 +97,7 @@ AsyncCursor[A] {
     }
   }
 
-  override def chunkCount = count / chunkSize + (if ((count % chunkSize) > 0) 1 else 0)
+  override val chunkCount = count / chunkSize + (if ((count % chunkSize) > 0) 1 else 0)
   override def loadedChunkCount: Int = _chunks.count {
     case (_, future) => future.isCompleted
   }

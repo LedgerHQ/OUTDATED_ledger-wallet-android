@@ -69,10 +69,24 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
          | SELECT ${allFieldProjectionKeys.mkString(",")} FROM $OperationTableName
          | JOIN $TransactionTableName ON ${Keys.TransactionHash} = ${Keys.TransactionJoinKey}
          | JOIN $AccountTableName ON ${Keys.AccountIndex} = ${Keys.AccountJoinKey}
-         | ORDER BY ${Keys.TransactionTime}
-         | LIMIT ($offset, $limit)
+         | JOIN $BlockTableName ON ${Keys.BlockHash} = ${Keys.BlockJoinKey}
+         | ORDER BY ${Keys.TransactionTime} DESC
+         | LIMIT $limit OFFSET $offset
      """.stripMargin
     SelectFullOperation.execute()
+  }
+
+  def operationCount(): Int = {
+    val SelectCountOperation =
+      s"""
+         | SELECT COUNT(*) FROM $OperationTableName
+     """.stripMargin
+
+    val cursor = SelectCountOperation.execute()
+    cursor.moveToFirst()
+    val count = cursor.getInt(0)
+    cursor.close()
+    count
   }
 
   private implicit class SqlString(val sql: String) {

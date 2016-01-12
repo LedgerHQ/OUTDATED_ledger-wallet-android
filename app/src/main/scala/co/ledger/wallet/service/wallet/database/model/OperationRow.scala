@@ -33,21 +33,23 @@ package co.ledger.wallet.service.wallet.database.model
 import java.util.Date
 
 import co.ledger.wallet.service.wallet.database.cursor.OperationCursor
-import org.bitcoinj.core.Coin
+import co.ledger.wallet.wallet.Operation
+import org.bitcoinj.core.{Sha256Hash, Address, Coin}
 
-class OperationRow(cursor: OperationCursor) {
-  val uid = cursor.uid
-  val accountIndex = cursor.accountIndex
-  val transactionHash = cursor.transactionHash
-  val operationType = cursor.operationType
-  val value = Coin.valueOf(cursor.value)
-  val senders = cursor.senders.split(",")
-  val recipients = cursor.recipients.split(",")
-  val accountName = cursor.accountName
-  val accountColor = cursor.accountColor
-  val fees = Coin.valueOf(cursor.fees)
-  val time = new Date(cursor.time)
-  val lockTime = cursor.lockTime
-  val blockHash = cursor.blockHash
-  val blockHeight = cursor.blockHeight
+class OperationRow(cursor: OperationCursor) extends Operation {
+  override val uid = cursor.uid
+  override val accountIndex = cursor.accountIndex
+  override val transactionHash = cursor.transactionHash
+  override val operationType = cursor.operationType
+  override val value = Coin.valueOf(cursor.value)
+  override val senders = cursor.senders.split(",")
+  override val recipients = cursor.recipients.split(",")
+  override val accountName = cursor.accountName
+  override val accountColor = cursor.accountColor
+  override val fees = Coin.valueOf(cursor.fees)
+  override val time = new Date(cursor.time)
+  override val lockTime = cursor.lockTime
+  override val blockHash = cursor.blockHash
+  override val blockHeight = cursor.blockHeight
+
 }

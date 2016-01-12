@@ -43,6 +43,7 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{Toast, ProgressBar, TextView}
 import co.ledger.wallet.R
 import co.ledger.wallet.common._
+import co.ledger.wallet.core.adapter.OperationRecyclerViewAdapter
 import co.ledger.wallet.core.base.{BaseActivity, BaseFragment, WalletActivity}
 import co.ledger.wallet.core.event.MainThreadEventReceiver
 import co.ledger.wallet.core.utils.TR
@@ -181,8 +182,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
         .setMessage(s"Account #$index has no xpub yet\nWould you like to provide one?")
         .setPositiveButton("yes", new OnClickListener {
           override def onClick(dialog: DialogInterface, which: Int): Unit = {
-            promise.success(DeterministicKey.deserializeB58(XPubs(index.toInt), MainNetParams.get
-            ()))
+            promise.success(DeterministicKey.deserializeB58(XPubs(index.toInt), MainNetParams.get()))
           }
         }).setNegativeButton("no", new OnClickListener {
         override def onClick(dialog: DialogInterface, which: Int): Unit =
@@ -206,6 +206,22 @@ class DemoHomeFragment extends BaseFragment {
   Bundle): View = {
     inflater.inflate(R.layout.demo_home_tab, container, false)
   }
+
+  def transactionRecyclerView = getView.findViewById(R.id.transactions).asInstanceOf[RecyclerView]
+
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+    super.onViewCreated(view, savedInstanceState)
+    transactionRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))
+    transactionRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity, null))
+
+    getActivity.asInstanceOf[DemoActivity].wallet.operations(40) map {(cursor) =>
+      transactionRecyclerView.setAdapter(new OperationRecyclerViewAdapter(cursor))
+    } recover {
+      case all: Throwable => all.printStackTrace()
+    }
+
+  }
+
 }
 
 class DemoAccountFragment extends BaseFragment with TabTitleHolder {
@@ -295,14 +311,14 @@ class DemoAccountFragment extends BaseFragment with TabTitleHolder {
     def refresh(operation: Operation): Unit = {
       if (operation.isSending) {
         address.setText(operation.recipients.lift(0).getOrElse("Unknown").toString)
-        amount.setText(s"-${operation.amount.toPlainString}")
+        amount.setText(s"-${operation.value.toPlainString}")
       } else {
         address.setText(operation.senders.lift(0).getOrElse("Unknown").toString)
-        amount.setText(s"+${operation.amount.toPlainString}")
+        amount.setText(s"+${operation.value.toPlainString}")
       }
       v.setOnClickListener({ (v: View) =>
         val intent = new Intent(Intent.ACTION_VIEW, Uri.parse(s"https://blockchain" +
-          s".info/tx/${operation.hash.toString}"))
+          s".info/tx/${operation.transactionHash.toString}"))
         getActivity.startActivity(intent)
       })
     }
@@ -344,11 +360,21 @@ with Loggable {
     inflater.inflate(R.layout.demo_home_tab, container, false)
   }
 
+  def transactionRecyclerView = getView.findViewById(R.id.transactions).asInstanceOf[RecyclerView]
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     super.onViewCreated(view, savedInstanceState)
     register(wallet.eventBus)
     updateBalance()
+    transactionRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))
+    transactionRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity, null))
+
+    getActivity.asInstanceOf[DemoActivity].wallet.operations(40) map {(cursor) =>
+      transactionRecyclerView.setAdapter(new OperationRecyclerViewAdapter(cursor))
+    } recover {
+      case all: Throwable => all.printStackTrace()
+    }
+
   }
 
   override def onPause(): Unit = {

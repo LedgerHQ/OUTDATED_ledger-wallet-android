@@ -32,72 +32,33 @@ package co.ledger.wallet.wallet
 
 import java.util.Date
 
+import co.ledger.wallet.service.wallet.database.DatabaseStructure
 import org.bitcoinj.core._
 import scala.collection.JavaConverters._
 
 trait Operation {
 
-  def isReception: Boolean
+  def isReception: Boolean = operationType == DatabaseStructure.OperationTableColumns.Types.Reception
   def isSending: Boolean = !isReception
 
-  def amount: Coin
-  def recipients: Array[Address]
-  def senders: Array[Address]
-  def hash: Sha256Hash
-  def date: Date
+  def uid: String
+  def accountIndex: Int
+  def transactionHash: String
+  def operationType: Int
+  def value: Coin
+  def senders: Array[String]
+  def recipients: Array[String]
+  def accountName: String
+  def accountColor: Int
+  def fees: Coin
+  def time: Date
+  def lockTime: Long
+  def blockHash: String
+  def blockHeight: Long
 }
 
 object Operation {
 
-  def fromSendingTransaction(transaction: Transaction, wallet: TransactionBag): Option[Operation] = {
-    if (transaction.getValueSentFromMe(wallet).compareTo(Coin.ZERO) != 0)
-      Some(new SendingTransactionOperation(transaction, wallet))
-    else
-      None
-  }
 
-  def fromReceptionTransaction(transaction: Transaction, wallet: TransactionBag): Option[Operation] = {
-    if (transaction.getValueSentToMe(wallet).compareTo(Coin.ZERO) != 0)
-      Some(new ReceptionTransactionOperation(transaction, wallet))
-    else
-      None
-  }
-
-  private class ReceptionTransactionOperation(transaction: Transaction, wallet: TransactionBag)
-    extends TransactionOperation(transaction, wallet) {
-
-    override def isReception: Boolean = true
-
-    override def amount: Coin = transaction.getValueSentToMe(wallet)
-
-  }
-
-  private class SendingTransactionOperation(transaction: Transaction, wallet: TransactionBag)
-    extends TransactionOperation(transaction, wallet) {
-
-    override def isReception: Boolean = false
-
-    override def amount: Coin = transaction.getValueSentFromMe(wallet)
-
-  }
-
-  private abstract class TransactionOperation(transaction: Transaction, wallet: TransactionBag)
-    extends Operation {
-
-    override def senders: Array[Address] = transaction.getInputs.asScala.toArray.map {(input) =>
-      if (input.getScriptSig.isSentToAddress)
-        input.getScriptSig.getToAddress(input.getParams, true)
-      else
-        null
-    } filter(_ != null)
-
-    override def recipients: Array[Address] = transaction.getOutputs.asScala.toArray.map {(input) =>
-      input.getScriptPubKey.getToAddress(input.getParams, true)
-    }
-
-    override def hash: Sha256Hash = transaction.getHash
-
-    override def date: Date = transaction.getUpdateTime
-  }
 
 }
