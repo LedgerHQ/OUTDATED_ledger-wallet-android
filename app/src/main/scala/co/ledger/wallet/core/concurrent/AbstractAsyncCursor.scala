@@ -82,9 +82,9 @@ abstract class AbstractAsyncCursor[A : ClassTag](executionContext: EC, override 
   override def item(index: Int): Option[A] = {
     ensureNotClosed()
     val chunkIndex = itemIndexToChunkIndex(index)
-    chunk(chunkIndex) map {(chunk) =>
+    chunk(chunkIndex) flatMap {(chunk) =>
       val relativeIndex = index - chunkIndex * chunkSize
-      chunk(relativeIndex)
+      chunk.lift(relativeIndex)
     }
   }
 

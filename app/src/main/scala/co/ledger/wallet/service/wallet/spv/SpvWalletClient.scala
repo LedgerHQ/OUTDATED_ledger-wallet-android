@@ -91,7 +91,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   private[this] def performSynchronization(extendedPublicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] = {
     init() flatMap { (appKit) =>
       val promise = Promise[Unit]()
-      var _max = _resumeBlockchainDownloadMaxBlock.getOrElse(Int.MaxValue)
+      var _max = _resumeBlockchainDownloadMaxBlock.getOrElse(-1)
       Logger.d("SYNCHRONIZE")
       val accountsCount = _accounts.length
       val eventHandler = new Object {
@@ -105,25 +105,32 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
         override def startDownload(blocks: Int): Unit = {
           super.startDownload(blocks)
-          Logger.d("START DOWNLOAD")
+          eventBus.post(StartSynchronization())
         }
 
         override def onBlocksDownloaded(peer: Peer, block: Block, filteredBlock: FilteredBlock,
                                         blocksLeft: Int): Unit = {
           super.onBlocksDownloaded(peer, block, filteredBlock, blocksLeft)
           Future {
-            if (_max == Int.MaxValue)
+            if (_max == -1) {
               _max = blocksLeft
+              _resumeBlockchainDownloadMaxBlock = _max
+            }
 
-            if ((_max - blocksLeft) % 100 == 0)
-              eventBus.post(SynchronizationProgress(_max - blocksLeft, _max))
-            eventBus.post(BlockDownloaded(block))
+            // Approximately notify for every hour of blocks download (if we consider one new block
+            // appear each 10 minutes)
+            if ((_max - blocksLeft) % 6 == 0)
+              eventBus.post(SynchronizationProgress(_max - blocksLeft, _max, block.getTime))
           }
         }
 
         override def doneDownload(): Unit = {
           super.doneDownload()
-          promise.success()
+          Future {
+            _resumeBlockchainDownloadMaxBlock = -1
+            eventBus.post(StopSynchronization())
+            promise.success()
+          }
         }
       })
       promise.future andThen {
@@ -141,6 +148,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
             xpub58 = Some(xpub.serializePubB58(networkParameters)),
             creationTime = _neededAccountCreationTime
           )
+          eventBus.post(AccountCreated(index))
           performSynchronization(extendedPublicKeyProvider)
         } recover {
           case all => throw AccountHasNoXpubException(index)
@@ -192,13 +200,30 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
                                    writer: WalletDatabaseWriter): Boolean = {
     if (transaction.containsWalletInputs) {
       val value: Coin = transaction.sendValue
-      writer.updateOrCreateOperation(
+      val inserted = writer.updateOrCreateOperation(
         account.index,
         transaction.tx.getHashAsString,
         OperationTableColumns.Types.Send,
         value.getValue,
         transaction.senders,
         transaction.recipients)
+      if (inserted) {
+        eventBus.post(NewOperation(
+          account.index,
+          querySingleOperation(
+            account.index,
+            transaction.tx.getHashAsString,
+            OperationTableColumns.Types.Send
+          )))
+      } else {
+        eventBus.post(OperationChanged(
+          account.index,
+          querySingleOperation(
+            account.index,
+            transaction.tx.getHashAsString,
+            OperationTableColumns.Types.Send
+          )))
+      }
       true
     } else {
       false
@@ -211,16 +236,49 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
                                       writer: WalletDatabaseWriter): Boolean = {
     if (forceReception || transaction.numberOfPublicOutput > 0) {
       val value: Coin = transaction.receivedValue
-      writer.updateOrCreateOperation(
+      val inserted = writer.updateOrCreateOperation(
         account.index,
         transaction.tx.getHashAsString,
         OperationTableColumns.Types.Reception,
         value.getValue,
         transaction.senders,
         transaction.recipients)
+      if (inserted) {
+       eventBus.post(NewOperation(
+         account.index,
+         querySingleOperation(
+           account.index,
+           transaction.tx.getHashAsString,
+           OperationTableColumns.Types.Reception
+         )))
+      } else {
+        eventBus.post(OperationChanged(
+          account.index,
+          querySingleOperation(
+            account.index,
+            transaction.tx.getHashAsString,
+            OperationTableColumns.Types.Reception
+          )))
+      }
       true
     } else {
       false
+    }
+  }
+
+  private def querySingleOperation(accountId: Int, transactionHash: String, opType: Int): AsyncCursor[Operation] =
+    querySingleOperation(_database.writer.computeOperationUid(accountId, transactionHash, opType))
+
+  private def querySingleOperation(opUid: String): AsyncCursor[Operation] = {
+    new AbstractAsyncCursor[Operation](ec, 1) {
+      override protected def performQuery(from: Int, to: Int): Array[Operation] = {
+        OperationCursor.toArray(_database.reader.querySingleFullOperation(opUid))
+        .asInstanceOf[Array[Operation]]
+      }
+
+      override def count: Int = 1
+
+      override def requery(): Future[AsyncCursor[Operation]] = Future {querySingleOperation(opUid)}
     }
   }
 
@@ -256,7 +314,9 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       case (xpub, date) =>
         val checkpoints = context.getAssets.open(Config.CheckpointFilePath)
         _spvAppKitFactory.setup(Array(xpub), date, checkpoints)
-    } map setupWithAppKit map {unit => ()}
+    } map setupWithAppKit map {unit =>
+      eventBus.post(AccountCreated(0))
+      ()}
 
 
   override def needsSetup(): Future[Boolean] = init().map((_) => true).recover {
@@ -295,8 +355,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
         _database.writer.updateOrCreateBlock(block)
       }
 
-      override def notifyTransactionIsInBlock(txHash: Sha256Hash, block: StoredBlock, blockType:
-      NewBlockType, relativityOffset: Int): Boolean = false
+      override def notifyTransactionIsInBlock(txHash: Sha256Hash, block: StoredBlock, blockType: NewBlockType, relativityOffset: Int): Boolean = false
 
       override def receiveFromBlock(tx: Transaction, block: StoredBlock, blockType: NewBlockType,
                                     relativityOffset: Int): Unit = {}
@@ -367,6 +426,10 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       None
   }
 
+  private[this] def _resumeBlockchainDownloadMaxBlock_=(max: Int) = {
+    _preferences.writer.putInt(ResumeBlockchainDownloadKey, max)
+  }
+
   private case class OnEmptyAccountReceiveTransactionEvent()
   private case class NeedNewAccount()
 
@@ -402,9 +465,12 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
     lazy val recipients = {
       val recipients = ArrayBuffer[String]()
-      for (output <- outputs) {
+      val lt = {(a: WalletTransactionOutput, b: WalletTransactionOutput) =>
+        !(a.isOnExternalBranch && !b.isOnExternalBranch)
+      }
+      for (output <- outputs.sortWith(lt)) {
         BitcoinjUtils.toAddress(output.output, networkParameters).map(_.toString).foreach({(a) =>
-          recipients += a
+            recipients += a
         })
       }
       recipients.toArray

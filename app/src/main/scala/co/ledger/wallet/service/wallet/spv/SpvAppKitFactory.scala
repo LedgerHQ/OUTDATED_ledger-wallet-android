@@ -118,18 +118,8 @@ class SpvAppKitFactory(executionContext: ExecutionContext,
         val xpub = xpub58ToRootAccountKey(row.xpub58)
         val walletFile =
           new File(directory, s"${networkParameters.getId}_${xpub.serializePubB58(networkParameters)}.wallet")
-        try {
-          val walleto: JWallet = JWallet.fromWatchingKey(networkParameters, xpub, row.creationTime)
-          Logger.d(s"Success for ${row.xpub58}")
-        } catch {
-          case throwable: Throwable =>
-            Logger.d(s"Failure for ${row.xpub58}")
-            throwable.printStackTrace()
-        }
         val wallet: JWallet = JWallet.fromWatchingKey(networkParameters, xpub, row.creationTime)
-        if (!walletFile.exists()) {
-
-        } else {
+        if (walletFile.exists()) {
           val saved = JWallet.loadFromFile(walletFile)
           // TODO: Report bug to bitcoinj + use a wallet factory to prevent recreating wallet
           // each time

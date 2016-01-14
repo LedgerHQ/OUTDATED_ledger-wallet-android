@@ -76,6 +76,19 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
     SelectFullOperation.execute()
   }
 
+  def querySingleFullOperation(uid: String): Cursor = {
+    import DatabaseStructure.OperationTableColumns.FullOperationProjection._
+    val SelectFullOperation =
+      s"""
+         | SELECT ${allFieldProjectionKeys.mkString(",")} FROM $OperationTableName
+         | JOIN $TransactionTableName ON ${Keys.TransactionHash} = ${Keys.TransactionJoinKey}
+         | JOIN $AccountTableName ON ${Keys.AccountIndex} = ${Keys.AccountJoinKey}
+         | JOIN $BlockTableName ON ${Keys.BlockHash} = ${Keys.BlockJoinKey}
+         | WHERE ${Keys.Uid} = "$uid"
+     """.stripMargin
+    SelectFullOperation.execute()
+  }
+
   def operationCount(): Int = {
     val SelectCountOperation =
       s"""

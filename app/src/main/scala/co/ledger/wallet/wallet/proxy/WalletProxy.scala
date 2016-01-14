@@ -92,6 +92,7 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
   def unbind(): Unit = {
     connect().map({(wallet) =>
       wallet.eventBus.unregister(this)
+      context.unbindService(_connection.get)
     }).onComplete {
       case anything => _connection = None
     }

@@ -76,14 +76,6 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
 
   private class WalletEventListener extends AbstractWalletEventListener {
 
-    override def onKeysAdded(keys: util.List[ECKey]): Unit = {
-      super.onKeysAdded(keys)
-      Logger.d(s"Keys added: ${keys.size()}")
-      for (key <- keys.asScala) {
-        Logger.d(s"Add key ${new Address(wallet.networkParameters, key.getPubKeyHash)}")
-      }
-    }
-
     override def onCoinsReceived(w: Wallet, tx: Transaction, prevBalance: Coin, newBalance: Coin)
     : Unit = {
       super.onCoinsReceived(w, tx, prevBalance, newBalance)
@@ -99,14 +91,15 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
     }
 
 
-    override def onTransactionConfidenceChanged(wallet: Wallet, tx: Transaction): Unit = {
-      super.onTransactionConfidenceChanged(wallet, tx)
+    override def onTransactionConfidenceChanged(w: Wallet, tx: Transaction): Unit = {
+      super.onTransactionConfidenceChanged(w, tx)
+      if (tx.getConfidence.getConfidenceType == TransactionConfidence.ConfidenceType.DEAD) {
 
+      }
     }
 
     override def onWalletChanged(w: Wallet): Unit = {
       super.onWalletChanged(w)
-      wallet.eventBus.post(AccountUpdated(index))
     }
   }
 }

@@ -72,7 +72,7 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     values.put(Hash, block.getHeader.getHashAsString)
     values.put(Height, java.lang.Integer.valueOf(block.getHeight))
     values.put(Time, JLong(block.getHeader.getTimeSeconds))
-    database.insert(BlockTableName, null, values) != -1
+    updateOrCreate(BlockTableName, values, s"$Hash = ?", Array(block.getHeader.getHashAsString))
   }
 
   def updateOrCreateOperation(accountId: Int,
@@ -82,7 +82,7 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
                               senders: Array[String],
                               recipients: Array[String]): Boolean = {
     import DatabaseStructure.OperationTableColumns._
-    val uid = Array(transactionHash, operationType, accountId).mkString("_")
+    val uid = computeOperationUid(accountId, transactionHash, operationType)
     val values = new ContentValues()
     values.put(Uid, uid)
     values.put(AccountId, java.lang.Integer.valueOf(accountId))
@@ -93,6 +93,9 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     values.put(Recipients, recipients.mkString(","))
     updateOrCreate(OperationTableName, values, s"$Uid = ?", Array(uid))
   }
+
+  def computeOperationUid(accountId: Int, transactionHash: String, operationType: Int) =
+    Array(transactionHash, operationType, accountId).mkString("_")
 
   def updateOrCreateTransaction(tx: Transaction, bag: DerivationPathBag): Boolean
     = {
@@ -202,11 +205,8 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
 
   def updateOrCreate(table: String, values: ContentValues, whereClause: String, whereArgs:
     Array[String]): Boolean = {
-    Log.d("Toto", s"Try to update $table ${whereArgs.head}")
     if (database.update(table, values, whereClause, whereArgs) <= 0) {
-      Log.d("Toto", s"Failed to update $table ${whereArgs.head}, insert instead")
       val ret = database.insertOrThrow(table, null, values)
-      Log.d("Toto", s"Insertion of $table ${whereArgs.head} ended with $ret")
       true
     } else {
       false

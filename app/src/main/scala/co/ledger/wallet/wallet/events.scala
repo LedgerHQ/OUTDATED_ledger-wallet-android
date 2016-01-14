@@ -30,22 +30,26 @@
  */
 package co.ledger.wallet.wallet
 
-import org.bitcoinj.core.{Block, Coin, Transaction}
+import java.util.Date
+
+import co.ledger.wallet.core.concurrent.AsyncCursor
+import org.bitcoinj.core.Coin
 
 package object events {
 
   object PeerGroupEvents {
     case class StartSynchronization()
     case class StopSynchronization()
-    case class BlockDownloaded(block: Block)
-    case class SynchronizationProgress(current: Int, total: Int)
+    case class SynchronizationProgress(current: Int, total: Int, date: Date)
   }
 
   object WalletEvents {
     case class MissingAccount(index: Int)
-    case class TransactionReceived(index: Int, transaction: Transaction)
+    case class NewOperation(accountIndex: Int, operation: AsyncCursor[Operation])
+    case class OperationChanged(accountIndex: Int, operation: AsyncCursor[Operation])
     case class AccountCreated(index: Int)
     case class AccountUpdated(index: Int)
+
     case class CoinReceived(accountIndex: Int, coin: Coin)
     case class CoinSent(accountInt: Int, coin: Coin)
   }

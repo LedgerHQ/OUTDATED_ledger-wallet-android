@@ -30,17 +30,19 @@
  */
 package co.ledger.wallet.app
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import android.content.DialogInterface.OnClickListener
 import android.content.{DialogInterface, Intent}
 import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.TabLayout
-import android.support.v4.app.{FragmentStatePagerAdapter, Fragment, FragmentPagerAdapter}
+import android.support.v4.app.{Fragment, FragmentStatePagerAdapter}
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.{Toast, ProgressBar, TextView}
+import android.widget.{ProgressBar, TextView, Toast}
 import co.ledger.wallet.R
 import co.ledger.wallet.common._
 import co.ledger.wallet.core.adapter.OperationRecyclerViewAdapter
@@ -85,12 +87,17 @@ class DemoActivity extends BaseActivity with WalletActivity {
     super.onResume()
     synchronize()
     updateAccounts()
+    _xpubProvider.enable()
+  }
+
+
+  override def onPause(): Unit = {
+    super.onPause()
+    _xpubProvider.disable()
   }
 
   def synchronize(): Unit = {
     wallet.synchronize(_xpubProvider).recover {
-      case AccountHasNoXpubException(index) =>
-        showMissingXpubDialog(index)
       case WalletNotSetupException() =>
         Toast.makeText(this, "Wallet not setup", Toast.LENGTH_LONG).show()
         setup()
@@ -103,6 +110,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
     wallet.setup(_xpubProvider) onComplete {
       case Success(_) =>
         Toast.makeText(this, "Setup successful", Toast.LENGTH_LONG).show()
+        synchronize()
       case Failure(t) =>
         t.printStackTrace()
         Toast.makeText(this, "Setup failed", Toast.LENGTH_LONG).show()
@@ -163,19 +171,21 @@ class DemoActivity extends BaseActivity with WalletActivity {
 
   }
 
-  private[this] def showMissingXpubDialog(index: Int): Unit = {
-
-  }
-
   override def receive: Receive = {
     case AccountCreated(index) => updateAccounts()
-    case AccountUpdated(index) =>
+    case AccountUpdated(index) => updateAccounts()
+    case NewOperation(index, _) =>
     case string: String =>
     case drop =>
   }
 
-  private val _xpubProvider = new ExtendedPublicKeyProvider {
+  private val _xpubProvider = new ActivityXpubProvider
+
+  class ActivityXpubProvider extends ExtendedPublicKeyProvider {
     override def generateXpub(path: DerivationPath): Future[DeterministicKey] = Future.successful() flatMap { (_) =>
+      if (!_enabled.get()) {
+        throw new Exception("Disabled provider")
+      }
       val index = path(2).get.index
       val promise = Promise[DeterministicKey]()
       new AlertDialog.Builder(DemoActivity.this)
@@ -190,10 +200,14 @@ class DemoActivity extends BaseActivity with WalletActivity {
       }).show()
       promise.future
     }
+
+    def enable() = _enabled.set(true)
+    def disable() = _enabled.set(false)
+
+    private[this] val _enabled = new AtomicBoolean(true)
   }
 
   def account(index: Int): Option[Account] = {
-      Logger.d(s"Get account at index $index, got ${_accounts.get.apply(index).index}")
       _accounts.getOrElse(Array()).lift(index)
     }
 
@@ -395,11 +409,10 @@ with Loggable {
     case CoinReceived(index, _) => updateBalance()
     case CoinSent(index, _) => updateBalance()
     case AccountUpdated(index) => updateBalance()
-    case SynchronizationProgress(current, total) =>
+    case SynchronizationProgress(current, total, date) =>
+      lastBlockTimeTextView.setText(s"Last block time: ${date.toString}")
       progress.setMax(total)
       progress.setProgress(current)
-    case BlockDownloaded(block) =>
-      lastBlockTimeTextView.setText(s"Last block time: ${block.getTime.toString}")
     case event =>
   }
 
