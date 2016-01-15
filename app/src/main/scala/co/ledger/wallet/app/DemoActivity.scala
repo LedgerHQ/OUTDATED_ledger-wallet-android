@@ -37,7 +37,7 @@ import android.content.{DialogInterface, Intent}
 import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.TabLayout
-import android.support.v4.app.{Fragment, FragmentStatePagerAdapter}
+import android.support.v4.app.{FragmentPagerAdapter, Fragment, FragmentStatePagerAdapter}
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
@@ -117,7 +117,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
     }
   }
 
-  private class ViewPagerAdapter extends FragmentStatePagerAdapter(getSupportFragmentManager) {
+  private class ViewPagerAdapter extends FragmentPagerAdapter(getSupportFragmentManager) {
     var fragments = Array[Fragment with TabTitleHolder]()
 
     override def getItem(position: Int): Fragment = fragments(position)
@@ -212,29 +212,6 @@ class DemoActivity extends BaseActivity with WalletActivity {
     }
 
   private[this] var _accounts: Option[Array[Account]] = None
-
-}
-
-class DemoHomeFragment extends BaseFragment {
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState:
-  Bundle): View = {
-    inflater.inflate(R.layout.demo_home_tab, container, false)
-  }
-
-  def transactionRecyclerView = getView.findViewById(R.id.transactions).asInstanceOf[RecyclerView]
-
-  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    super.onViewCreated(view, savedInstanceState)
-    transactionRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))
-    transactionRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity, null))
-
-    getActivity.asInstanceOf[DemoActivity].wallet.operations(40) map {(cursor) =>
-      transactionRecyclerView.setAdapter(new OperationRecyclerViewAdapter(cursor))
-    } recover {
-      case all: Throwable => all.printStackTrace()
-    }
-
-  }
 
 }
 
@@ -362,10 +339,8 @@ object DemoAccountFragment {
 class DemoOverviewFragment extends BaseFragment with TabTitleHolder with MainThreadEventReceiver
 with Loggable {
 
-  def lastBlockTimeTextView = TR(R.id.last_block_date).as[TextView]
-  def progress = TR(R.id.progress).as[ProgressBar]
-  //lazy val accountCount = TR(R.id.account_count).as[TextView]
-  //lazy val accountsList = TR(R.id.accounts).as[TextView]
+  def lastBlockTimeTextView = getView.findViewById(R.id.last_block_date).asInstanceOf[TextView]
+  def progress = getView.findViewById(R.id.progress).asInstanceOf[ProgressBar]
   def balanceTextView = getView.findViewById(R.id.balance).asInstanceOf[TextView]
   override def tabTitle: String = "Overview"
 
@@ -376,8 +351,8 @@ with Loggable {
 
   def transactionRecyclerView = getView.findViewById(R.id.transactions).asInstanceOf[RecyclerView]
 
-  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    super.onViewCreated(view, savedInstanceState)
+  override def onResume(): Unit = {
+    super.onResume()
     register(wallet.eventBus)
     updateBalance()
     transactionRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))

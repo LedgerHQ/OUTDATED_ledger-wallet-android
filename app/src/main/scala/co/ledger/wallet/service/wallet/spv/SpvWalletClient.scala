@@ -49,7 +49,7 @@ import co.ledger.wallet.wallet.events.WalletEvents._
 import co.ledger.wallet.wallet.exceptions._
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.AbstractBlockChain.NewBlockType
-import org.bitcoinj.core.{Wallet => JWallet, _}
+import org.bitcoinj.core.{Wallet => JWallet, Context => JContext, _}
 import org.bitcoinj.crypto.DeterministicKey
 
 import scala.collection.JavaConverters._
@@ -62,6 +62,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   val NeededAccountIndexKey = "n_index"
   val NeededAccountCreationTimeKey = "n_time"
   val ResumeBlockchainDownloadKey = "max_block_left"
+  val ResumeBlockchainDownloadBlockHeightKey = "block_height"
 
   implicit val DisableLogging = false
 
@@ -116,11 +117,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
               _max = blocksLeft
               _resumeBlockchainDownloadMaxBlock = _max
             }
-
-            // Approximately notify for every hour of blocks download (if we consider one new block
-            // appear each 10 minutes)
-            if ((_max - blocksLeft) % 6 == 0)
-              eventBus.post(SynchronizationProgress(_max - blocksLeft, _max, block.getTime))
+            eventBus.post(SynchronizationProgress(_max - blocksLeft, _max, block.getTime))
           }
         }
 
@@ -156,25 +153,15 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     }
   }
 
-  def notifyAccountReception(account: SpvAccountClient, tx: Transaction, newBalance: Coin): Unit = Future {
+  def notifyAccountTransaction(account: SpvAccountClient, tx: Transaction): Unit = Future {
     if (_accounts.length > 0 && account == _accounts.last) {
-      notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
+      // TODO: Get block height
+      notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000, 0)
     }
     pushTransaction(account, tx)
-    eventBus.post(CoinReceived(account.index, newBalance))
   } recover {
     case throwable: Throwable => throwable.printStackTrace()
   }
-
-  def notifyAccountSend(account: SpvAccountClient, tx: Transaction, newBalance: Coin): Unit = Future {
-    if (_accounts.length > 0 && account == _accounts.last) {
-      notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000)
-    }
-    pushTransaction(account, tx)
-    eventBus.post(CoinSent(account.index, newBalance))
-  } recover {
-      case throwable: Throwable => throwable.printStackTrace()
-    }
 
   private def pushTransaction(account: SpvAccountClient, tx: Transaction): Unit = {
     val writer = _database.writer
@@ -299,6 +286,10 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
   override def accountsCount(): Future[Int] = init() map {(_) => _accounts.length}
 
+  private def propagate(): Unit = {
+    JContext.propagate(JContext.getOrCreate(networkParameters))
+  }
+
   val eventBus: EventBus = new EventBus()
 
   val rootPath = 44.h/0.h
@@ -325,19 +316,25 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   }
 
   private def init(): Future[SpvAppKit] = Future.successful() flatMap {(_) =>
-    if (_spvAppKit.isEmpty) {
-      _spvAppKitFactory.loadFromDatabase().map(setupWithAppKit) recover {
-        case NoAppKitToLoadException() => throw WalletNotSetupException()
-        case throwable: Throwable =>
-          throwable.printStackTrace()
-          throw throwable
-      }
-    } else {
-     Future.successful(_spvAppKit.get)
+    _spvAppKitFuture getOrElse {
+      Logger.d("Initialize app kit")
+      _spvAppKitFuture = Some(
+        _spvAppKitFactory.loadFromDatabase().map(setupWithAppKit) recover {
+          case NoAppKitToLoadException() =>
+            _spvAppKitFuture = None
+            throw WalletNotSetupException()
+          case throwable: Throwable =>
+            _spvAppKitFuture = None
+            throwable.printStackTrace()
+            throw throwable
+        }
+      )
+      _spvAppKitFuture.get
     }
   }
 
   private def setupWithAppKit(appKit: SpvAppKit): SpvAppKit = {
+    Logger.d("Setup with app kit")
     _neededAccountIndex foreach { index =>
       if (index >= appKit.accounts.length) {
         appKit.close()
@@ -367,8 +364,9 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     appKit
   }
 
-  private def notifyNewAccountNeed(index: Int, creationTimeSeconds: Long): Unit = {
+  private def notifyNewAccountNeed(index: Int, creationTimeSeconds: Long, blockHeight: Int): Unit = {
     _preferences.writer
+      .putInt(ResumeBlockchainDownloadBlockHeightKey, blockHeight)
       .putInt(NeededAccountIndexKey, index)
       .putLong(NeededAccountCreationTimeKey, creationTimeSeconds)
       .commit()
@@ -378,6 +376,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   }
   
   private def clearAppKit(): Unit = {
+    _spvAppKitFuture = None
     val appKit = _spvAppKit.get.close()
     _spvAppKit = None
     _accounts.foreach(_.release())
@@ -385,6 +384,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   }
 
   private[this] var _accounts = Array[SpvAccountClient]()
+  private[this] var _spvAppKitFuture: Option[Future[SpvAppKit]] = None
   private[this] var _spvAppKit: Option[SpvAppKit] = None
   private[this] lazy val _database = new WalletDatabaseOpenHelper(context, name)
   private[this] val _internalEventBus = new EventBus()

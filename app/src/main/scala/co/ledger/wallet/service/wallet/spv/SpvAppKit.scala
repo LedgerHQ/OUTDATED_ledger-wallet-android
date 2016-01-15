@@ -30,14 +30,16 @@
  */
 package co.ledger.wallet.service.wallet.spv
 
+import java.util
+
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import com.google.common.util.concurrent.{ListenableFuture, FutureCallback, Futures}
-import org.bitcoinj.core.{Wallet => JWallet, Context, DownloadProgressTracker, PeerGroup,
-BlockChain}
+import org.bitcoinj.core.{Wallet => JWallet, _}
 import org.bitcoinj.net.discovery.DnsDiscovery
 import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.store.BlockStore
+import org.slf4j.LoggerFactory
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.{Promise, Future}
@@ -51,9 +53,10 @@ class SpvAppKit(
 
   peerGroup.setDownloadTxDependencies(false)
   peerGroup.addPeerDiscovery(new DnsDiscovery(Context.get().getParams))
-
+  val bestBlock = Option(blockStore.getChainHead)
   accounts foreach {
     case (accountRow, wallet) =>
+      wallet.notifyNewBestBlock()
       blockChain.addWallet(wallet)
       peerGroup.addWallet(wallet)
   }

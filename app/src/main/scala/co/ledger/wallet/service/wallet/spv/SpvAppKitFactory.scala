@@ -31,6 +31,7 @@
 package co.ledger.wallet.service.wallet.spv
 
 import java.io.{IOException, InputStream, File}
+import java.util
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
@@ -91,7 +92,6 @@ class SpvAppKitFactory(executionContext: ExecutionContext,
     val blockStore = new SPVBlockStore(networkParameters, chainFile)
     val blockChain = new BlockChain(networkParameters, blockStore)
     val peerGroup = new PeerGroup(networkParameters, blockChain)
-
     if (blockStore.getChainHead.getHeight == 0)
       throw CorruptedBlockStoreException()
 

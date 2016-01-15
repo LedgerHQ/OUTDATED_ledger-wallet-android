@@ -37,7 +37,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/progress"
-            style="@android:style/Widget.ProgressBar.Horizontal"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_marginLeft="@dimen/extra_large_margin"
             android:layout_marginRight="@dimen/extra_large_margin"
             android:layout_gravity="center_horizontal" />

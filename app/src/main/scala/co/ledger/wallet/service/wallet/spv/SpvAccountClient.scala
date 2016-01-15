@@ -80,14 +80,14 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
     : Unit = {
       super.onCoinsReceived(w, tx, prevBalance, newBalance)
       Logger.d(s"Receive transaction: ${tx.getHashAsString}")
-      wallet.notifyAccountReception(SpvAccountClient.this, tx, newBalance)
+      wallet.notifyAccountTransaction(SpvAccountClient.this, tx)
     }
 
     override def onCoinsSent(w: Wallet, tx: Transaction, prevBalance: Coin, newBalance:
     Coin): Unit = {
       super.onCoinsSent(w, tx, prevBalance, newBalance)
       Logger.d(s"Send transaction: ${tx.getHashAsString}")
-      wallet.notifyAccountSend(SpvAccountClient.this, tx, newBalance)
+      wallet.notifyAccountTransaction(SpvAccountClient.this, tx)
     }
 
 
