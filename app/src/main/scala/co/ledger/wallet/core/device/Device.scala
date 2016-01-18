@@ -39,4 +39,6 @@ trait Device {
   def receive(): Array[Byte]
 
   def connectivityType: DeviceManager.ConnectivityType
+
+  def name: String
 }

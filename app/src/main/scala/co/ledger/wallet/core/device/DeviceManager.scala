@@ -30,16 +30,34 @@
  */
 package co.ledger.wallet.core.device
 
-import scala.concurrent.Future
+import android.content.Context
+import co.ledger.wallet.core.device.ble.BleDeviceManager
+
+import scala.concurrent.{ExecutionContext, Future}
 
 trait DeviceManager {
   import DeviceManager._
 
-  def compatibleConnectivityTypes: Future[Set[ConnectivityType]] = {
-    null
+  implicit val ec: ExecutionContext
+
+  def compatibleConnectivityTypes: Future[Set[ConnectivityType]] = Future {
+    _deviceManager filter {
+      case (t, m) => m.isCompatible
+    } map {
+      case (t, m) => t
+    } toSet
   }
 
+  def deviceManager(connectivityType: ConnectivityType): DeviceConnectionManager = {
+    _deviceManager(connectivityType)
+  }
 
+  def context: Context
+
+  import DeviceManager.ConnectivityTypes._
+  private[this] lazy val _deviceManager = Map[ConnectivityType, DeviceConnectionManager](
+    Ble -> new BleDeviceManager(context, ec)
+  )
 
 }
 
@@ -50,6 +68,10 @@ object DeviceManager {
     val Usb, Ble, Tee, Nfc = Value
   }
   type ConnectivityType = ConnectivityTypes.ConnectivityType
+
+  case class AndroidDeviceNotCompatibleException(msg: String) extends Exception(msg)
+  case class MissingPermissionException(msg: String) extends Exception(msg)
+  case class DisabledServiceException(msg: String) extends Exception(msg)
 }
 
 

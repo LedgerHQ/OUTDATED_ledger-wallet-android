@@ -31,11 +31,13 @@
 package co.ledger.wallet.service.device
 
 import android.app.Service
-import android.content.Intent
+import android.content.{Context, Intent}
 import android.os.IBinder
 import co.ledger.wallet.core.device.DeviceManager
 
-class DeviceManagerService extends Service with DeviceManager {
+import scala.concurrent.ExecutionContext
+
+class DeviceManagerService extends Service with DeviceManager  {
 
   override def onBind(intent: Intent): IBinder = _binder
 
@@ -43,6 +45,11 @@ class DeviceManagerService extends Service with DeviceManager {
     super.onCreate()
     startService(new Intent(this, getClass))
   }
+
+  override implicit val ec: ExecutionContext =
+    co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
+
+  override def context: Context = this
 
   class Binder extends android.os.Binder {
     def service = DeviceManagerService.this

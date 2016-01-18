@@ -30,8 +30,58 @@
  */
 package co.ledger.wallet.core.base
 
+import android.app.Activity
+import android.content.{ComponentName, Context, Intent, ServiceConnection}
+import android.os.IBinder
 import co.ledger.wallet.core.event.MainThreadEventReceiver
+import co.ledger.wallet.service.device.DeviceManagerService
 
-trait DeviceActivity extends DeviceActivity with MainThreadEventReceiver {
+import scala.concurrent.{Promise, Future}
 
+trait DeviceActivity extends Activity with MainThreadEventReceiver {
+
+  def deviceManagerService = {
+    _deviceManagerServiceConnection getOrElse {
+      _deviceManagerServiceConnection = Some(new DeviceManagerServiceConnection)
+      bindService(
+        new Intent(this, classOf[DeviceManagerService]),
+        _deviceManagerServiceConnection.get,
+        Context.BIND_AUTO_CREATE
+      )
+      _deviceManagerServiceConnection.get
+    }.future
+  }
+
+  def unbindDeviceManagerService(): Unit = {
+    _deviceManagerServiceConnection.getOrElse {
+      unbindService(_deviceManagerServiceConnection.get)
+      onDeviceManagerServiceDisconnected()
+    }
+  }
+
+  def onDeviceManagerServiceDisconnected(): Unit = {
+    _deviceManagerServiceConnection = None
+  }
+
+  private[this] var _deviceManagerServiceConnection: Option[DeviceManagerServiceConnection] = None
+
+  class DeviceManagerServiceConnection extends ServiceConnection {
+    override def onServiceDisconnected(name: ComponentName): Unit = {
+      if (!_promise.isCompleted)
+        _promise.failure(new Exception("Unable to bind service"))
+      if (_deviceManagerServiceConnection.isDefined)
+        onDeviceManagerServiceDisconnected()
+    }
+
+    override def onServiceConnected(name: ComponentName, service: IBinder): Unit = {
+      _promise.success(service.asInstanceOf[DeviceManagerService#Binder].service)
+    }
+
+    def future: Future[DeviceManagerService] = {
+      null
+    }
+
+    private[this] val _promise: Promise[DeviceManagerService] = Promise()
+
+  }
 }

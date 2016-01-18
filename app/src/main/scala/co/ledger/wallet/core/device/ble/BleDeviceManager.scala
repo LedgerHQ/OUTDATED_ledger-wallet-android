@@ -30,16 +30,106 @@
  */
 package co.ledger.wallet.core.device.ble
 
-import co.ledger.wallet.core.device.{Device, DeviceConnectionManager}
+import java.util
 
-import scala.concurrent.Future
+import android.app.Activity
+import android.bluetooth.BluetoothManager
+import android.bluetooth.le.{ScanCallback, ScanResult}
+import android.content.Context
+import android.content.pm.PackageManager
+import co.ledger.wallet.core.device.DeviceConnectionManager.ScanningRequest
+import co.ledger.wallet.core.device.{DeviceConnectionManager, DeviceManager}
+import scala.collection.JavaConverters._
 
-class BleDeviceManager extends DeviceConnectionManager {
+import scala.concurrent.{ExecutionContext, Future}
 
-  override def isCompatible: Future[Boolean] = ???
+class BleDeviceManager(context: Context, executionContext: ExecutionContext) extends DeviceConnectionManager {
 
-  override def isEnabled: Future[Boolean] = ???
+  implicit val ec = executionContext
 
-  override def discoverDevices(): Future[Array[Device]] = ???
+  override def isCompatible: Boolean =
+    android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2 &&
+    context.getPackageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
+
+  override def isEnabled: Boolean = {
+    Option(context.getSystemService(Context.BLUETOOTH_SERVICE).asInstanceOf[BluetoothManager])
+    .flatMap({(service) =>
+      Option(service.getAdapter)
+    }).exists(_.isEnabled)
+  }
+
+  override def requestPermission(activity: Activity): Future[Unit] = ???
+
+  override def hasPermissions: Boolean = true
+
+
+  override def requestScan(): ScanningRequest = new ScanningRequest {
+
+    private[this] var _stop: Option[() => Unit] = None
+
+    override def onStart(): Unit = {
+      _adapter foreach {(adapter) =>
+        val scanner = adapter.getBluetoothLeScanner
+        val callback = new ScanCallback {
+
+          override def onScanResult(callbackType: Int, result: ScanResult): Unit = {
+            super.onScanResult(callbackType, result)
+            import android.bluetooth.le.ScanSettings._
+            val device =  new BleDeviceImpl(result)
+            callbackType match {
+              case CALLBACK_TYPE_FIRST_MATCH | CALLBACK_TYPE_ALL_MATCHES =>
+                notifyDeviceDiscovered(device)
+              case CALLBACK_TYPE_MATCH_LOST =>
+                notifyDeviceLost(device)
+            }
+          }
+
+          override def onScanFailed(errorCode: Int): Unit = {
+            super.onScanFailed(errorCode)
+            import DeviceConnectionManager._
+            import ScanCallback._
+            val ex = errorCode match {
+              case SCAN_FAILED_ALREADY_STARTED => ScanAlreadyStartedException()
+              case SCAN_FAILED_APPLICATION_REGISTRATION_FAILED =>
+                ScanFailedApplicationRegistationException()
+              case SCAN_FAILED_FEATURE_UNSUPPORTED => ScanUnsupportedFeatureException()
+              case SCAN_FAILED_INTERNAL_ERROR => ScanInternalErrorException()
+            }
+            notifyFailure(ex)
+          }
+
+          override def onBatchScanResults(results: util.List[ScanResult]): Unit = {
+            super.onBatchScanResults(results)
+            for (result <- results.asScala) {
+              notifyDeviceDiscovered(new BleDeviceImpl(result))
+            }
+          }
+        }
+        _stop = Some({() =>
+          scanner.stopScan(callback)
+        })
+        scanner.startScan(callback)
+      }
+    }
+
+    override def onStop(): Unit = {
+      _stop.foreach(_())
+    }
+  }
+
+  private[this] lazy val _adapter = Future {
+    if (!isCompatible) {
+      throw DeviceManager.AndroidDeviceNotCompatibleException("BLE not compatible")
+    }
+    if (!hasPermissions) {
+      throw DeviceManager.MissingPermissionException("BLE not permitted")
+    }
+    val service = context.getSystemService(Context.BLUETOOTH_SERVICE).asInstanceOf[BluetoothManager]
+    val adapter = service.getAdapter
+    if (adapter == null || !adapter.isEnabled) {
+      throw DeviceManager.DisabledServiceException("BLE disabled")
+    }
+    adapter
+  }
 
 }

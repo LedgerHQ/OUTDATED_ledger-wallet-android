@@ -30,13 +30,127 @@
  */
 package co.ledger.wallet.core.device
 
-import scala.concurrent.Future
+import android.app.Activity
+import android.os.Handler
+import co.ledger.wallet.core.device.DeviceConnectionManager.ScanningRequest
+
+import scala.concurrent.{Promise, ExecutionContext, Future}
 
 trait DeviceConnectionManager {
 
-  def isCompatible: Future[Boolean]
-  def isEnabled: Future[Boolean]
+  /***
+    * Check if the android device is compatible with the technology (may block the current thread)
+    * @return true if compatible false otherwise
+    */
+  def isCompatible: Boolean
 
-  def discoverDevices(): Future[Array[Device]]
+  /***
+    * Check if service is enabled (may block the current thread)
+    * @return true if enabled false otherwise
+    */
+  def isEnabled: Boolean
+
+  /***
+    * Check if the manager has enough permissions to run (may block the current thread)
+    * @return true if the manager has all required permissions false otherwise
+    */
+  def hasPermissions: Boolean
+
+  /** *
+    * Request the manager required permission
+    * @param activity The current activity
+    * @return
+    */
+  def requestPermission(activity: Activity): Future[Unit]
+
+  def requestScan(): ScanningRequest
+}
+
+object DeviceConnectionManager {
+  val DefaultScanDuration = 10000L
+
+  trait DeviceScanCallback {
+
+  }
+
+  trait ScanningRequest {
+    def start(): Unit = {
+      if (_promise.isCompleted || _isStarted)
+        throw new IllegalStateException("Request already completed")
+      _isStarted = true
+      onStart()
+      new Handler().postDelayed(new Runnable {
+        override def run(): Unit = stop()
+      }, duration)
+    }
+    def onStart(): Unit
+    def onStop(): Unit
+
+    def stop(): Unit = {
+      if (!_promise.isCompleted) {
+        notifyEnd()
+        onStop()
+        _callback = None
+        _ec = None
+      }
+
+    }
+
+    private[this] var _duration = DefaultScanDuration
+    def duration = _duration
+    def duration_=(duration: Int) = _duration = duration
+
+    def onScanUpdate(callback: PartialFunction[ScanUpdate, Unit])(implicit ec: ExecutionContext):
+    Unit = {
+      _callback = Some(callback)
+      _ec = Some(ec)
+    }
+
+    def future: Future[Array[Device]] = _promise.future
+
+    protected def notifyDeviceDiscovered(device: Device): Unit = {
+      if (!_devices.contains(device)) {
+        _devices = _devices :+ device
+        _callback.foreach({ (callback) =>
+          callback(DeviceDiscovered(device))
+        })
+      }
+    }
+
+    protected def notifyDeviceLost(device: Device): Unit = {
+      if (_devices.contains(device)) {
+        _devices = _devices.filter(_ != device)
+        _callback foreach { (callback) =>
+          callback(DeviceLost(device))
+        }
+      }
+    }
+
+    protected def notifyEnd(): Unit = {
+      _promise.success(_devices)
+    }
+
+    protected def notifyFailure(throwable: Throwable): Unit = {
+      _promise.failure(throwable)
+      stop()
+    }
+
+    private[this] val _promise: Promise[Array[Device]] = Promise()
+    private[this] var _callback: Option[PartialFunction[ScanUpdate, Unit]] = None
+    private[this] var _ec: Option[ExecutionContext] = None
+    private[this] var _devices: Array[Device] = Array()
+    private[this] var _isStarted = false
+  }
+
+  trait ScanUpdate
+  case class DeviceDiscovered(device: Device) extends ScanUpdate
+  case class DeviceLost(device: Device) extends ScanUpdate
+
+  class ScanException(msg: String) extends Exception(msg)
+  case class ScanAlreadyStartedException() extends ScanException("Scan already started")
+  case class ScanFailedApplicationRegistationException() extends ScanException("Scan failed " +
+    "application registration")
+  case class ScanInternalErrorException() extends ScanException("Internal error")
+  case class ScanUnsupportedFeatureException() extends ScanException("Unsupported feature")
 
 }

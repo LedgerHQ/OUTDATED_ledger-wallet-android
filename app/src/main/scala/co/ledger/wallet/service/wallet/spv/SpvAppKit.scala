@@ -56,7 +56,8 @@ class SpvAppKit(
   val bestBlock = Option(blockStore.getChainHead)
   accounts foreach {
     case (accountRow, wallet) =>
-      wallet.notifyNewBestBlock()
+      if (bestBlock.isDefined)
+       wallet.notifyNewBestBlock(bestBlock.get)
       blockChain.addWallet(wallet)
       peerGroup.addWallet(wallet)
   }

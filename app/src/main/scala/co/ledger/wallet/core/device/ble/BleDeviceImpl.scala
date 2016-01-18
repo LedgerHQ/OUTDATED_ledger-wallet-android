@@ -30,6 +30,25 @@
  */
 package co.ledger.wallet.core.device.ble
 
-class BleDeviceImpl {
+import android.bluetooth.le.ScanResult
+import co.ledger.wallet.core.device.Device
+import co.ledger.wallet.core.device.DeviceManager.ConnectivityType
 
+class BleDeviceImpl(scanResult: ScanResult) extends Device {
+
+  override def connect(): Unit = ???
+
+  override def connectivityType: ConnectivityType = ???
+
+  override def disconnect(): Unit = ???
+
+  override def send(): Unit = ???
+
+  override def receive(): Array[Byte] = ???
+
+  override def name: String = scanResult.getDevice.getName
+
+  override def hashCode(): Int = name.hashCode
+
+  override def equals(o: scala.Any): Boolean = o.isInstanceOf[BleDeviceImpl] && o.hashCode() == hashCode()
 }
