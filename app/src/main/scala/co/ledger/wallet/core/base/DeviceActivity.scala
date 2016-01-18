@@ -40,8 +40,8 @@ import scala.concurrent.{Promise, Future}
 
 trait DeviceActivity extends Activity with MainThreadEventReceiver {
 
-  def deviceManagerService = {
-    _deviceManagerServiceConnection getOrElse {
+  def deviceManagerService: Future[DeviceManagerService] = {
+    _deviceManagerServiceConnection.getOrElse[DeviceManagerServiceConnection]({
       _deviceManagerServiceConnection = Some(new DeviceManagerServiceConnection)
       bindService(
         new Intent(this, classOf[DeviceManagerService]),
@@ -49,7 +49,7 @@ trait DeviceActivity extends Activity with MainThreadEventReceiver {
         Context.BIND_AUTO_CREATE
       )
       _deviceManagerServiceConnection.get
-    }.future
+    }).future
   }
 
   def unbindDeviceManagerService(): Unit = {
@@ -77,11 +77,8 @@ trait DeviceActivity extends Activity with MainThreadEventReceiver {
       _promise.success(service.asInstanceOf[DeviceManagerService#Binder].service)
     }
 
-    def future: Future[DeviceManagerService] = {
-      null
-    }
+    def future: Future[DeviceManagerService] = _promise.future
 
     private[this] val _promise: Promise[DeviceManagerService] = Promise()
-
   }
 }

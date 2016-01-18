@@ -76,11 +76,14 @@ class BleDeviceManager(context: Context, executionContext: ExecutionContext) ext
             super.onScanResult(callbackType, result)
             import android.bluetooth.le.ScanSettings._
             val device =  new BleDeviceImpl(result)
-            callbackType match {
-              case CALLBACK_TYPE_FIRST_MATCH | CALLBACK_TYPE_ALL_MATCHES =>
-                notifyDeviceDiscovered(device)
-              case CALLBACK_TYPE_MATCH_LOST =>
-                notifyDeviceLost(device)
+            //TODO: Find better filtering
+            if (device.name.toLowerCase.contains("ledger")) {
+              callbackType match {
+                case CALLBACK_TYPE_FIRST_MATCH | CALLBACK_TYPE_ALL_MATCHES =>
+                  notifyDeviceDiscovered(device)
+                case CALLBACK_TYPE_MATCH_LOST =>
+                  notifyDeviceLost(device)
+              }
             }
           }
 
