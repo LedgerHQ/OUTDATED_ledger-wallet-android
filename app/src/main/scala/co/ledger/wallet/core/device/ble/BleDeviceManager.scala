@@ -75,9 +75,9 @@ class BleDeviceManager(context: Context, executionContext: ExecutionContext) ext
           override def onScanResult(callbackType: Int, result: ScanResult): Unit = {
             super.onScanResult(callbackType, result)
             import android.bluetooth.le.ScanSettings._
-            val device =  new BleDeviceImpl(result)
+            val device =  new BleDeviceImpl(context, result)
             //TODO: Find better filtering
-            if (device.name.toLowerCase.contains("ledger")) {
+            if (device.name != null && device.name.toLowerCase.contains("ledger")) {
               callbackType match {
                 case CALLBACK_TYPE_FIRST_MATCH | CALLBACK_TYPE_ALL_MATCHES =>
                   notifyDeviceDiscovered(device)
@@ -104,7 +104,7 @@ class BleDeviceManager(context: Context, executionContext: ExecutionContext) ext
           override def onBatchScanResults(results: util.List[ScanResult]): Unit = {
             super.onBatchScanResults(results)
             for (result <- results.asScala) {
-              notifyDeviceDiscovered(new BleDeviceImpl(result))
+              notifyDeviceDiscovered(new BleDeviceImpl(context, result))
             }
           }
         }

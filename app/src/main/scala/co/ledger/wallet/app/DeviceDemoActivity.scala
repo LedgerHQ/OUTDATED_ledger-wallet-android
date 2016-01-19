@@ -30,16 +30,21 @@
  */
 package co.ledger.wallet.app
 
+import android.app.{ProgressDialog, Dialog}
+import android.content.DialogInterface
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
+import android.support.v7.app.AlertDialog
+import android.support.v7.app.AlertDialog.Builder
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
-import android.view.{LayoutInflater, ViewGroup, View}
+import android.view.View.OnClickListener
+import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.Toast
 import co.ledger.wallet.R
-import co.ledger.wallet.core.base.{DeviceActivity, BaseActivity}
+import co.ledger.wallet.core.base.{BaseActivity, DeviceActivity}
 import co.ledger.wallet.core.device.Device
-import co.ledger.wallet.core.device.DeviceConnectionManager.{ScanUpdate, DeviceLost, DeviceDiscovered, ScanningRequest}
+import co.ledger.wallet.core.device.DeviceConnectionManager.{DeviceDiscovered, DeviceLost, ScanUpdate, ScanningRequest}
 import co.ledger.wallet.core.device.DeviceManager.ConnectivityTypes
 import co.ledger.wallet.core.utils.TR
 import co.ledger.wallet.core.view.ViewHolder
@@ -66,6 +71,21 @@ class DeviceDemoActivity extends BaseActivity with DeviceActivity {
   override def onResume(): Unit = {
     super.onResume()
     scanDevices()
+  }
+
+  def connect(device: Device): Unit = {
+    val dialog = ProgressDialog.show(this, "Connecting", s"Connecting to ${device.name}")
+    device.connect() map { (device) =>
+      Toast.makeText(this, s"Connected to ${device.name}", Toast.LENGTH_LONG).show()
+    } map {(_) =>
+      // Init the API
+    } recover {
+      case error: Throwable =>
+        error.printStackTrace()
+        Toast.makeText(this, s"Failed to connect: ${error.getMessage}", Toast.LENGTH_LONG).show()
+    } onComplete {(_) =>
+      dialog.dismiss()
+    }
   }
 
   private def scanDevices(): Boolean = {
@@ -152,6 +172,22 @@ class DeviceDemoActivity extends BaseActivity with DeviceActivity {
 
     def update(device: Device): Unit = {
       name.setText(device.name)
+      v.setOnClickListener(new OnClickListener {
+        override def onClick(v: View): Unit = {
+          new Builder(DeviceDemoActivity.this)
+            .setTitle("Connect")
+            .setMessage("Do you want to connect?")
+            .setPositiveButton("yes", new DialogInterface.OnClickListener {
+              override def onClick(dialog: DialogInterface, which: Int): Unit = {
+                connect(device)
+              }
+            })
+            .setNegativeButton("no", new DialogInterface.OnClickListener {
+              override def onClick(dialog: DialogInterface, which: Int): Unit = dialog.dismiss()
+            })
+            .show()
+        }
+      })
     }
 
   }

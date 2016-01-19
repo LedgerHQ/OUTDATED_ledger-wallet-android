@@ -1,9 +1,9 @@
 /**
  *
- * Device
+ * BTChipApi
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 15/01/16.
+ * Created by Pierre Pollastri on 19/01/16.
  *
  * The MIT License (MIT)
  *
@@ -28,34 +28,26 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.core.device
+package co.ledger.wallet.core.btchip
 
-import de.greenrobot.event.EventBus
+import co.ledger.wallet.core.device.Device
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 
-trait Device {
-
-  def connect(): Future[Device]
-  def disconnect(): Unit
-
-  def exchange(command: Array[Byte]): Future[Array[Byte]]
-
-  def connectivityType: DeviceManager.ConnectivityType
-
-  def name: String
-
-  def eventBus: EventBus
-
-  def isConnecting: Boolean
-  def isConnected: Boolean
+trait BTChipApi extends BTChipApi.BTChipApiCommonInterface
+                with BTChipVersionApi {
 
 }
 
-object Device {
+object BTChipApi {
 
-  abstract class Event
-  case class Connect(device: Device) extends Event
-  case class Disconnect(device: Device) extends Event
+  trait BTChipApiCommonInterface {
+    def device: Device
+    implicit val ec: ExecutionContext
+  }
+
+  def apply(device: Device): BTChipApi = {
+    null
+  }
 
 }

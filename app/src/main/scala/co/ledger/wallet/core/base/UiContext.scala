@@ -30,13 +30,24 @@
  */
 package co.ledger.wallet.core.base
 
-import android.app.Activity
+import scala.concurrent.Future
 
 trait UiContext {
 
   def isVisible: Boolean
   def isHidden: Boolean
   def isDestroyed: Boolean
+
+  object Async {
+
+    def apply[A](func: => A): Future[A] = {
+      implicit val ec = co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
+      Future {
+        func
+      }
+    }
+
+  }
 
 }
 
