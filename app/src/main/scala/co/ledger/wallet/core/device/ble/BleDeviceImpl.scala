@@ -39,12 +39,17 @@ import co.ledger.wallet.core.concurrent.ThreadPoolTask
 import co.ledger.wallet.core.device.Device
 import co.ledger.wallet.core.device.Device.{Connect, Disconnect}
 import co.ledger.wallet.core.device.DeviceManager.{ConnectivityTypes, ConnectivityType}
+import co.ledger.wallet.core.utils.HexUtils
+import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import de.greenrobot.event.EventBus
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{Promise, Future}
 
-class BleDeviceImpl(context: Context, scanResult: ScanResult) extends Device with ThreadPoolTask {
+class BleDeviceImpl(context: Context, scanResult: ScanResult)
+  extends Device
+  with ThreadPoolTask
+  with Loggable {
 
   val DefaultServiceUuid = UUID.fromString("D973F2E0-B19E-11E2-9E96-0800200C9A66")
   val DefaultWriteCharacteristicUuid = UUID.fromString("D973F2E2-B19E-11E2-9E96-0800200C9A66")
@@ -70,7 +75,18 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult) extends Device wit
 
   override def isConnected: Boolean = _connectionPromise.isDefined && _connectionPromise.get.isCompleted
 
-  override def exchange(command: Array[Byte]): Future[Array[Byte]] = ???
+  override def exchange(command: Array[Byte]): Future[Array[Byte]] = synchronized {
+    assume(!isExchanging, "There is already an exchange going on.")
+    _exchangePerformer = Some(new ExchangePerformer(
+      _gatt.get,
+      _writeCharacteristic.get,
+      _notifyCharacteristic.get,
+      command
+    ))
+    _exchangePerformer.get.future
+  }
+
+  override def isExchanging = _exchangePerformer.isDefined
 
   override def name: String = scanResult.getDevice.getName
 
@@ -96,6 +112,8 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult) extends Device wit
   private[this] var _writeCharacteristic: Option[BluetoothGattCharacteristic] = None
   private[this] var _notifyCharacteristic: Option[BluetoothGattCharacteristic] = None
   private[this] var _connectionPromise: Option[Promise[Device]] = None
+  private[this] var _exchangePerformer: Option[ExchangePerformer] = None
+
   private[this] val _gattCallback = new BluetoothGattCallback {
 
     override def onDescriptorWrite(gatt: BluetoothGatt,
@@ -111,6 +129,8 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult) extends Device wit
             "descriptor"))
           onDisconnect()
         }
+      } else {
+        Logger.e(s"Unexpected write characteristic $descriptor")
       }
     }
 
@@ -164,12 +184,30 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult) extends Device wit
                                        characteristic: BluetoothGattCharacteristic,
                                        status: Int): Unit = {
       super.onCharacteristicWrite(gatt, characteristic, status)
+      _exchangePerformer match {
+        case Some(performer) => performer.onWrite(gatt, characteristic, status)
+        case None =>
+          Logger.e(s"Unexpected write characteristic $characteristic")
+          if (characteristic.getValue != null)
+            Logger.e(HexUtils.bytesToHex(characteristic.getValue))
+          else
+            Logger.e("write NULL value")
+      }
     }
 
     override def onCharacteristicRead(gatt: BluetoothGatt,
                                       characteristic: BluetoothGattCharacteristic,
                                       status: Int): Unit = {
       super.onCharacteristicRead(gatt, characteristic, status)
+      _exchangePerformer match {
+        case Some(performer) => performer.onRead(gatt, characteristic, status)
+        case None =>
+          Logger.e(s"Unexpected read characteristic $characteristic")
+          if (characteristic.getValue != null)
+            Logger.e(HexUtils.bytesToHex(characteristic.getValue))
+          else
+            Logger.e("read NULL value")
+      }
     }
 
     override def onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int): Unit = {
@@ -186,4 +224,77 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult) extends Device wit
       }
     }
   }
+
+  private class ExchangePerformer(val gatt: BluetoothGatt,
+                                  val writeCharacteristic: BluetoothGattCharacteristic,
+                                  val readCharacteristic: BluetoothGattCharacteristic,
+                                  command: Array[Byte]) {
+
+    val DefaultChunkSize = 20
+
+    import BLETransportHelper._
+    val splitCommand = split(COMMAND_APDU, command, DefaultChunkSize)
+
+    def onRead(gatt: BluetoothGatt,
+               characteristic: BluetoothGattCharacteristic,
+               status: Int): Unit = {
+      if (!_promise.isCompleted) {
+        append(characteristic.getValue)
+      } else {
+        Logger.wtf("Unexpected read")
+      }
+    }
+
+    def onWrite(gatt: BluetoothGatt,
+                characteristic: BluetoothGattCharacteristic,
+                status: Int): Unit = {
+      if (!_promise.isCompleted && isWriting) {
+        _currentChunkOffset += 1
+        if (isWriting) {
+          writeNextChunk()
+        }
+      } else {
+        Logger.wtf("Unexpected write")
+      }
+    }
+
+    def isWriting = _currentChunkOffset < splitCommand.length && !_promise.isCompleted
+    def isReading = !isWriting && !_promise.isCompleted
+
+    def failure(cause: Throwable): Unit = {
+      if (!_promise.isCompleted) {
+        _promise.failure(cause)
+      }
+    }
+
+    def success(response: Array[Byte]): Unit = {
+      if (!_promise.isCompleted) {
+        _promise.success(response)
+      }
+    }
+
+    def append(chunk: Array[Byte]): Unit = {
+      _responseBuffer.add(chunk)
+      val response = join(COMMAND_APDU, _responseBuffer)
+      if (response != null) {
+        success(response)
+      }
+    }
+
+    def writeNextChunk(): Unit = {
+      if (!writeCharacteristic.setValue(splitCommand(_currentChunkOffset))) {
+        failure(new Exception("Unable to write data locally"))
+      }
+    }
+
+    def future: Future[Array[Byte]] = _promise.future
+
+    private[this] val _promise = Promise[Array[Byte]]()
+    private[this] var _currentChunkOffset = 0
+    private[this] val _responseBuffer = new java.util.Vector[Array[Byte]]()
+
+    // Start writing
+    writeNextChunk()
+  }
+
 }

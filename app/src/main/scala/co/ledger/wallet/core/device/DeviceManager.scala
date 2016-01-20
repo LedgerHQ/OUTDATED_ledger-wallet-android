@@ -30,6 +30,8 @@
  */
 package co.ledger.wallet.core.device
 
+import java.util.UUID
+
 import android.content.Context
 import co.ledger.wallet.core.device.ble.BleDeviceManager
 
@@ -52,7 +54,28 @@ trait DeviceManager {
     _deviceManager(connectivityType)
   }
 
+  def registerDevice(device: Device): Future[UUID] = Future {
+    val uuid = UUID.randomUUID()
+    _registeredDevices(uuid) = device
+    uuid
+  }
+
+  def unregisterDevice(uuid: UUID): Unit = Future {
+    _registeredDevices.remove(uuid)
+  }
+
+  def unregisterDevice(device: Device): Unit = Future {
+    // TODO: Rewrite
+    _registeredDevices.retain((uuid, d) => d != device)
+  }
+
+  def attemptReconnectLastDevice(): Future[Device] = {
+    null
+  }
+
   def context: Context
+
+  protected[this] val _registeredDevices = scala.collection.mutable.Map[UUID, Device]()
 
   import DeviceManager.ConnectivityTypes._
   private[this] lazy val _deviceManager = Map[ConnectivityType, DeviceConnectionManager](

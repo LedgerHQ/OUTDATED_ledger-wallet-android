@@ -30,9 +30,12 @@
  */
 package co.ledger.wallet.core.base
 
+import java.util.UUID
+
 import android.app.Activity
 import android.content.{ComponentName, Context, Intent, ServiceConnection}
 import android.os.IBinder
+import co.ledger.wallet.core.device.Device
 import co.ledger.wallet.core.event.MainThreadEventReceiver
 import co.ledger.wallet.service.device.DeviceManagerService
 
@@ -63,7 +66,28 @@ trait DeviceActivity extends Activity with MainThreadEventReceiver {
     _deviceManagerServiceConnection = None
   }
 
+  def connectedDevice: Future[Device] = deviceManagerService map {(_) =>
+    null
+  }
+
+  def connectedDeviceUuid: Option[UUID] = {
+    val intentUuid = getIntent.getStringExtra(DeviceActivity.ConnectedDeviceUuid)
+    if (intentUuid != null) {
+      Some(UUID.fromString(intentUuid))
+    } else {
+      _connectedDeviceUuid
+    }
+  }
+
+  def registerDevice(device: Device): Future[UUID] = deviceManagerService flatMap {(service) =>
+    service.registerDevice(device)
+  } map {(uuid) =>
+    _connectedDeviceUuid = Some(uuid)
+    uuid
+  }
+
   private[this] var _deviceManagerServiceConnection: Option[DeviceManagerServiceConnection] = None
+  private[this] var _connectedDeviceUuid: Option[UUID] = None
 
   class DeviceManagerServiceConnection extends ServiceConnection {
     override def onServiceDisconnected(name: ComponentName): Unit = {
@@ -81,4 +105,8 @@ trait DeviceActivity extends Activity with MainThreadEventReceiver {
 
     private[this] val _promise: Promise[DeviceManagerService] = Promise()
   }
+}
+
+object DeviceActivity {
+  val ConnectedDeviceUuid = "ConnectedDeviceUuid"
 }
