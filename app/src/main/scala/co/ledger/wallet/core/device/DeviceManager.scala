@@ -69,6 +69,10 @@ trait DeviceManager {
     _registeredDevices.retain((uuid, d) => d != device)
   }
 
+  def connectedDevice(uuid: UUID): Future[Device] = Future {
+    _registeredDevices.getOrElse(uuid, throw new Exception("No such device"))
+  }
+
   def attemptReconnectLastDevice(): Future[Device] = {
     null
   }

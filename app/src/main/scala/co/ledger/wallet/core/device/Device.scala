@@ -52,6 +52,9 @@ trait Device {
   def isConnecting: Boolean
   def isConnected: Boolean
 
+  def isDebugEnabled: Boolean
+  def debug_=(enable: Boolean): Unit
+
 }
 
 object Device {

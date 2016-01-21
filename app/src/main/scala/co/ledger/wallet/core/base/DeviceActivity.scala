@@ -34,14 +34,16 @@ import java.util.UUID
 
 import android.app.Activity
 import android.content.{ComponentName, Context, Intent, ServiceConnection}
-import android.os.IBinder
+import android.os.{Bundle, IBinder}
 import co.ledger.wallet.core.device.Device
 import co.ledger.wallet.core.event.MainThreadEventReceiver
 import co.ledger.wallet.service.device.DeviceManagerService
 
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 trait DeviceActivity extends Activity with MainThreadEventReceiver {
+
+  implicit val ec: ExecutionContext
 
   def deviceManagerService: Future[DeviceManagerService] = {
     _deviceManagerServiceConnection.getOrElse[DeviceManagerServiceConnection]({
@@ -66,8 +68,15 @@ trait DeviceActivity extends Activity with MainThreadEventReceiver {
     _deviceManagerServiceConnection = None
   }
 
-  def connectedDevice: Future[Device] = deviceManagerService map {(_) =>
-    null
+  def connectedDevice: Future[Device] = {
+    connectedDeviceUuid match {
+      case Some(uuid) =>
+        deviceManagerService.flatMap(_.connectedDevice(uuid)).recover {
+          case all =>
+            throw DeviceActivity.ConnectedDeviceNotFoundException()
+        }
+      case None => Future.failed(DeviceActivity.ConnectedDeviceNotFoundException())
+    }
   }
 
   def connectedDeviceUuid: Option[UUID] = {
@@ -79,11 +88,36 @@ trait DeviceActivity extends Activity with MainThreadEventReceiver {
     }
   }
 
+  def connectedDeviceUuid_=(uuid: UUID) = _connectedDeviceUuid = Option(uuid)
+
   def registerDevice(device: Device): Future[UUID] = deviceManagerService flatMap {(service) =>
     service.registerDevice(device)
   } map {(uuid) =>
     _connectedDeviceUuid = Some(uuid)
     uuid
+  }
+
+  override def startActivity(intent: Intent, options: Bundle): Unit = {
+    connectedDeviceUuid match {
+      case Some(uuid) =>
+        intent.putExtra(DeviceActivity.ConnectedDeviceUuid, uuid.toString)
+        super.startActivity(intent, options)
+      case None => super.startActivity(intent, options)
+    }
+  }
+
+  abstract override def onSaveInstanceState(outState: Bundle): Unit = {
+    super.onSaveInstanceState(outState)
+    if (_connectedDeviceUuid.isDefined) {
+      outState.putString(DeviceActivity.ConnectedDeviceUuid, _connectedDeviceUuid.get.toString)
+    }
+  }
+
+  abstract override def onRestoreInstanceState(savedInstanceState: Bundle): Unit = {
+    super.onRestoreInstanceState(savedInstanceState)
+    if (savedInstanceState.containsKey(DeviceActivity.ConnectedDeviceUuid)) {
+      _connectedDeviceUuid = Some(UUID.fromString(savedInstanceState.getString(DeviceActivity.ConnectedDeviceUuid)))
+    }
   }
 
   private[this] var _deviceManagerServiceConnection: Option[DeviceManagerServiceConnection] = None
@@ -109,4 +143,7 @@ trait DeviceActivity extends Activity with MainThreadEventReceiver {
 
 object DeviceActivity {
   val ConnectedDeviceUuid = "ConnectedDeviceUuid"
+
+  case class ConnectedDeviceNotFoundException() extends Exception("Not found")
+
 }

@@ -55,6 +55,11 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".app.DemoConnectedDeviceActivity"
+                  android:label="Connected device">
+
+        </activity>
+
         <!-- M2FA -->
 
         <!-- Unplugged setup -->

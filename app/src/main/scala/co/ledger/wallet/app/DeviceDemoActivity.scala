@@ -31,7 +31,7 @@
 package co.ledger.wallet.app
 
 import android.app.{ProgressDialog, Dialog}
-import android.content.DialogInterface
+import android.content.{Intent, DialogInterface}
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
@@ -75,16 +75,18 @@ class DeviceDemoActivity extends BaseActivity with DeviceActivity {
 
   def connect(device: Device): Unit = {
     val dialog = ProgressDialog.show(this, "Connecting", s"Connecting to ${device.name}")
-    device.connect() map { (device) =>
-      Toast.makeText(this, s"Connected to ${device.name}", Toast.LENGTH_LONG).show()
-    } map {(_) =>
-      // Init the API
-    } recover {
-      case error: Throwable =>
-        error.printStackTrace()
-        Toast.makeText(this, s"Failed to connect: ${error.getMessage}", Toast.LENGTH_LONG).show()
-    } onComplete {(_) =>
-      dialog.dismiss()
+    device.connect() flatMap { (device) =>
+      registerDevice(device)
+    } onComplete {
+      case Success(_) =>
+        Toast.makeText(this, s"Connected to ${device.name}", Toast.LENGTH_LONG).show()
+        val intent = new Intent(this, classOf[DemoConnectedDeviceActivity])
+        startActivity(intent)
+        dialog.dismiss()
+      case Failure(ex) =>
+        Toast.makeText(this, s"Failed to connect: ${ex.getMessage}", Toast.LENGTH_LONG).show()
+        ex.printStackTrace()
+        dialog.dismiss()
     }
   }
 

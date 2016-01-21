@@ -108,6 +108,11 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
     }
   }
 
+  override def isDebugEnabled: Boolean = _debug
+
+  override def debug_=(enable: Boolean): Unit = _debug = enable
+
+  private[this] var _debug = false
   private[this] var _gatt: Option[BluetoothGatt] = None
   private[this] var _writeCharacteristic: Option[BluetoothGattCharacteristic] = None
   private[this] var _notifyCharacteristic: Option[BluetoothGattCharacteristic] = None
@@ -141,6 +146,15 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
     override def onCharacteristicChanged(gatt: BluetoothGatt, characteristic:
     BluetoothGattCharacteristic): Unit = {
       super.onCharacteristicChanged(gatt, characteristic)
+      _exchangePerformer match {
+        case Some(performer) => performer.onRead(gatt, characteristic, BluetoothGatt.GATT_SUCCESS)
+        case None =>
+          Logger.e(s"Unexpected read characteristic $characteristic")
+          if (characteristic.getValue != null)
+            Logger.e(HexUtils.bytesToHex(characteristic.getValue))
+          else
+            Logger.e("write NULL value")
+      }
     }
 
     override def onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int): Unit = {
@@ -238,6 +252,7 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
     def onRead(gatt: BluetoothGatt,
                characteristic: BluetoothGattCharacteristic,
                status: Int): Unit = {
+      Logger.d("On read")
       if (!_promise.isCompleted) {
         append(characteristic.getValue)
       } else {
@@ -248,6 +263,7 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
     def onWrite(gatt: BluetoothGatt,
                 characteristic: BluetoothGattCharacteristic,
                 status: Int): Unit = {
+      Logger.d("On write")
       if (!_promise.isCompleted && isWriting) {
         _currentChunkOffset += 1
         if (isWriting) {
@@ -282,7 +298,12 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
     }
 
     def writeNextChunk(): Unit = {
-      if (!writeCharacteristic.setValue(splitCommand(_currentChunkOffset))) {
+      if (writeCharacteristic.setValue(splitCommand(_currentChunkOffset))) {
+        if (!gatt.writeCharacteristic(writeCharacteristic))
+          failure(new Exception("Unable to write characteristic locally"))
+        Logger.d(s"Write down chunk ${_currentChunkOffset}/${splitCommand.length}")
+        Logger.d(s"=> ${HexUtils.bytesToHex(splitCommand(_currentChunkOffset))}")
+      } else {
         failure(new Exception("Unable to write data locally"))
       }
     }
