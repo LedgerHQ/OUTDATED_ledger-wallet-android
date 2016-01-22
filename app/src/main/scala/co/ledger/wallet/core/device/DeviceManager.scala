@@ -33,11 +33,14 @@ package co.ledger.wallet.core.device
 import java.util.UUID
 
 import android.content.Context
-import co.ledger.wallet.core.device.ble.BleDeviceManager
+import co.ledger.wallet.core.device.DeviceFactory.{DeviceLost, DeviceDiscovered, ScanningRequest}
+import co.ledger.wallet.core.device.ble.BleDeviceFactory
+import co.ledger.wallet.core.device.usb.UsbDeviceFactory
+import co.ledger.wallet.core.utils.Preferenceable
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait DeviceManager {
+trait DeviceManager extends Preferenceable {
   import DeviceManager._
 
   implicit val ec: ExecutionContext
@@ -50,8 +53,23 @@ trait DeviceManager {
     } toSet
   }
 
-  def deviceManager(connectivityType: ConnectivityType): DeviceConnectionManager = {
+  def allCompatibleFactories: Iterable[DeviceFactory] = {
+    _deviceManager filter {
+      case (t, m) => m.isCompatible
+    } map {
+      case (t, m) => m
+    }
+  }
+
+  def deviceFactory(connectivityType: ConnectivityType): DeviceFactory = {
     _deviceManager(connectivityType)
+  }
+
+  def requestScan(): ScanningRequest = {
+    val requests = allCompatibleFactories.map({(factory) =>
+      factory.requestScan()
+    })
+    new CompoundScanningRequest(requests)
   }
 
   def registerDevice(device: Device): Future[UUID] = Future {
@@ -82,9 +100,34 @@ trait DeviceManager {
   protected[this] val _registeredDevices = scala.collection.mutable.Map[UUID, Device]()
 
   import DeviceManager.ConnectivityTypes._
-  private[this] lazy val _deviceManager = Map[ConnectivityType, DeviceConnectionManager](
-    Ble -> new BleDeviceManager(context, ec)
+  private[this] lazy val _deviceManager = Map[ConnectivityType, DeviceFactory](
+    Ble -> new BleDeviceFactory(context, ec),
+    Usb -> new UsbDeviceFactory(context, ec)
   )
+
+  override def PreferencesName: String = "DeviceManager"
+
+  private class CompoundScanningRequest(requests: Iterable[ScanningRequest]) extends ScanningRequest {
+
+    override def onStart(): Unit = {
+      for (request <- requests) {
+        request.start()
+      }
+    }
+
+    override def onStop(): Unit = {
+      for (request <- requests) {
+        request.stop()
+      }
+    }
+
+    for (request <- requests) {
+      request.onScanUpdate({
+        case DeviceDiscovered(device) => notifyDeviceDiscovered(device)
+        case DeviceLost(device) => notifyDeviceLost(device)
+      })
+    }
+  }
 
 }
 

@@ -44,7 +44,7 @@ import android.widget.Toast
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{BaseActivity, DeviceActivity}
 import co.ledger.wallet.core.device.Device
-import co.ledger.wallet.core.device.DeviceConnectionManager.{DeviceDiscovered, DeviceLost, ScanUpdate, ScanningRequest}
+import co.ledger.wallet.core.device.DeviceFactory.{DeviceDiscovered, DeviceLost, ScanUpdate, ScanningRequest}
 import co.ledger.wallet.core.device.DeviceManager.ConnectivityTypes
 import co.ledger.wallet.core.utils.TR
 import co.ledger.wallet.core.view.ViewHolder
@@ -94,7 +94,8 @@ class DeviceDemoActivity extends BaseActivity with DeviceActivity {
     val empty = _scanRequest.isEmpty
     if (_scanRequest.isEmpty) {
       deviceManagerService map { (service) =>
-        _scanRequest = Some(service.deviceManager(ConnectivityTypes.Ble).requestScan())
+        //_scanRequest = Some(service.deviceFactory(ConnectivityTypes.Ble).requestScan())
+        _scanRequest = Some(service.requestScan())
         _scanRequest.get
       } flatMap { (request) =>
         request.onScanUpdate(onScanDeviceUpdate)
@@ -181,6 +182,10 @@ class DeviceDemoActivity extends BaseActivity with DeviceActivity {
             .setMessage("Do you want to connect?")
             .setPositiveButton("yes", new DialogInterface.OnClickListener {
               override def onClick(dialog: DialogInterface, which: Int): Unit = {
+                _scanRequest foreach {(request) =>
+                  request.stop()
+                  _scanRequest = None
+                }
                 connect(device)
               }
             })

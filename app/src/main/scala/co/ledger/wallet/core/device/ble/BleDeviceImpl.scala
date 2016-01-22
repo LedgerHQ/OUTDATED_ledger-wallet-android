@@ -83,7 +83,11 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
       _notifyCharacteristic.get,
       command
     ))
-    _exchangePerformer.get.future
+    _exchangePerformer.get.future.andThen {
+      case all => synchronized {
+        _exchangePerformer = None
+      }
+    }
   }
 
   override def isExchanging = _exchangePerformer.isDefined
@@ -99,6 +103,7 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
   override def isConnecting = _connectionPromise.isDefined && !_connectionPromise.get.isCompleted
 
   private def onDisconnect(): Unit = synchronized {
+    Logger.d("ON DISCONNECT")
     if (_connectionPromise.isDefined && !_connectionPromise.get.isCompleted)
       _connectionPromise.get.failure(new Exception("Failed to connect"))
     if (_gatt.isDefined) {
@@ -226,6 +231,7 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
 
     override def onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int): Unit = {
       super.onConnectionStateChange(gatt, status, newState)
+      Logger.d(s"ON CONNECTION STATE CHANGE $newState")
       newState match {
         case BluetoothProfile.STATE_CONNECTED =>
           if (isConnecting && status == BluetoothGatt.GATT_SUCCESS) {

@@ -36,6 +36,7 @@ import android.widget.{TextView, Toast, Button}
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{DeviceActivity, BaseActivity}
 import co.ledger.wallet.core.device.Device
+import co.ledger.wallet.core.device.Device.Disconnect
 import co.ledger.wallet.core.utils.HexUtils
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.core.view.ViewFinder
@@ -113,6 +114,7 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
   }
 
   override def receive: Receive = {
+    case Disconnect(_) => onDeviceDisconnection()
     case all =>
   }
 

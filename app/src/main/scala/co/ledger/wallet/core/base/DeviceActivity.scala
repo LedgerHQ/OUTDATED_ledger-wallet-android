@@ -37,6 +37,7 @@ import android.content.{ComponentName, Context, Intent, ServiceConnection}
 import android.os.{Bundle, IBinder}
 import co.ledger.wallet.core.device.Device
 import co.ledger.wallet.core.event.MainThreadEventReceiver
+import co.ledger.wallet.core.utils.Preferenceable
 import co.ledger.wallet.service.device.DeviceManagerService
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -62,6 +63,12 @@ trait DeviceActivity extends Activity with MainThreadEventReceiver {
       unbindService(_deviceManagerServiceConnection.get)
       onDeviceManagerServiceDisconnected()
     }
+  }
+
+
+  override def onDestroy(): Unit = {
+    super.onDestroy()
+    unbindDeviceManagerService()
   }
 
   def onDeviceManagerServiceDisconnected(): Unit = {
@@ -139,6 +146,7 @@ trait DeviceActivity extends Activity with MainThreadEventReceiver {
 
     private[this] val _promise: Promise[DeviceManagerService] = Promise()
   }
+
 }
 
 object DeviceActivity {

@@ -32,11 +32,11 @@ package co.ledger.wallet.core.device
 
 import android.app.Activity
 import android.os.Handler
-import co.ledger.wallet.core.device.DeviceConnectionManager.ScanningRequest
+import co.ledger.wallet.core.device.DeviceFactory.ScanningRequest
 
 import scala.concurrent.{Promise, ExecutionContext, Future}
 
-trait DeviceConnectionManager {
+trait DeviceFactory {
 
   /***
     * Check if the android device is compatible with the technology (may block the current thread)
@@ -66,7 +66,7 @@ trait DeviceConnectionManager {
   def requestScan(): ScanningRequest
 }
 
-object DeviceConnectionManager {
+object DeviceFactory {
   val DefaultScanDuration = 10000L
 
   trait DeviceScanCallback {

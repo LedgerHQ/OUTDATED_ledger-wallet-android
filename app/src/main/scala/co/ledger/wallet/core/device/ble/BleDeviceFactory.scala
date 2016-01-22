@@ -37,13 +37,13 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.le.{ScanCallback, ScanResult}
 import android.content.Context
 import android.content.pm.PackageManager
-import co.ledger.wallet.core.device.DeviceConnectionManager.ScanningRequest
-import co.ledger.wallet.core.device.{DeviceConnectionManager, DeviceManager}
+import co.ledger.wallet.core.device.DeviceFactory.ScanningRequest
+import co.ledger.wallet.core.device.{DeviceFactory, DeviceManager}
 import scala.collection.JavaConverters._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class BleDeviceManager(context: Context, executionContext: ExecutionContext) extends DeviceConnectionManager {
+class BleDeviceFactory(context: Context, executionContext: ExecutionContext) extends DeviceFactory {
 
   implicit val ec = executionContext
 
@@ -89,7 +89,7 @@ class BleDeviceManager(context: Context, executionContext: ExecutionContext) ext
 
           override def onScanFailed(errorCode: Int): Unit = {
             super.onScanFailed(errorCode)
-            import DeviceConnectionManager._
+            import DeviceFactory._
             import ScanCallback._
             val ex = errorCode match {
               case SCAN_FAILED_ALREADY_STARTED => ScanAlreadyStartedException()

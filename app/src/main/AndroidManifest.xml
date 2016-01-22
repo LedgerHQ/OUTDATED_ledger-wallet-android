@@ -15,6 +15,7 @@
 
     <uses-feature android:name="android.hardware.nfc" android:required="false" />
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="false"/>
+    <uses-feature android:name="android.hardware.usb.host" android:required="false"/>
 
     <permission android:name="co.ledger.wallet.service.gcm.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
