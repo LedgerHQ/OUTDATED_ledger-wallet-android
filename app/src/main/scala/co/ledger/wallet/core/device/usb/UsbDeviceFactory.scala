@@ -67,7 +67,7 @@ class UsbDeviceFactory(context: Context, executionContext: ExecutionContext) ext
       lastRunnable = Some(new Runnable {
         override def run(): Unit = {
           for ((name, device) <- _service.getDeviceList.asScala) {
-            notifyDeviceDiscovered(new UsbDeviceImpl(context, name, device))
+            notifyDeviceDiscovered(new UsbDeviceImpl(context, name, device, _service))
           }
           schedule(false)
         }

@@ -30,22 +30,38 @@
  */
 package co.ledger.wallet.core.device.usb
 
-import android.content.Context
-import android.hardware.usb.UsbDevice
+import android.app.PendingIntent
+import android.content.{IntentFilter, Intent, BroadcastReceiver, Context}
+import android.hardware.usb.{UsbManager, UsbDevice}
 import co.ledger.wallet.core.concurrent.ThreadPoolTask
 import co.ledger.wallet.core.device.Device
 import co.ledger.wallet.core.device.DeviceManager.{ConnectivityTypes, ConnectivityType}
 import co.ledger.wallet.core.utils.logs.Loggable
 import de.greenrobot.event.EventBus
 
-import scala.concurrent.Future
+import scala.concurrent.{Promise, Future}
 
-class UsbDeviceImpl(context: Context, override val name: String, usb: UsbDevice)
+class UsbDeviceImpl(context: Context,
+                    override val name: String,
+                    usb: UsbDevice,
+                    manager: UsbManager)
   extends Device
   with ThreadPoolTask
   with Loggable {
 
-  override def connect(): Future[Device] = ???
+  val ActionUsbPermision = "co.ledger.wallet.ACTION_USB_PERMISSION"
+
+  override def connect(): Future[Device] = synchronized {
+    if (_connectionPromise.isDefined)
+      throw new IllegalStateException("Already connected or waiting for connection")
+    val intent = new Intent(ActionUsbPermision)
+    _connectionPromise = Some(Promise[Device]())
+    _pendingIntent = Some(PendingIntent.getBroadcast(context, 0, intent, 0))
+    val filter = new IntentFilter(ActionUsbPermision)
+    context.registerReceiver(_broadcastReceiver, filter)
+    manager.requestPermission(usb, _pendingIntent.get)
+    _connectionPromise.get.future
+  }
 
   override def connectivityType: ConnectivityType = ConnectivityTypes.Usb
 
@@ -70,5 +86,34 @@ class UsbDeviceImpl(context: Context, override val name: String, usb: UsbDevice)
 
   override def equals(o: scala.Any): Boolean = o.isInstanceOf[UsbDeviceImpl] && o.hashCode() == hashCode()
 
+  private[this] val _broadcastReceiver = new BroadcastReceiver {
+    override def onReceive(context: Context, intent: Intent): Unit = {
+      val action = intent.getAction
+      if (action == ActionUsbPermision) {
+        val device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE).asInstanceOf[UsbDevice]
+        if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+
+        } else {
+          _connectionPromise.foreach(_.failure(new Exception("Permission not granted")))
+        }
+
+        /**
+        UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+        if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+          if(device != null){
+            //call method to set up device communication
+          }
+        }
+        else {
+          Log.d(TAG, "permission denied for device " + device);
+        }
+          */
+      }
+    }
+  }
+
+  private[this] var _connectionPromise: Option[Promise[Device]] = None
+  private[this] var _pendingIntent: Option[PendingIntent] = None
 }
 
