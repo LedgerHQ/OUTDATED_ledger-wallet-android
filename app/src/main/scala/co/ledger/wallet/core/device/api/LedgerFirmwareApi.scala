@@ -1,6 +1,6 @@
 /**
  *
- * LedgerCommonApiInterface
+ * LedgerFirmwareApi
  * Ledger wallet
  *
  * Created by Pierre Pollastri on 25/01/16.
@@ -30,32 +30,8 @@
  */
 package co.ledger.wallet.core.device.api
 
-import android.os.Parcel
-import co.ledger.wallet.core.device.Device
-import co.ledger.wallet.core.os.ParcelableObject
-
-trait LedgerCommonApiInterface extends ParcelableObject {
-
-  def device: Device
-
-  abstract override def writeToParcel(dest: Parcel, flags: Int): Unit = {
-    super.writeToParcel(dest, flags)
-    // Stackable!
-  }
-
-  abstract override def readFromParcel(source: Parcel): Unit = {
-    super.readFromParcel(source)
-    // Stackable!
-  }
+trait LedgerFirmwareApi extends LedgerCommonApiInterface {
 
 
-
-}
-
-object LedgerCommonApiInterface {
-
-  class CommandResult() {
-
-  }
 
 }
