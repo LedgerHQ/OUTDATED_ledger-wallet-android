@@ -1,6 +1,6 @@
 /**
  *
- * LedgerFirmwareApi
+ * BytesWriter
  * Ledger wallet
  *
  * Created by Pierre Pollastri on 25/01/16.
@@ -28,14 +28,28 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.core.device.api
+package co.ledger.wallet.core.utils
 
-import scala.concurrent.Future
+class BytesWriter(length: Int) {
 
-trait LedgerFirmwareApi extends LedgerCommonApiInterface {
-
-  def firmwareVersion(): Future[FirmwareVersion] = $$("GET FIRMWARE VERSION") {
-    null
+  def writeByteArray(array: Array[Byte]): BytesWriter = {
+    for (byte <- array)
+      writeByte(byte)
+    this
   }
 
+  def writeByte(byte: Int): BytesWriter = {
+    writeByte(byte.toByte)
+  }
+
+  def writeByte(byte: Byte): BytesWriter = {
+    _buffer(_offset) = byte
+    _offset += 1
+    this
+  }
+
+  def toByteArray = _buffer
+
+  private[this] var _offset = 0
+  private[this] val _buffer: Array[Byte] = new Array[Byte](length)
 }

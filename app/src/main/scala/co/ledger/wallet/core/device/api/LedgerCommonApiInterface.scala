@@ -31,11 +31,17 @@
 package co.ledger.wallet.core.device.api
 
 import android.os.Parcel
+import co.ledger.wallet.core.concurrent.FutureQueue
 import co.ledger.wallet.core.device.Device
+import co.ledger.wallet.core.device.api.LedgerCommonApiInterface.CommandResult
 import co.ledger.wallet.core.os.ParcelableObject
+import co.ledger.wallet.core.utils.BytesWriter
+
+import scala.concurrent.{Promise, ExecutionContext, Future}
 
 trait LedgerCommonApiInterface extends ParcelableObject {
 
+  implicit val ec: ExecutionContext
   def device: Device
 
   abstract override def writeToParcel(dest: Parcel, flags: Int): Unit = {
@@ -48,8 +54,92 @@ trait LedgerCommonApiInterface extends ParcelableObject {
     // Stackable!
   }
 
+  /**
+   * Send an APDU to the chip
+   * @param cla Instruction class
+   * @param ins Instruction
+   * @param p1 First parameter
+   * @param p2 Second parameter
+   * @param lc Length of data to send
+   * @param data Data to transfer
+   * @param le Maximum length to received
+   * @return
+   */
+  protected def sendApdu(cla: Int, ins: Int, p1: Int, p2: Int, lc: Int, data: Array[Byte], le: Int)
+  : Future[CommandResult] = {
+    val raw = new BytesWriter(6 + data.length)
+      .writeByte(cla)
+      .writeByte(ins)
+      .writeByte(p1)
+      .writeByte(p2)
+      .writeByte(lc)
+      .writeByteArray(data)
+      .writeByte(le)
+      .toByteArray
+    sendApdu(raw)
+  }
 
+  /**
+   * Send an APDU to the chip (sets lc to data length)
+   * @param cla
+   * @param ins
+   * @param p1
+   * @param p2
+   * @param data
+   * @param le
+   * @return
+   */
+  protected def sendApdu(cla: Int, ins: Int, p1: Int, p2: Int, data: Array[Byte], le: Int)
+  : Future[CommandResult] = {
+    sendApdu(cla, ins, p1, data.length, data, le)
+  }
 
+  protected def sendApdu(command: Array[Byte]): Future[CommandResult] = {
+    null
+  }
+
+  /** *
+    * Schedule a command to run on the device
+    * @param name Friendly name to display
+    * @param handler The actual body of the method
+    * @tparam T
+    * @return
+    */
+  protected def $[T <: AnyRef](name: String)(handler: => Future[T]): Future[T] = {
+    val promise = Promise[T]()
+    val fun = {() =>
+      promise.completeWith(handler)
+      promise.future
+    }
+    _tasks.enqueue(fun, name)
+    promise.future
+  }
+
+  /** *
+    * Same as [[LedgerCommonApiInterface.$()]] but caches the result
+    * @param name
+    * @param handler
+    * @tparam T
+    * @return
+    */
+  protected def $$[T <: AnyRef](name: String)(handler: => Future[T]): Future[T] = synchronized {
+    if (!_resultCache.contains(name)) {
+     _resultCache(name) = $(name)(handler _)
+    }
+    _resultCache(name).asInstanceOf[Future[T]]
+  }
+
+  def cancelPendingCommands(): Unit = {
+    _tasks.removeAll()
+  }
+
+  private[this] def _tasks = new FutureQueue[AnyRef](ec) {
+    override protected def onTaskFailed(name: String, cause: Throwable): Unit = {
+      super.onTaskFailed(name, cause)
+    }
+  }
+
+  private[this] val _resultCache = scala.collection.mutable.Map[String, Future[AnyRef]]()
 }
 
 object LedgerCommonApiInterface {

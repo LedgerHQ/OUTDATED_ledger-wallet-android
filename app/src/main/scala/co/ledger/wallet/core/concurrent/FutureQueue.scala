@@ -49,13 +49,17 @@ class FutureQueue[A](executionContext: ExecutionContext) {
   private def dequeue(): Boolean = synchronized {
     if (_currentTask.isEmpty && _tasks.nonEmpty) {
       val task = _tasks.dequeue()
-      task.fun() andThen {
-        case result: Try[AnyRef] =>
-          result.failed.foreach(onTaskFailed(task.name, _))
-          result.foreach(onTaskSucceeded(task.name, _))
-          synchronized(_currentTask = None)
-          dequeue()
-      }
+      ec.execute(new Runnable {
+        override def run(): Unit = {
+          task.fun() andThen {
+            case result: Try[AnyRef] =>
+              result.failed.foreach(onTaskFailed(task.name, _))
+              result.foreach(onTaskSucceeded(task.name, _))
+              synchronized(_currentTask = None)
+              dequeue()
+          }
+        }
+      })
       true
     } else {
       false

@@ -34,7 +34,10 @@ import android.os.Parcel
 import co.ledger.wallet.core.device.Device
 
 class LedgerApi(override val device: Device)
-  extends LedgerCommonApiInterface {
+  extends LedgerCommonApiInterface
+  with LedgerFirmwareApi {
+
+  implicit val ec = co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
 
 }
 
