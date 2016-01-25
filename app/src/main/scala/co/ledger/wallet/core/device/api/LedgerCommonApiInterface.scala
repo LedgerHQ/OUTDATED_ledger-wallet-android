@@ -35,7 +35,7 @@ import co.ledger.wallet.core.concurrent.FutureQueue
 import co.ledger.wallet.core.device.Device
 import co.ledger.wallet.core.device.api.LedgerCommonApiInterface.CommandResult
 import co.ledger.wallet.core.os.ParcelableObject
-import co.ledger.wallet.core.utils.BytesWriter
+import co.ledger.wallet.core.utils.{BytesReader, BytesWriter}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
@@ -128,7 +128,7 @@ trait LedgerCommonApiInterface extends ParcelableObject {
     */
   protected def $$[T <: AnyRef](name: String)(handler: => Future[T]): Future[T] = synchronized {
     if (!_resultCache.contains(name)) {
-     _resultCache(name) = $(name)(handler _)
+     _resultCache(name) = $(name)(handler)
     }
     _resultCache(name).asInstanceOf[Future[T]]
   }
@@ -150,6 +150,14 @@ object LedgerCommonApiInterface {
 
   class CommandResult(result: Array[Byte]) {
 
+    private val reader = new BytesReader(result)
+
+    val responseLength = reader.readNextShort()
+    val data = reader.slice(2, reader.length - 2)
+
+    reader.seek(data.length - 2)
+
+    val sw = reader.readNextByte().toShort << 8 |reader.readNextByte().toShort
   }
 
 }

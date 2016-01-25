@@ -109,6 +109,7 @@ class UsbDeviceImpl(context: Context,
       case Some(exchanger) => exchanger.readyForExchange
       case None => Future.failed(new Exception("Not connected"))
     }
+    null
   }
 
   override def isConnecting: Boolean = _exchanger.isEmpty && _connectionPromise.isDefined
@@ -205,7 +206,7 @@ object UsbDeviceImpl {
       _exchangeFuture.get
     }
 
-    def readyForExchange: Future[Unit] = {
+    def readyForExchange(implicit ec: ExecutionContext): Future[Unit] = {
       if (isExchanging) {
         _exchangeFuture.get.map((_) => ())
       } else {

@@ -30,10 +30,10 @@
  */
 package co.ledger.wallet.core.concurrent
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.Try
 
-class FutureQueue[A](executionContext: ExecutionContext) {
+class FutureQueue[A](executionContext: scala.concurrent.ExecutionContext) {
 
   private implicit val ec = executionContext
 
@@ -52,9 +52,9 @@ class FutureQueue[A](executionContext: ExecutionContext) {
       ec.execute(new Runnable {
         override def run(): Unit = {
           task.fun() andThen {
-            case result: Try[AnyRef] =>
-              result.failed.foreach(onTaskFailed(task.name, _))
-              result.foreach(onTaskSucceeded(task.name, _))
+            case result =>
+              //result.failed.foreach(onTaskFailed(task.name, _))
+              //result.foreach(onTaskSucceeded(task.name, _))
               synchronized(_currentTask = None)
               dequeue()
           }
@@ -80,7 +80,7 @@ class FutureQueue[A](executionContext: ExecutionContext) {
     */
   def removeAll(): Future[AnyRef] = synchronized {
     _tasks.clear()
-    _currentTask.getOrElse(Future.successful(null))
+    _currentTask.getOrElse(Future.successful(null)).map(_.asInstanceOf[AnyRef])
   }
 
   private[this] val _tasks = scala.collection.mutable.Queue[Task]()

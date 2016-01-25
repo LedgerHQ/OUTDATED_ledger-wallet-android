@@ -35,9 +35,13 @@ import java.nio.charset.Charset
 
 import org.bitcoinj.core.VarInt
 
-class BytesReader(val bytes: Array[Byte]) {
+class BytesReader(val bytes: Array[Byte], private val startOffset: Int, val length: Int) {
 
-  private[this] var _offset = 0
+  protected[this] var _offset = startOffset
+
+  def this(bytes: Array[Byte]) {
+    this(bytes, 0, bytes.length)
+  }
 
   def read(length: Int): Array[Byte]  = {
     val offset = _offset
@@ -79,8 +83,9 @@ class BytesReader(val bytes: Array[Byte]) {
     varInt
   }
 
+  def slice(offset: Int, size: Int): BytesReader = new BytesReader(bytes, offset, size)
+
   def available: Int = bytes.length - _offset
-  def length: Int = bytes.length
 
   def apply(index: Int): Byte = bytes(index)
 }

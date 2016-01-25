@@ -30,17 +30,17 @@
  */
 package co.ledger.wallet.core.os
 
-import android.os.{Parcel, Parcelable}
+import android.os.Parcel
 
-trait ParcelableObject extends Parcelable {
+trait ParcelableObject {
 
-  override def describeContents(): Int = 0
+  def describeContents(): Int = 0
 
   def readFromParcel(source: Parcel): Unit = {
 
   }
 
-  override def writeToParcel(dest: Parcel, flags: Int): Unit = {
+  def writeToParcel(dest: Parcel, flags: Int): Unit = {
 
   }
 }
