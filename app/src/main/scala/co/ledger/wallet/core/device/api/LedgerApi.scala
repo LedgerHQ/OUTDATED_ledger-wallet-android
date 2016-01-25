@@ -1,9 +1,9 @@
 /**
  *
- * BTChipApi
+ * LedgerApi
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 19/01/16.
+ * Created by Pierre Pollastri on 25/01/16.
  *
  * The MIT License (MIT)
  *
@@ -28,26 +28,25 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.core.btchip
+package co.ledger.wallet.core.device.api
 
+import android.os.Parcel
 import co.ledger.wallet.core.device.Device
 
-import scala.concurrent.ExecutionContext
-
-trait BTChipApi extends BTChipApi.BTChipApiCommonInterface
-                with BTChipVersionApi {
+class LedgerApi(override val device: Device)
+  extends LedgerCommonApiInterface {
 
 }
 
-object BTChipApi {
+object LedgerApi {
 
-  trait BTChipApiCommonInterface {
-    def device: Device
-    implicit val ec: ExecutionContext
+  def apply(device: Device): LedgerApi = {
+    null
   }
 
-  def apply(device: Device): BTChipApi = {
+  def apply(parcel: Parcel): LedgerApi = {
     null
   }
 
 }
+
