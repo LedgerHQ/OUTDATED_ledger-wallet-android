@@ -31,8 +31,9 @@
 package co.ledger.wallet.core.concurrent
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
-class FutureQueue(executionContext: ExecutionContext) {
+class FutureQueue[A](executionContext: ExecutionContext) {
 
   private implicit val ec = executionContext
 
@@ -40,15 +41,18 @@ class FutureQueue(executionContext: ExecutionContext) {
     * Enqueue a new task to be execute once every task enqueued previously are executed
     * @param task
     */
-  def enqueue(task: () => Future[AnyRef]): Unit = synchronized {
-    _tasks.enqueue(task)
+  def enqueue(task: () => Future[A], name: String = "Task"): Unit = synchronized {
+    _tasks.enqueue(Task(task, name))
     dequeue()
   }
 
   private def dequeue(): Boolean = synchronized {
     if (_currentTask.isEmpty && _tasks.nonEmpty) {
-      _tasks.dequeue()() andThen {
-        case all =>
+      val task = _tasks.dequeue()
+      task.fun() andThen {
+        case result: Try[AnyRef] =>
+          result.failed.foreach(onTaskFailed(task.name, _))
+          result.foreach(onTaskSucceeded(task.name, _))
           synchronized(_currentTask = None)
           dequeue()
       }
@@ -56,6 +60,14 @@ class FutureQueue(executionContext: ExecutionContext) {
     } else {
       false
     }
+  }
+
+  protected def onTaskSucceeded(name: String, result: A): Unit = {
+
+  }
+
+  protected def onTaskFailed(name: String, cause: Throwable): Unit = {
+
   }
 
   /** *
@@ -67,6 +79,8 @@ class FutureQueue(executionContext: ExecutionContext) {
     _currentTask.getOrElse(Future.successful(null))
   }
 
-  private[this] val _tasks = scala.collection.mutable.Queue[() => Future[AnyRef]]()
-  private[this] var _currentTask: Option[Future[AnyRef]] = None
+  private[this] val _tasks = scala.collection.mutable.Queue[Task]()
+  private[this] var _currentTask: Option[Future[A]] = None
+
+  private case class Task(fun: () => Future[A], name: String)
 }
