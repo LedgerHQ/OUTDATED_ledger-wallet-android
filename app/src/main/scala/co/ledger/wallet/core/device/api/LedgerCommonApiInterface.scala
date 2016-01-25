@@ -35,11 +35,12 @@ import co.ledger.wallet.core.concurrent.FutureQueue
 import co.ledger.wallet.core.device.Device
 import co.ledger.wallet.core.device.api.LedgerCommonApiInterface.CommandResult
 import co.ledger.wallet.core.os.ParcelableObject
-import co.ledger.wallet.core.utils.{BytesReader, BytesWriter}
+import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
+import co.ledger.wallet.core.utils.{HexUtils, BytesReader, BytesWriter}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
-trait LedgerCommonApiInterface extends ParcelableObject {
+trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
 
   implicit val ec: ExecutionContext
   def device: Device
@@ -91,13 +92,20 @@ trait LedgerCommonApiInterface extends ParcelableObject {
    */
   protected def sendApdu(cla: Int, ins: Int, p1: Int, p2: Int, data: Array[Byte], le: Int)
   : Future[CommandResult] = {
-    sendApdu(cla, ins, p1, data.length, data, le)
+    sendApdu(cla, ins, p1, p2, data.length, data, le)
+  }
+
+  protected def sendApdu(cla: Int, ins: Int, p1: Int, p2: Int, lc: Int, le: Int):
+  Future[CommandResult] ={
+    sendApdu(cla, ins, p1, p2, lc, Array.empty[Byte], le)
   }
 
   protected def sendApdu(command: Array[Byte]): Future[CommandResult] = {
     device.readyForExchange flatMap {(_) =>
+      Logger.d(s"=> ${HexUtils.bytesToHex(command)}")
       device.exchange(command)
     } map {(result) =>
+      Logger.d(s"<= ${HexUtils.bytesToHex(result)}")
       new CommandResult(result)
     }
   }
@@ -152,8 +160,7 @@ object LedgerCommonApiInterface {
 
     private val reader = new BytesReader(result)
 
-    val responseLength = reader.readNextShort()
-    val data = reader.slice(2, reader.length - 2)
+    val data = reader.slice(0, reader.length - 2)
 
     reader.seek(data.length - 2)
 

@@ -17,6 +17,12 @@
         android:text="Send Big data"
         android:id="@+id/big_data_button"/>
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get version"
+        android:id="@+id/get_version_button"/>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"

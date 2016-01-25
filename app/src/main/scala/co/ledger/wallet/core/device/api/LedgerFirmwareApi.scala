@@ -35,7 +35,9 @@ import scala.concurrent.Future
 trait LedgerFirmwareApi extends LedgerCommonApiInterface {
 
   def firmwareVersion(): Future[FirmwareVersion] = $$("GET FIRMWARE VERSION") {
-    null
+    sendApdu(0xE0, 0xC4, 0x00, 0x00, 0x00, 0x07).map({(result) =>
+      new FirmwareVersion(result.data)
+    })
   }
 
 }

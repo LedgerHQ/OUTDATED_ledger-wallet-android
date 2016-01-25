@@ -37,6 +37,7 @@ import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{DeviceActivity, BaseActivity}
 import co.ledger.wallet.core.device.Device
 import co.ledger.wallet.core.device.Device.Disconnect
+import co.ledger.wallet.core.device.api.LedgerApi
 import co.ledger.wallet.core.utils.HexUtils
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.core.view.ViewFinder
@@ -48,6 +49,7 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
 
   lazy val smallDataButton: Button = R.id.small_data_button
   lazy val bigDataButton: Button = R.id.big_data_button
+  lazy val getVersionButton: Button = R.id.get_version_button
   lazy val logView: TextView = R.id.log_view
 
 
@@ -69,6 +71,26 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
     }
     bigDataButton onClick {
       exchangeData(BigData)
+    }
+    getVersionButton onClick {
+      var d: Option[Device] = None
+      smallDataButton.setEnabled(false)
+      bigDataButton.setEnabled(false)
+      connectedDevice flatMap {device =>
+        d = Some(device)
+        val api = LedgerApi(device)
+        api.firmwareVersion()
+      } onComplete {
+        case Success(version) =>
+          logView.append(s"GET VERSION => $version\n")
+          smallDataButton.setEnabled(true)
+          bigDataButton.setEnabled(true)
+        case Failure(ex) =>
+          ex.printStackTrace()
+          Try(d.foreach(_.disconnect()))
+          Toast.makeText(this, "Fail to send command", Toast.LENGTH_LONG).show()
+          onDeviceDisconnection()
+      }
     }
   }
 
