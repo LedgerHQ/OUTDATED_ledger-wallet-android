@@ -90,6 +90,14 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
     }
   }
 
+  override def readyForExchange: Future[Unit] = synchronized {
+    if (isExchanging) {
+      _exchangePerformer.get.future.map({(_) => ()})
+    } else {
+      Future.successful()
+    }
+  }
+
   override def isExchanging = _exchangePerformer.isDefined
 
   override def name: String = scanResult.getDevice.getName

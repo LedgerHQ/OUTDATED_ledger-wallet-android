@@ -42,6 +42,7 @@ trait Device {
   @throws[java.lang.AssertionError]("If there is already an exchange going on")
   def exchange(command: Array[Byte]): Future[Array[Byte]]
   def isExchanging: Boolean
+  def readyForExchange: Future[Unit]
 
   def connectivityType: DeviceManager.ConnectivityType
 

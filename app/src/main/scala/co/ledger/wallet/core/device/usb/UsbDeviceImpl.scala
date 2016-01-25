@@ -104,6 +104,13 @@ class UsbDeviceImpl(context: Context,
     }
   }
 
+  override def readyForExchange: Future[Unit] = {
+    _exchanger match {
+      case Some(exchanger) => exchanger.readyForExchange
+      case None => Future.failed(new Exception("Not connected"))
+    }
+  }
+
   override def isConnecting: Boolean = _exchanger.isEmpty && _connectionPromise.isDefined
 
   override def hashCode(): Int = name.hashCode
@@ -196,6 +203,14 @@ object UsbDeviceImpl {
         case all => _exchangeFuture = None
       })
       _exchangeFuture.get
+    }
+
+    def readyForExchange: Future[Unit] = {
+      if (isExchanging) {
+        _exchangeFuture.get.map((_) => ())
+      } else {
+        Future.successful()
+      }
     }
 
     def isExchanging: Boolean = _exchangeFuture.isDefined

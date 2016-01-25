@@ -37,7 +37,7 @@ import co.ledger.wallet.core.device.api.LedgerCommonApiInterface.CommandResult
 import co.ledger.wallet.core.os.ParcelableObject
 import co.ledger.wallet.core.utils.BytesWriter
 
-import scala.concurrent.{Promise, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 trait LedgerCommonApiInterface extends ParcelableObject {
 
@@ -95,7 +95,11 @@ trait LedgerCommonApiInterface extends ParcelableObject {
   }
 
   protected def sendApdu(command: Array[Byte]): Future[CommandResult] = {
-    null
+    device.readyForExchange flatMap {(_) =>
+      device.exchange(command)
+    } map {(result) =>
+      new CommandResult(result)
+    }
   }
 
   /** *
@@ -144,7 +148,7 @@ trait LedgerCommonApiInterface extends ParcelableObject {
 
 object LedgerCommonApiInterface {
 
-  class CommandResult() {
+  class CommandResult(result: Array[Byte]) {
 
   }
 
