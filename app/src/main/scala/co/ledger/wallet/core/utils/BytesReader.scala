@@ -75,6 +75,15 @@ class BytesReader(val bytes: Array[Byte], private val startOffset: Int, val leng
   def readNextLeInt(): Int = readLeBigInteger(4).intValue()
   def readNextLeLong(): Long = readLeBigInteger(8).longValue()
 
+  def readNextBytes(length: Int): Array[Byte] = {
+    val bytes = new Array[Byte](length)
+    for (i <- bytes.indices)
+      bytes(i) = readNextByte()
+    bytes
+  }
+
+  def readNextBytesUntilEnd(): Array[Byte] = readNextBytes(length - _offset)
+
   def readNextByte(): Byte = read(1)(0)
 
   def readNextVarInt(): VarInt = {

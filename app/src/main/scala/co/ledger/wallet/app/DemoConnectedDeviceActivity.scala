@@ -50,6 +50,7 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
   lazy val smallDataButton: Button = R.id.small_data_button
   lazy val bigDataButton: Button = R.id.big_data_button
   lazy val getVersionButton: Button = R.id.get_version_button
+  lazy val getAttestationButton: Button = R.id.get_attestation_button
   lazy val logView: TextView = R.id.log_view
 
 
@@ -83,6 +84,28 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
       } onComplete {
         case Success(version) =>
           logView.append(s"GET VERSION => $version\n")
+          smallDataButton.setEnabled(true)
+          bigDataButton.setEnabled(true)
+        case Failure(ex) =>
+          ex.printStackTrace()
+          Try(d.foreach(_.disconnect()))
+          Toast.makeText(this, "Fail to send command", Toast.LENGTH_LONG).show()
+          onDeviceDisconnection()
+      }
+    }
+    getAttestationButton onClick {
+      var d: Option[Device] = None
+      smallDataButton.setEnabled(false)
+      bigDataButton.setEnabled(false)
+      connectedDevice flatMap {device =>
+        d = Some(device)
+        val api = LedgerApi(device)
+        api.deviceAttestation()
+      } onComplete {
+        case Success(attestation) =>
+          logView.append(s"--- GET DEVICE ATTESTATION ---\n")
+          logView.append(s"attestation: $attestation\n")
+          logView.append(s"------------------------------\n")
           smallDataButton.setEnabled(true)
           bigDataButton.setEnabled(true)
         case Failure(ex) =>
