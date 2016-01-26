@@ -39,8 +39,10 @@ import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.core.utils.{HexUtils, BytesReader, BytesWriter}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.util.{Failure, Success, Try}
 
 trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
+  import LedgerCommonApiInterface._
 
   implicit val ec: ExecutionContext
   def device: Device
@@ -110,6 +112,26 @@ trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
     }
   }
 
+  protected def matchErrors(result: CommandResult): Try[Unit] = {
+    if (result.sw == 0x9000)
+      Success()
+    else {
+      result.sw match {
+        case 0x6700 => Failure(LedgerApiIncorrectLengthException())
+        case 0x6982 => Failure(LedgerApiInvalidAccessRightException())
+        case 0x6A80 => Failure(LedgerApiInvalidDataException())
+        case 0x6A82 => Failure(LedgerApiFileNotFoundException())
+        case 0x6B00 => Failure(LedgerApiInvalidParameterException())
+        case 0x6D00 => Failure(LedgerApiNotImplementedException())
+        case code: Int =>
+          if ((code | 0x6F00) == 0x6F00)
+            Failure(LedgerApiTechnicalProblemException(code))
+          else
+            Failure(LedgerApiUnknownErrorException(code))
+      }
+    }
+  }
+
   /** *
     * Schedule a command to run on the device
     * @param name Friendly name to display
@@ -166,5 +188,24 @@ object LedgerCommonApiInterface {
 
     val sw = reader.readNextByte().toShort << 8 |reader.readNextByte().toShort
   }
+
+  class LedgerApiException(code: Int, msg: String)
+    extends Exception(s"$msg - ${Integer.toHexString(code)}")
+  case class LedgerApiIncorrectLengthException() extends
+    LedgerApiException(0x6700, "Incorrect length")
+  case class LedgerApiInvalidAccessRightException() extends
+    LedgerApiException(0x6982, "Security status not satisfied (Bitcoin dongle is locked or invalid access rights)")
+  case class LedgerApiInvalidDataException() extends
+    LedgerApiException(0x6A80, "Invalid data")
+  case class LedgerApiFileNotFoundException() extends
+    LedgerApiException(0x6A82, "File not found")
+  case class LedgerApiInvalidParameterException() extends
+    LedgerApiException(0x6B00, "incorect parameter P1 or P2")
+  case class LedgerApiNotImplementedException() extends
+    LedgerApiException(0x6D00, "Not implemented")
+  case class LedgerApiTechnicalProblemException(code: Int) extends
+    LedgerApiException(code, "Technical problem (Internal error, please report)")
+  case class LedgerApiUnknownErrorException(code: Int) extends
+    LedgerApiException(code, "Unexpected status word")
 
 }
