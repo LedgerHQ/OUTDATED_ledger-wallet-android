@@ -51,6 +51,7 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
   lazy val bigDataButton: Button = R.id.big_data_button
   lazy val getVersionButton: Button = R.id.get_version_button
   lazy val getAttestationButton: Button = R.id.get_attestation_button
+  lazy val getFirstAccountXpubButton: Button = R.id.get_first_account_xpub
   lazy val logView: TextView = R.id.log_view
 
 
@@ -114,6 +115,15 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
           Toast.makeText(this, "Fail to send command", Toast.LENGTH_LONG).show()
           onDeviceDisconnection()
       }
+    }
+    getFirstAccountXpubButton onClick {
+
+      def getXpub() = {
+
+      }
+
+      getXpub()
+
     }
   }
 

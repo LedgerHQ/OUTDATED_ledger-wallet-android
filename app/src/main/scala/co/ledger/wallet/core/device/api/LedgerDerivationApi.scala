@@ -30,6 +30,123 @@
  */
 package co.ledger.wallet.core.device.api
 
-trait LedgerDerivationApi extends LedgerCommonApiInterface {
+import co.ledger.wallet.core.device.api.LedgerDerivationApi.PublicAddressResult
+import co.ledger.wallet.wallet.DerivationPath
+import org.bitcoinj.core.NetworkParameters
+import org.bitcoinj.crypto.DeterministicKey
+
+import scala.concurrent.Future
+
+trait LedgerDerivationApi extends LedgerFirmwareApi {
+
+  /*
+  getWalletPublicKey_async: function (path) {
+        var data;
+        var path = this.parseBIP32Path(path);
+        var p1;
+        if (this.deprecatedBIP32Derivation) {
+            var account, chainIndex, internalChain;
+            if (path.length != 3) {
+                throw "Invalid BIP 32 path for deprecated BIP32 derivation";
+            }
+            account = path[0];
+            internalChain = (path[1].equals(new ByteString("00000001", HEX)));
+            chainIndex = path[2];
+            data = account.concat(chainIndex);
+            p1 = (internalChain ? BTChip.INTERNAL_CHAIN : BTChip.EXTERNAL_CHAIN);
+        }
+        else {
+            data = new ByteString(Convert.toHexByte(path.length), HEX);
+            for (var i = 0; i < path.length; i++) {
+                data = data.concat(path[i]);
+            }
+            p1 = 0x00;
+        }
+        return this.card.sendApdu_async(0xe0, 0x40, p1, 0x00, data, [0x9000]).then(function (result) {
+            var resultList = {};
+            var offset = 0;
+            resultList['publicKey'] = result.bytes(offset + 1, result.byteAt(offset));
+            offset += result.byteAt(offset) + 1;
+            resultList['bitcoinAddress'] = result.bytes(offset + 1, result.byteAt(offset));
+            /* AJOUT NESS */
+            offset += result.byteAt(offset) + 1;
+            resultList['chainCode'] = result.bytes(offset, 32);
+            /* FIN AJOUT NESS */
+            return resultList;
+        });
+    },
+   */
+
+  def derivePublicAddress(path: DerivationPath, networkParameters: NetworkParameters)
+    : Future[PublicAddressResult] =
+    firmwareVersion() flatMap {(version) =>
+
+      $(s"GET PUBLIC ADDRESS $path") {
+
+      }
+    }
+     {
+    null
+  }
+
+  def deriveExtendedPublicKey(path: DerivationPath, network: NetworkParameters): Future[DeterministicKey] = {
+
+    null
+  }
+
+  /*
+  _initialize: (callback, legacyMode) ->
+    derivationPath = @_derivationPath.substring(0, @_derivationPath.length - 1)
+    path = derivationPath.split '/'
+    bitcoin = new BitcoinExternal()
+    finalize = (fingerprint) =>
+      @_wallet.getPublicAddress derivationPath, (nodeData, error) =>
+        return callback?(null, error) if error?
+        publicKey = bitcoin.compressPublicKey nodeData.publicKey
+        depth = path.length
+        lastChild = path[path.length - 1].split('\'')
+        if legacyMode
+          childnum = (0x80000000 | parseInt(lastChild)) >>> 0
+        else if lastChild.length is 1
+          childnum = parseInt(lastChild[0])
+        else
+          childnum = (0x80000000 | parseInt(lastChild[0])) >>> 0
+        @_xpub = @_createXPUB depth, fingerprint, childnum, nodeData.chainCode, publicKey, ledger.config.network.name
+        @_xpub58 = @_encodeBase58Check @_xpub
+        @_hdnode = GlobalContext.bitcoin.HDNode.fromBase58 @_xpub58
+        callback?(@)
+
+    if path.length > 1
+      prevPath = path.slice(0, -1).join '/'
+      @_wallet.getPublicAddress prevPath, (nodeData, error) =>
+        return callback?(null, error) if error?
+        publicKey = bitcoin.compressPublicKey nodeData.publicKey
+        ripemd160 = new JSUCrypt.hash.RIPEMD160()
+        sha256 = new JSUCrypt.hash.SHA256();
+        result = sha256.finalize(publicKey.toString(HEX));
+        result = new ByteString(JSUCrypt.utils.byteArrayToHexStr(result), HEX)
+        result = ripemd160.finalize(result.toString(HEX))
+        fingerprint = ((result[0] << 24) | (result[1] << 16) | (result[2] << 8) | result[3]) >>> 0
+        finalize fingerprint
+    else
+      finalize 0
+
+  _createXPUB: (depth, fingerprint, childnum, chainCode, publicKey, network) ->
+    magic = if ledger?.config?.network? then  Convert.toHexInt(ledger.config.network.bitcoinjs.bip32.public) else "0488B21E"
+    xpub = new ByteString magic, HEX
+    xpub = xpub.concat new ByteString(_.str.lpad(depth.toString(16), 2, '0'), HEX)
+    xpub = xpub.concat new ByteString(_.str.lpad(fingerprint.toString(16), 8, '0'), HEX)
+    xpub = xpub.concat new ByteString(_.str.lpad(childnum.toString(16), 8, '0'), HEX)
+    xpub = xpub.concat new ByteString(chainCode.toString(HEX), HEX)
+    xpub = xpub.concat new ByteString(publicKey.toString(HEX), HEX)
+    xpub
+   */
+
+}
+object LedgerDerivationApi {
+
+  class PublicAddressResult {
+
+  }
 
 }

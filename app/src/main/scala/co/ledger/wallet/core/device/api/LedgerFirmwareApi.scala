@@ -91,19 +91,6 @@ object LedgerFirmwareApi {
     Crypto.ensureSpongyIsRemoved()
 
     def check(blob: Array[Byte], signedBlob: Array[Byte]): Boolean = {
-      /*
-       attestation = result.toString(HEX)
-        dataToSign = attestation.substring(16,32) + random
-        dataSig = attestation.substring(32)
-        dataSig = "30" + dataSig.substr(2)
-        dataSigBytes = (parseInt(n,16) for n in dataSig.match(/\w\w/g))
-        sha = new JSUCrypt.hash.SHA256()
-        domain = JSUCrypt.ECFp.getEcDomainByName("secp256k1")
-        affinePoint = new JSUCrypt.ECFp.AffinePoint(Attestation.xPoint, Attestation.yPoint)
-        pubkey = new JSUCrypt.key.EcFpPublicKey(256, domain, affinePoint)
-        ecsig = new JSUCrypt.signature.ECDSA(sha)
-        ecsig.init(pubkey, JSUCrypt.signature.MODE_VERIFY)
-       */
       Logger.d(s"<> ${HexUtils.bytesToHex(signedBlob)}")("Toto", false)
       Crypto.ensureSpongyIsInserted()
       val sig = Signature.getInstance("SHA256withECDSA", "SC")
@@ -145,6 +132,12 @@ object LedgerFirmwareApi {
     val wtf = reader.readNextByte()
 
     val raw = reader.bytes
+
+    val intVersion = architecture.toInt << 24 | major.toInt << 16 | minor.toInt << 8 | patch.toInt
+
+    def usesDeprecatedFirmware = intVersion < FirmwareVersions.BTChip1_4_7
+    def usesDeprecatedBip32Derivation = intVersion < FirmwareVersions.BTChip1_4_7
+    def arePublicKeysCompressed = features & 0x01
 
     override def toString: String = s"$major.$minor.$patch"
   }

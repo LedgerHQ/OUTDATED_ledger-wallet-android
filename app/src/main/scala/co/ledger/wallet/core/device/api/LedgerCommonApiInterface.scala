@@ -139,7 +139,7 @@ trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
     * @tparam T
     * @return
     */
-  protected def $[T <: AnyRef](name: String)(handler: => Future[T]): Future[T] = {
+  protected def $[T <: Any](name: String)(handler: => Future[T]): Future[T] = {
     val promise = Promise[T]()
     val fun = {() =>
       promise.completeWith(handler)
@@ -156,7 +156,7 @@ trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
     * @tparam T
     * @return
     */
-  protected def $$[T <: AnyRef](name: String)(handler: => Future[T]): Future[T] = synchronized {
+  protected def $$[T <: Any](name: String)(handler: => Future[T]): Future[T] = synchronized {
     if (!_resultCache.contains(name)) {
      _resultCache(name) = $(name)(handler)
     }
@@ -167,13 +167,13 @@ trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
     _tasks.removeAll()
   }
 
-  private[this] def _tasks = new FutureQueue[AnyRef](ec) {
+  private[this] def _tasks = new FutureQueue[Any](ec) {
     override protected def onTaskFailed(name: String, cause: Throwable): Unit = {
       super.onTaskFailed(name, cause)
     }
   }
 
-  private[this] val _resultCache = scala.collection.mutable.Map[String, Future[AnyRef]]()
+  private[this] val _resultCache = scala.collection.mutable.Map[String, Future[Any]]()
 }
 
 object LedgerCommonApiInterface {

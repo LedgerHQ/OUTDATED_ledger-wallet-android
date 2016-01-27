@@ -29,6 +29,12 @@
         android:text="Get device attestation"
         android:id="@+id/get_attestation_button"/>
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get first account xpub"
+        android:id="@+id/get_first_account_xpub"/>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"

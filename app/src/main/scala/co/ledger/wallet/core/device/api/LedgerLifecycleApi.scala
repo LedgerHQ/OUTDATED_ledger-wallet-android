@@ -30,19 +30,54 @@
  */
 package co.ledger.wallet.core.device.api
 
+import co.ledger.wallet.core.device.api.LedgerCommonApiInterface.LedgerApiException
+import co.ledger.wallet.core.device.api.LedgerLifecycleApi.LedgerApiWrongPinCodeException
+
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 trait LedgerLifecycleApi extends LedgerCommonApiInterface {
+  import LedgerCommonApiInterface._
 
   def verifyPin(pin: String): Future[Null] = $("VERIFY PIN") {
     val bytes: Array[Byte] = null
-    sendApdu(0xE0, 0x22, 0x00, 0x00, bytes, 0x00).map { (result) =>
-      null
+    sendApdu(0xE0, 0x22, 0x00, 0x00, bytes, 0x00).map {(result) =>
+      matchErrors(result) match {
+        case Success(_) =>
+          null
+        case Failure(err: LedgerApiUnknownErrorException) =>
+          if ((err.code & 0x6C00) == 0x6C00)
+            throw new LedgerApiWrongPinCodeException(err.code - 0x6C00)
+          else
+            throw err
+        case Failure(error) =>
+          throw error
+      }
     }
   }
 
   def remainingUnlockAttempts(): Future[Int] = $("VERIFY PIN 0x80") {
-    null
+    val bytes: Array[Byte] = null
+    sendApdu(0xE0, 0x22, 0x80, 0x00, bytes, 0x00).map {(result) =>
+      matchErrors(result) match {
+        case Success(_) =>
+          3
+        case Failure(err: LedgerApiUnknownErrorException) =>
+          if ((err.code & 0x6C00) == 0x6C00)
+            err.code - 0x6C00
+          else
+            throw err
+        case Failure(error) =>
+          throw error
+      }
+    }
   }
+
+}
+
+object LedgerLifecycleApi {
+
+  case class LedgerApiWrongPinCodeException(remaining: Int) extends
+    LedgerApiException(0x6C00 + remaining, s"Wrong pincode remaining $remaining")
 
 }
