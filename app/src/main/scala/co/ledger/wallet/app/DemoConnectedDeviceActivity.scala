@@ -183,7 +183,7 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
         progress.dismiss()
         unlockDevice(api) {
           case Success(_) =>
-            getPublicAddress(attempts + 1)
+            getXpub(attempts + 1)
           case Failure(ex) =>
             ex.printStackTrace()
             Try(d.foreach(_.disconnect()))
