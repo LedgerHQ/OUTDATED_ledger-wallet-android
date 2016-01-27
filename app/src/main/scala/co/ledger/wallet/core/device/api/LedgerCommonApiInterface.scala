@@ -33,10 +33,9 @@ package co.ledger.wallet.core.device.api
 import android.os.Parcel
 import co.ledger.wallet.core.concurrent.FutureQueue
 import co.ledger.wallet.core.device.Device
-import co.ledger.wallet.core.device.api.LedgerCommonApiInterface.CommandResult
 import co.ledger.wallet.core.os.ParcelableObject
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
-import co.ledger.wallet.core.utils.{HexUtils, BytesReader, BytesWriter}
+import co.ledger.wallet.core.utils.{BytesReader, BytesWriter, HexUtils}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success, Try}
@@ -112,6 +111,8 @@ trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
     }
   }
 
+  protected def matchErrorsAndThrow(result: CommandResult): Unit = matchErrors(result).get
+
   protected def matchErrors(result: CommandResult): Try[Unit] = {
     if (result.sw == 0x9000)
       Success()
@@ -184,9 +185,9 @@ object LedgerCommonApiInterface {
 
     val data = reader.slice(0, reader.length - 2)
 
-    reader.seek(data.length - 2)
+    reader.seek(reader.length - 2)
 
-    val sw = reader.readNextByte().toShort << 8 |reader.readNextByte().toShort
+    val sw = (reader.readNextByte() & 0xFF) << 8 | (reader.readNextByte() & 0xFF)
   }
 
   class LedgerApiException(code: Int, msg: String)
@@ -207,5 +208,8 @@ object LedgerCommonApiInterface {
     LedgerApiException(code, "Technical problem (Internal error, please report)")
   case class LedgerApiUnknownErrorException(code: Int) extends
     LedgerApiException(code, "Unexpected status word")
+
+  case class LedgerUnsupportedFirmwareException() extends
+    Exception("This firmware is not supported by the application")
 
 }

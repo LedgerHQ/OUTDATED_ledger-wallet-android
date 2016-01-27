@@ -31,6 +31,7 @@
 package co.ledger.wallet.core.device.api
 
 import co.ledger.wallet.core.device.api.LedgerDerivationApi.PublicAddressResult
+import co.ledger.wallet.core.utils.{AsciiUtils, HexUtils, BytesReader, BytesWriter}
 import co.ledger.wallet.wallet.DerivationPath
 import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.crypto.DeterministicKey
@@ -38,7 +39,8 @@ import org.bitcoinj.crypto.DeterministicKey
 import scala.concurrent.Future
 
 trait LedgerDerivationApi extends LedgerFirmwareApi {
-
+  import LedgerDerivationApi._
+  import LedgerCommonApiInterface._
   /*
   getWalletPublicKey_async: function (path) {
         var data;
@@ -80,14 +82,22 @@ trait LedgerDerivationApi extends LedgerFirmwareApi {
   def derivePublicAddress(path: DerivationPath, networkParameters: NetworkParameters)
     : Future[PublicAddressResult] =
     firmwareVersion() flatMap {(version) =>
-
+      if (version.usesDeprecatedBip32Derivation) {
+        throw LedgerUnsupportedFirmwareException()
+      }
+      val writer = new BytesWriter(path.length * 4 + 1)
+      writer.writeByte(path.length)
+      for (i <- 0 to path.depth) {
+        val n = path(i).get
+        writer.writeInt(n.childNum)
+      }
       $(s"GET PUBLIC ADDRESS $path") {
-
+        sendApdu(0xe0, 0x40, 0x00, 0x00, writer.toByteArray, 0x00) map {(result) =>
+          matchErrorsAndThrow(result)
+          PublicAddressResult(result.data)
+        }
       }
     }
-     {
-    null
-  }
 
   def deriveExtendedPublicKey(path: DerivationPath, network: NetworkParameters): Future[DeterministicKey] = {
 
@@ -145,7 +155,23 @@ trait LedgerDerivationApi extends LedgerFirmwareApi {
 }
 object LedgerDerivationApi {
 
-  class PublicAddressResult {
+  case class PublicAddressResult(publicKey: Array[Byte],
+                                 address: String,
+                                 chainCode: Array[Byte]
+                                  ) {
+
+  }
+
+  object PublicAddressResult {
+
+    def apply(reader: BytesReader): PublicAddressResult = {
+      var length = reader.readNextByte() & 0xFF
+      val publicKey = reader.readNextBytes(length)
+      length = reader.readNextByte() & 0xFF
+      val address = AsciiUtils.toString(reader.readNextBytes(length))
+      val chainCode = reader.readNextBytesUntilEnd()
+      new PublicAddressResult(publicKey, address, chainCode)
+    }
 
   }
 

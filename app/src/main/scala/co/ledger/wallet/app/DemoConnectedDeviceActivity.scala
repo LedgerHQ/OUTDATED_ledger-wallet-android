@@ -30,7 +30,13 @@
  */
 package co.ledger.wallet.app
 
+import android.app.ProgressDialog
+import android.content.DialogInterface
+import android.content.DialogInterface.OnClickListener
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
+import android.support.v7.app.AlertDialog.Builder
+import android.text.InputType
 import android.view.View
 import android.widget.{TextView, Toast, Button}
 import co.ledger.wallet.R
@@ -38,9 +44,13 @@ import co.ledger.wallet.core.base.{DeviceActivity, BaseActivity}
 import co.ledger.wallet.core.device.Device
 import co.ledger.wallet.core.device.Device.Disconnect
 import co.ledger.wallet.core.device.api.LedgerApi
+import co.ledger.wallet.core.device.api.LedgerCommonApiInterface.LedgerApiInvalidAccessRightException
 import co.ledger.wallet.core.utils.HexUtils
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.core.view.ViewFinder
+import co.ledger.wallet.core.widget.EditText
+import co.ledger.wallet.wallet.DerivationPath
+import org.bitcoinj.params.MainNetParams
 
 import scala.util.{Try, Failure, Success}
 import co.ledger.wallet.common._
@@ -51,6 +61,7 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
   lazy val bigDataButton: Button = R.id.big_data_button
   lazy val getVersionButton: Button = R.id.get_version_button
   lazy val getAttestationButton: Button = R.id.get_attestation_button
+  lazy val getPublicAddressButton: Button = R.id.get_public_address
   lazy val getFirstAccountXpubButton: Button = R.id.get_first_account_xpub
   lazy val logView: TextView = R.id.log_view
 
@@ -116,15 +127,62 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
           onDeviceDisconnection()
       }
     }
-    getFirstAccountXpubButton onClick {
+    getPublicAddressButton onClick getPublicAddress()
+    getFirstAccountXpubButton onClick getPublicAddress()
+  }
 
-      def getXpub() = {
-
-      }
-
-      getXpub()
-
+  def getPublicAddress(attempts: Int = 0): Unit = {
+    var d: Option[Device] = None
+    var api: LedgerApi = null
+    val progress = ProgressDialog.show(this, "Derivation", "Please wait")
+    connectedDevice flatMap {device =>
+      d = Some(device)
+      api = LedgerApi(device)
+      api.derivePublicAddress(DerivationPath("44'/0'/0'/0/0"), MainNetParams.get())
+    } onComplete {
+      case Success(result) =>
+        progress.dismiss()
+        logView.append(s"--- GET PUBLIC ADDRESS ---\n")
+        logView.append(s"Address: ${result.address}\n")
+        logView.append(s"------------------------------\n")
+      case Failure(ex: LedgerApiInvalidAccessRightException) =>
+        progress.dismiss()
+        unlockDevice(api) {
+          case Success(_) =>
+            getPublicAddress(attempts + 1)
+          case Failure(ex) =>
+            ex.printStackTrace()
+            Try(d.foreach(_.disconnect()))
+            Toast.makeText(this, "Wrong pin code", Toast.LENGTH_LONG).show()
+            onDeviceDisconnection()
+        }
+      case Failure(ex) =>
+        progress.dismiss()
+        ex.printStackTrace()
+        Try(d.foreach(_.disconnect()))
+        Toast.makeText(this, "Fail to send command", Toast.LENGTH_LONG).show()
+        onDeviceDisconnection()
     }
+  }
+
+  private def unlockDevice(api: LedgerApi)(onComplete: (Try[Null]) => Unit) = {
+    val input = new EditText(this)
+    input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
+    new Builder(this)
+      .setTitle("Unlock device")
+      .setMessage("Enter PIN:")
+      .setView(input)
+      .setPositiveButton("Submit", new OnClickListener {
+        override def onClick(dialog: DialogInterface, which: Int): Unit = {
+          api.verifyPin(input.getText.toString).onComplete(onComplete)
+        }
+      })
+      .setNegativeButton("Cancel", new OnClickListener {
+        override def onClick(dialog: DialogInterface, which: Int): Unit = {
+
+        }
+      })
+    .show()
   }
 
   override def onResume(): Unit = {

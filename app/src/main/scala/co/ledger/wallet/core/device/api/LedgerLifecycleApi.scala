@@ -32,6 +32,7 @@ package co.ledger.wallet.core.device.api
 
 import co.ledger.wallet.core.device.api.LedgerCommonApiInterface.LedgerApiException
 import co.ledger.wallet.core.device.api.LedgerLifecycleApi.LedgerApiWrongPinCodeException
+import co.ledger.wallet.core.utils.AsciiUtils
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -40,7 +41,7 @@ trait LedgerLifecycleApi extends LedgerCommonApiInterface {
   import LedgerCommonApiInterface._
 
   def verifyPin(pin: String): Future[Null] = $("VERIFY PIN") {
-    val bytes: Array[Byte] = null
+    val bytes: Array[Byte] = AsciiUtils.toByteArray(pin)
     sendApdu(0xE0, 0x22, 0x00, 0x00, bytes, 0x00).map {(result) =>
       matchErrors(result) match {
         case Success(_) =>

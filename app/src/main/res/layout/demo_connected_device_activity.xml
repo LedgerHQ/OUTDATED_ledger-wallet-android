@@ -32,6 +32,12 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="Get m/44'/0'/0'/0/0"
+        android:id="@+id/get_public_address"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:text="Get first account xpub"
         android:id="@+id/get_first_account_xpub"/>
 

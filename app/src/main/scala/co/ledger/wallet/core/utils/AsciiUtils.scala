@@ -1,9 +1,9 @@
 /**
  *
- * BytesWriter
+ * AsciiUtils
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 25/01/16.
+ * Created by Pierre Pollastri on 27/01/16.
  *
  * The MIT License (MIT)
  *
@@ -30,40 +30,12 @@
  */
 package co.ledger.wallet.core.utils
 
-class BytesWriter(length: Int) {
+import java.util
 
-  def writeByteArray(array: Array[Byte]): BytesWriter = {
-    for (byte <- array)
-      writeByte(byte)
-    this
-  }
+object AsciiUtils {
 
-  def writeByte(byte: Int): BytesWriter = {
-    writeByte(byte.toByte)
-  }
+  def toByteArray(string: String): Array[Byte] = string.getBytes("US-ASCII")
 
-  def writeByte(byte: Byte): BytesWriter = {
-    _buffer(_offset) = byte
-    _offset += 1
-    this
-  }
+  def toString(bytes: Array[Byte]): String = new String(bytes, "US-ASCII")
 
-  def writeInt(int: Int): BytesWriter = {
-    writeByte((int >> 24 & 0xFF).toByte)
-    writeByte((int >> 16 & 0xFF).toByte)
-    writeByte((int >> 8 & 0xFF).toByte)
-    writeByte((int & 0xFF).toByte)
-  }
-
-  def writeInt(int: Long): BytesWriter = {
-    writeByte((int >> 24 & 0xFF).toByte)
-    writeByte((int >> 16 & 0xFF).toByte)
-    writeByte((int >> 8 & 0xFF).toByte)
-    writeByte((int & 0xFF).toByte)
-  }
-
-  def toByteArray = _buffer
-
-  private[this] var _offset = 0
-  private[this] val _buffer: Array[Byte] = new Array[Byte](length)
 }

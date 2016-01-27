@@ -37,7 +37,9 @@ import scala.concurrent.ExecutionContext
 
 class LedgerApi(override val device: Device)
   extends LedgerCommonApiInterface
-  with LedgerFirmwareApi {
+  with LedgerFirmwareApi
+  with LedgerDerivationApi
+  with LedgerLifecycleApi {
   override implicit val ec: ExecutionContext = co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
 }
 

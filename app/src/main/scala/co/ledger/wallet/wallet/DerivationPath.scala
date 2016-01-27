@@ -30,12 +30,15 @@
  */
 package co.ledger.wallet.wallet
 
+import java.security.InvalidParameterException
+
 import scala.annotation.tailrec
 
 class DerivationPath(p: DerivationPath, val childNum: Long) {
 
-  lazy val depth: Int = parent.depth + 1
-  lazy val parent = p
+  val parent = if (p == null) this else p
+  val depth: Int = parent.depth + 1
+  val length = depth + 1
 
   def /(child: DerivationPath): DerivationPath = {
     new DerivationPath(this, child.childNum)
@@ -62,35 +65,30 @@ class DerivationPath(p: DerivationPath, val childNum: Long) {
     else
       s"${parent.toString}/${if (isHardened) index + "'" else index}"
   }
+
 }
 
 object DerivationPath {
 
-  object Root extends DerivationPath(null, -1) {
-
-    override lazy val parent = this
-    override lazy val depth = -1
-
-  }
+  object Root extends DerivationPath(null, -1)
 
   def apply(path: String): DerivationPath = {
     @tailrec
-    def parse(path: String, node: DerivationPath): DerivationPath = {
-      val part = path.takeWhile(_ != '/')
-      if (part.contains("m"))
-        Root
+    def parse(parts: Array[String], offset: Int, node: DerivationPath): DerivationPath = {
+      if (offset >= parts.length)
+        node
+      else if (parts(offset) == "m" && offset == 0)
+        parse(parts, offset + 1, Root)
       else {
-        val num = part.takeWhile(_.isDigit)
+        val num = parts(offset).takeWhile(_.isDigit)
         if (num.length == 0)
-          node
-        else {
-          val hardened = part.endsWith("'") || part.endsWith("h")
-          val childNum = num.toInt.toLong + (if (hardened) 0x80000000L else 0L)
-          parse(path.substring(part.length), new DerivationPath(node, childNum))
-        }
+          throw new InvalidParameterException(s"Unable to parse path $path")
+        val hardened = parts(offset).endsWith("'") || parts(offset).endsWith("h")
+        val childNum = num.toLong + (if (hardened) 0x80000000L else 0L)
+        parse(parts, offset + 1, new DerivationPath(node, childNum))
       }
     }
-    parse(path, Root)
+    parse(path.split('/'), 0, Root)
   }
 
   object dsl {
