@@ -84,7 +84,7 @@ object Base58 {
 
   def encode(b: Array[Byte]): String = {
     var intData = BigInteger.ZERO
-    for (i <- 0 until b.length) {
+    for (i <- b.indices) {
       intData = intData.multiply(BigInteger.valueOf(256)).add(BigInteger.valueOf(b(i) & 0xFF))
     }
     var result = ""

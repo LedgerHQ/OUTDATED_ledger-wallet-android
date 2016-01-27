@@ -128,7 +128,7 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
       }
     }
     getPublicAddressButton onClick getPublicAddress()
-    getFirstAccountXpubButton onClick getPublicAddress()
+    getFirstAccountXpubButton onClick getXpub()
   }
 
   def getPublicAddress(attempts: Int = 0): Unit = {
@@ -144,6 +144,40 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
         progress.dismiss()
         logView.append(s"--- GET PUBLIC ADDRESS ---\n")
         logView.append(s"Address: ${result.address}\n")
+        logView.append(s"------------------------------\n")
+      case Failure(ex: LedgerApiInvalidAccessRightException) =>
+        progress.dismiss()
+        unlockDevice(api) {
+          case Success(_) =>
+            getPublicAddress(attempts + 1)
+          case Failure(ex) =>
+            ex.printStackTrace()
+            Try(d.foreach(_.disconnect()))
+            Toast.makeText(this, "Wrong pin code", Toast.LENGTH_LONG).show()
+            onDeviceDisconnection()
+        }
+      case Failure(ex) =>
+        progress.dismiss()
+        ex.printStackTrace()
+        Try(d.foreach(_.disconnect()))
+        Toast.makeText(this, "Fail to send command", Toast.LENGTH_LONG).show()
+        onDeviceDisconnection()
+    }
+  }
+
+  def getXpub(attempts: Int = 0): Unit = {
+    var d: Option[Device] = None
+    var api: LedgerApi = null
+    val progress = ProgressDialog.show(this, "Derivation", "Please wait")
+    connectedDevice flatMap {device =>
+      d = Some(device)
+      api = LedgerApi(device)
+      api.deriveExtendedPublicKey(DerivationPath("44'/0'/0'"), MainNetParams.get())
+    } onComplete {
+      case Success(result) =>
+        progress.dismiss()
+        logView.append(s"--- GET EXTENDED PUBLIC ADDRESS ---\n")
+        logView.append(s"Address: ${result.serializePubB58(MainNetParams.get())}\n")
         logView.append(s"------------------------------\n")
       case Failure(ex: LedgerApiInvalidAccessRightException) =>
         progress.dismiss()

@@ -30,11 +30,14 @@
  */
 package co.ledger.wallet.core.device.api
 
+import co.ledger.wallet.core.bitcoin.{Base58, BitcoinUtils}
+import co.ledger.wallet.core.crypto.{Crypto, Hash160}
 import co.ledger.wallet.core.device.api.LedgerDerivationApi.PublicAddressResult
 import co.ledger.wallet.core.utils.{AsciiUtils, HexUtils, BytesReader, BytesWriter}
 import co.ledger.wallet.wallet.DerivationPath
 import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.crypto.DeterministicKey
+import org.bitcoinj.params.MainNetParams
 
 import scala.concurrent.Future
 
@@ -101,7 +104,38 @@ trait LedgerDerivationApi extends LedgerFirmwareApi {
 
   def deriveExtendedPublicKey(path: DerivationPath, network: NetworkParameters): Future[DeterministicKey] = {
 
-    null
+    def finalize(fingerprint: Long): Future[DeterministicKey] = {
+      derivePublicAddress(path, network) map {(result) =>
+        val magic = network.getBip32HeaderPub
+        val depth = path.length.toByte
+        val childNum = path.childNum
+        val chainCode = result.chainCode
+        val publicKey = Crypto.compressPublicKey(result.publicKey)
+        val rawXpub = new BytesWriter(13 + chainCode.length + publicKey.length)
+        rawXpub.writeInt(magic)
+        rawXpub.writeByte(depth)
+        rawXpub.writeInt(fingerprint)
+        rawXpub.writeInt(childNum)
+        rawXpub.writeByteArray(chainCode)
+        rawXpub.writeByteArray(publicKey)
+        val xpub58 = Base58.encodeWitchChecksum(rawXpub.toByteArray)
+        DeterministicKey.deserializeB58(xpub58, network)
+      }
+    }
+
+    if (path.depth > 0) {
+      derivePublicAddress(path.parent, network) flatMap {(result) =>
+        val hash160 = Hash160.hash(Crypto.compressPublicKey(result.publicKey))
+        val fingerprint: Long =
+            ((hash160(0) & 0xFFL) << 24) |
+            ((hash160(1) & 0xFFL) << 16) |
+            ((hash160(2) & 0xFFL) << 8) |
+            (hash160(3) & 0xFFL)
+        finalize(fingerprint)
+      }
+    } else {
+      finalize(0)
+    }
   }
 
   /*

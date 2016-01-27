@@ -58,4 +58,9 @@ object Crypto {
     result
   }
 
+  def compressPublicKey(publicKey: Array[Byte]): Array[Byte] = {
+    val prefix = if ((publicKey(64) & 1) != 0) 0x03 else 0x02
+    prefix.toByte +: publicKey.slice(1, 33)
+  }
+
 }

@@ -70,7 +70,9 @@ class DerivationPath(p: DerivationPath, val childNum: Long) {
 
 object DerivationPath {
 
-  object Root extends DerivationPath(null, -1)
+  object Root extends DerivationPath(null, -1) {
+    override val depth = -1
+  }
 
   def apply(path: String): DerivationPath = {
     @tailrec
