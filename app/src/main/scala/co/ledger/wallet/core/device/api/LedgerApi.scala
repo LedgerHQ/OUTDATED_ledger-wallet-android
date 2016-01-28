@@ -30,7 +30,8 @@
  */
 package co.ledger.wallet.core.device.api
 
-import android.os.Parcel
+import java.util.UUID
+
 import co.ledger.wallet.core.device.Device
 
 import scala.concurrent.ExecutionContext
@@ -41,17 +42,22 @@ class LedgerApi(override val device: Device)
   with LedgerDerivationApi
   with LedgerLifecycleApi {
   override implicit val ec: ExecutionContext = co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
+
+
+  val uuid = UUID.randomUUID()
 }
 
 object LedgerApi {
 
   def apply(device: Device): LedgerApi = {
-    new LedgerApi(device)
+    val api = new LedgerApi(device)
+    _lastApi = Some(api)
+    api
   }
 
-  def apply(parcel: Parcel): LedgerApi = {
-    null
-  }
+  def apply(uuid: UUID): Option[LedgerApi] = _lastApi filter(_.uuid == uuid)
+
+  private var _lastApi: Option[LedgerApi] = None
 
 }
 

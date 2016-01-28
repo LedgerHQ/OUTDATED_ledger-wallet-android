@@ -30,6 +30,8 @@
  */
 package co.ledger.wallet.core.device.api
 
+import java.util.UUID
+
 import android.os.Parcel
 import co.ledger.wallet.core.concurrent.FutureQueue
 import co.ledger.wallet.core.device.Device
@@ -39,6 +41,7 @@ import co.ledger.wallet.core.utils.{BytesReader, BytesWriter, HexUtils}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success, Try}
+import co.ledger.wallet.core.os.ParcelExtension._
 
 trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
   import LedgerCommonApiInterface._
@@ -49,11 +52,13 @@ trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
   abstract override def writeToParcel(dest: Parcel, flags: Int): Unit = {
     super.writeToParcel(dest, flags)
     // Stackable!
+    dest.writeNullableUuid(device.uuid.orNull)
   }
 
   abstract override def readFromParcel(source: Parcel): Unit = {
     super.readFromParcel(source)
     // Stackable!
+    _restoreDeviceUuid = source.readNullableUuid()
   }
 
   /**
@@ -175,6 +180,7 @@ trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
   }
 
   private[this] val _resultCache = scala.collection.mutable.Map[String, Future[Any]]()
+  private[this] var _restoreDeviceUuid: Option[UUID] = None
 }
 
 object LedgerCommonApiInterface {

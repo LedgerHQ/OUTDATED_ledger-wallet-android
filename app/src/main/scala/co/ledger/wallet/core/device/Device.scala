@@ -30,6 +30,8 @@
  */
 package co.ledger.wallet.core.device
 
+import java.util.UUID
+
 import de.greenrobot.event.EventBus
 
 import scala.concurrent.Future
@@ -56,6 +58,9 @@ trait Device {
   def isDebugEnabled: Boolean
   def debug_=(enable: Boolean): Unit
 
+  def uuid: Option[UUID] = _uuid
+  def uuid_=(uuid: UUID) = _uuid = Option(uuid)
+  private var _uuid: Option[UUID] = None
 }
 
 object Device {

@@ -74,6 +74,7 @@ trait DeviceManager extends Preferenceable {
 
   def registerDevice(device: Device): Future[UUID] = Future {
     val uuid = UUID.randomUUID()
+    device.uuid = uuid
     _registeredDevices(uuid) = device
     uuid
   }
