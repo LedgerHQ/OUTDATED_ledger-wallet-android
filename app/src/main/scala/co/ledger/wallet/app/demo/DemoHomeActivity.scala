@@ -1,9 +1,9 @@
 /**
  *
- * WalletActivity
+ * DemoHomeActivity
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 28/01/16.
  *
  * The MIT License (MIT)
  *
@@ -28,37 +28,27 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.core.base
+package co.ledger.wallet.app.demo
 
-import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
-import co.ledger.wallet.core.event.MainThreadEventReceiver
+import co.ledger.wallet.core.base.BaseActivity
 import co.ledger.wallet.service.wallet.WalletService
-import co.ledger.wallet.wallet.Wallet
-import co.ledger.wallet.wallet.proxy.WalletProxy
-import WalletActivity._
 
-trait WalletActivity extends Activity with MainThreadEventReceiver {
+class DemoHomeActivity extends BaseActivity {
 
-  abstract override def onCreate(savedInstanceState: Bundle): Unit = {
+  override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-    wallet.asInstanceOf[WalletProxy].bind()
-    register(wallet.eventBus)
+
+    if (WalletService.currentWalletName.isDefined) {
+      val intent = new Intent(this, classOf[DemoOpenWalletActivity])
+      startActivity(intent)
+      finish()
+    } else {
+      val intent = new Intent(this, classOf[DemoDiscoverDeviceActivity])
+      startActivity(intent)
+      finish()
+    }
   }
 
-  abstract override def onDestroy(): Unit = {
-    super.onDestroy()
-    wallet.asInstanceOf[WalletProxy].unbind()
-  }
-
-  lazy val wallet: Wallet = new WalletProxy(this, activityWalletName.get)
-
-  def activityWalletName = Option(getIntent.getStringExtra(ExtraWalletName)) orElse {
-    WalletService.currentWalletName(this)
-  }
-
-}
-
-object WalletActivity {
-  val ExtraWalletName = "ExtraWalletName"
 }

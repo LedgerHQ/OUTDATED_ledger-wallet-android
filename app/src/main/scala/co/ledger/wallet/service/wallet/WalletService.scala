@@ -30,20 +30,53 @@
  */
 package co.ledger.wallet.service.wallet
 
+import java.util.concurrent.ConcurrentHashMap
+
 import android.app.Service
-import android.content.Intent
+import android.content.{Context, Intent}
 import android.os.IBinder
+import co.ledger.wallet.core.utils.Preferences
 import co.ledger.wallet.service.wallet.spv.SpvWalletClient
 import co.ledger.wallet.wallet.Wallet
 import org.bitcoinj.params.MainNetParams
 
-class WalletService extends Service {
+import scala.collection.JavaConverters._
 
-  private var _wallet: SpvWalletClient = null // Temporary implementation
-  def wallet(name: String): Wallet = {
-    if (_wallet == null)
-      _wallet = new SpvWalletClient(this, s"wallet_$name", MainNetParams.get())
-    _wallet
+class WalletService extends Service {
+  import WalletService._
+
+  def wallet(name: String, engine: Int): Wallet = {
+    _wallets.lift(name) getOrElse {
+      val wallet: Wallet = engine match {
+        case WalletService.WalletSpvEngine =>
+          new SpvWalletClient(this, s"wallet_$name", networkParams)
+        case WalletService.WalletApiEngine =>
+          null
+      }
+      _wallets(name) = wallet
+      wallet
+    }
+  }
+
+  def networkParams = {
+    // TODO: Proper implementation
+    MainNetParams.get()
+  }
+
+  def openWallet(name: String): Wallet = {
+    _preferences.writer.putString(CurrentWalletNameKey, name).commit()
+    wallet(name, defaultEngineFlag)
+  }
+
+  def defaultEngineFlag = WalletService.WalletSpvEngine
+  def currentWalletName: Option[String] =
+    Option(_preferences.reader.getString(CurrentWalletNameKey, null))
+
+  def currentWallet: Option[Wallet] = currentWalletName map openWallet
+
+  def closeCurrentWallet(): Unit = currentWallet foreach {(wallet) =>
+    _preferences.writer.remove(CurrentWalletNameKey).commit()
+    // TODO: Close
   }
 
   override def onCreate(): Unit = {
@@ -58,6 +91,20 @@ class WalletService extends Service {
   }
 
   private[this] val _binder = new Binder
-
+  private[this] val _wallets = new ConcurrentHashMap[String, Wallet]().asScala
+  private[this] lazy val _preferences = Preferences(WalletServicePreferencesName)(this)
 }
 
+object WalletService {
+
+  val WalletServicePreferencesName = "WalletServicePreferences"
+  val CurrentWalletNameKey = "current_wallet_name"
+
+  val WalletSpvEngine = 0x01
+  val WalletApiEngine = 0x02
+
+  def currentWalletName(implicit context: Context): Option[String] = {
+    val preferences = Preferences(WalletServicePreferencesName)(context)
+    Option(preferences.reader.getString(CurrentWalletNameKey, null))
+  }
+}

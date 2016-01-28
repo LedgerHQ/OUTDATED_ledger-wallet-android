@@ -1,9 +1,9 @@
 /**
  *
- * WalletActivity
+ * DemoDiscoverDeviceActivity
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 28/01/16.
  *
  * The MIT License (MIT)
  *
@@ -28,37 +28,15 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.core.base
+package co.ledger.wallet.app.demo
 
-import android.app.Activity
-import android.os.Bundle
-import co.ledger.wallet.core.event.MainThreadEventReceiver
-import co.ledger.wallet.service.wallet.WalletService
-import co.ledger.wallet.wallet.Wallet
-import co.ledger.wallet.wallet.proxy.WalletProxy
-import WalletActivity._
+import co.ledger.wallet.core.base.{DeviceActivity, BaseActivity}
 
-trait WalletActivity extends Activity with MainThreadEventReceiver {
+class DemoDiscoverDeviceActivity extends BaseActivity with DeviceActivity {
 
-  abstract override def onCreate(savedInstanceState: Bundle): Unit = {
-    super.onCreate(savedInstanceState)
-    wallet.asInstanceOf[WalletProxy].bind()
-    register(wallet.eventBus)
+
+
+  override def receive: Receive = {
+    case all =>
   }
-
-  abstract override def onDestroy(): Unit = {
-    super.onDestroy()
-    wallet.asInstanceOf[WalletProxy].unbind()
-  }
-
-  lazy val wallet: Wallet = new WalletProxy(this, activityWalletName.get)
-
-  def activityWalletName = Option(getIntent.getStringExtra(ExtraWalletName)) orElse {
-    WalletService.currentWalletName(this)
-  }
-
-}
-
-object WalletActivity {
-  val ExtraWalletName = "ExtraWalletName"
 }

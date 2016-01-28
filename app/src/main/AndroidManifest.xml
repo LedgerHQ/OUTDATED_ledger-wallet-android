@@ -38,6 +38,29 @@
         <!-- Wallet -->
 
         <activity
+            android:name=".app.demo.DemoHomeActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".app.demo.DemoDiscoverDeviceActivity"
+            android:screenOrientation="portrait"
+            android:label="Connect your device"
+            android:launchMode="singleTask">
+        </activity>
+
+        <activity
+            android:name=".app.demo.DemoOpenWalletActivity"
+            android:label="Open wallet"
+            android:launchMode="singleTask">
+        </activity>
+
+        <activity
             android:name=".app.DemoActivity"
             android:screenOrientation="portrait"
             android:label="@string/app_name"
@@ -50,10 +73,6 @@
             android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:launchMode="singleTask">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
 
         <activity android:name=".app.DemoConnectedDeviceActivity"

@@ -59,8 +59,8 @@ trait DeviceActivity extends Activity with MainThreadEventReceiver {
   }
 
   def unbindDeviceManagerService(): Unit = {
-    _deviceManagerServiceConnection.getOrElse {
-      unbindService(_deviceManagerServiceConnection.get)
+    _deviceManagerServiceConnection foreach {(service) =>
+      unbindService(service)
       onDeviceManagerServiceDisconnected()
     }
   }
