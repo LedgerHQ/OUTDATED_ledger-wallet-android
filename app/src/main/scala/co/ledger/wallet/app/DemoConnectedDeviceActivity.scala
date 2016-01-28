@@ -34,13 +34,13 @@ import android.app.ProgressDialog
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
 import android.os.Bundle
-import android.support.v7.app.AlertDialog
 import android.support.v7.app.AlertDialog.Builder
 import android.text.InputType
 import android.view.View
-import android.widget.{TextView, Toast, Button}
+import android.widget.{Button, TextView, Toast}
 import co.ledger.wallet.R
-import co.ledger.wallet.core.base.{DeviceActivity, BaseActivity}
+import co.ledger.wallet.common._
+import co.ledger.wallet.core.base.{BaseActivity, DeviceActivity}
 import co.ledger.wallet.core.device.Device
 import co.ledger.wallet.core.device.Device.Disconnect
 import co.ledger.wallet.core.device.api.LedgerApi
@@ -52,8 +52,7 @@ import co.ledger.wallet.core.widget.EditText
 import co.ledger.wallet.wallet.DerivationPath
 import org.bitcoinj.params.MainNetParams
 
-import scala.util.{Try, Failure, Success}
-import co.ledger.wallet.common._
+import scala.util.{Failure, Success, Try}
 
 class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with ViewFinder {
 

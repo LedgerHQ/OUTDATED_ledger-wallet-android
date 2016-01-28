@@ -66,7 +66,7 @@ trait DeviceActivity extends Activity with MainThreadEventReceiver {
   }
 
 
-  override def onDestroy(): Unit = {
+  abstract override def onDestroy(): Unit = {
     super.onDestroy()
     unbindDeviceManagerService()
   }

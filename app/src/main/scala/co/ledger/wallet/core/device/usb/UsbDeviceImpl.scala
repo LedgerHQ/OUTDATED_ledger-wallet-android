@@ -74,6 +74,7 @@ class UsbDeviceImpl(context: Context,
       }
     } andThen {
       case all =>
+        context.unregisterReceiver(_broadcastReceiver)
         _connectionPromise = None
     }
   }
@@ -134,44 +135,47 @@ class UsbDeviceImpl(context: Context,
 
   private[this] val _broadcastReceiver = new BroadcastReceiver {
     override def onReceive(context: Context, intent: Intent): Unit = {
-      val action = intent.getAction
-      if (action == ActionUsbPermission) {
-        val device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE).asInstanceOf[UsbDevice]
-        if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-          val dongleInterface = device.getInterface(0)
-          var in: Option[UsbEndpoint] = None
-          var out: Option[UsbEndpoint] = None
-          for (index <- 0 until dongleInterface.getEndpointCount) {
-            val endpoint = dongleInterface.getEndpoint(index)
-            if (endpoint.getDirection == UsbConstants.USB_DIR_IN) {
-              in = Some(endpoint)
-            } else {
-              out = Some(endpoint)
-            }
-          }
-          val connection = manager.openDevice(device)
-          if (!connection.claimInterface(dongleInterface, true)) {
-            failConnection(new Exception("Unable to claim interface"))
-          } else {
-            val isUsingLedgerTransport =
-              (device.getProductId == HidLedgerUsbProductId) || (device.getProductId == ProtonProductId)
-            val exchangePerformer = {
-              if (device.getProductId == WindUsbProductId) {
-                new UsbWinUsbExchangePerformer(connection, dongleInterface, in.get, out.get)
+      if (_connectionPromise.isDefined) {
+        val action = intent.getAction
+        if (action == ActionUsbPermission) {
+          val device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE).asInstanceOf[UsbDevice]
+          if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+            val dongleInterface = device.getInterface(0)
+            var in: Option[UsbEndpoint] = None
+            var out: Option[UsbEndpoint] = None
+            for (index <- 0 until dongleInterface.getEndpointCount) {
+              val endpoint = dongleInterface.getEndpoint(index)
+              if (endpoint.getDirection == UsbConstants.USB_DIR_IN) {
+                in = Some(endpoint)
               } else {
-                new UsbHidExchangePerformer(connection, dongleInterface, in.get, out.get, isUsingLedgerTransport)
+                out = Some(endpoint)
               }
             }
-            exchangePerformer onDisconnect {() =>
-              onDisconnect()
+            val connection = manager.openDevice(device)
+            if (connection == null)
+              failConnection(new Exception("Unable to open connection"))
+            else if (!connection.claimInterface(dongleInterface, true)) {
+              failConnection(new Exception("Unable to claim interface"))
+            } else {
+              val isUsingLedgerTransport =
+                (device.getProductId == HidLedgerUsbProductId) || (device.getProductId == ProtonProductId)
+              val exchangePerformer = {
+                if (device.getProductId == WindUsbProductId) {
+                  new UsbWinUsbExchangePerformer(connection, dongleInterface, in.get, out.get)
+                } else {
+                  new UsbHidExchangePerformer(connection, dongleInterface, in.get, out.get, isUsingLedgerTransport)
+                }
+              }
+              exchangePerformer onDisconnect { () =>
+                onDisconnect()
+              }
+              _connectionPromise.get.success(exchangePerformer)
             }
-            _connectionPromise.get.success(exchangePerformer)
+
+          } else {
+            failConnection(new Exception("Permission not granted"))
           }
-
-        } else {
-          failConnection(new Exception("Permission not granted"))
         }
-
       }
     }
   }
@@ -199,8 +203,13 @@ object UsbDeviceImpl {
       assume(!isExchanging, "There is already an exchange going on.")
       _exchangeFuture = Some(Future {
         performExchange(command)
-      } andThen {
-        case all => _exchangeFuture = None
+      } recover {
+        case err: Throwable =>
+          _exchangeFuture = None
+          throw err
+      } map {(result) =>
+        _exchangeFuture = None
+        result
       })
       _exchangeFuture.get
     }
