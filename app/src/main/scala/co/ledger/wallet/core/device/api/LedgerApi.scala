@@ -50,9 +50,12 @@ class LedgerApi(override val device: Device)
 object LedgerApi {
 
   def apply(device: Device): LedgerApi = {
-    val api = new LedgerApi(device)
-    _lastApi = Some(api)
-    api
+    val lastApi = _lastApi.filter(device.uuid == _.device.uuid)
+    lastApi.getOrElse {
+      val api = new LedgerApi(device)
+      _lastApi = Some(api)
+      api
+    }
   }
 
   def apply(uuid: UUID): Option[LedgerApi] = _lastApi filter(_.uuid == uuid)
