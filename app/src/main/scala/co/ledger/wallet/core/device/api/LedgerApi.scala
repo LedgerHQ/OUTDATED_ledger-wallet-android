@@ -33,8 +33,11 @@ package co.ledger.wallet.core.device.api
 import java.util.UUID
 
 import co.ledger.wallet.core.device.Device
+import co.ledger.wallet.wallet.DerivationPath
+import co.ledger.wallet.wallet.DerivationPath.Root
+import org.bitcoinj.core.NetworkParameters
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 
 class LedgerApi(override val device: Device)
   extends LedgerCommonApiInterface
@@ -43,6 +46,12 @@ class LedgerApi(override val device: Device)
   with LedgerLifecycleApi {
   override implicit val ec: ExecutionContext = co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
 
+
+  def walletIdentifier(network: NetworkParameters): Future[String] = {
+    derivePublicAddress(new DerivationPath(Root, 0), network).map {(result) =>
+      result.address
+    }
+  }
 
   val uuid = UUID.randomUUID()
 }

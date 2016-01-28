@@ -41,6 +41,12 @@
         android:text="Get first account xpub"
         android:id="@+id/get_first_account_xpub"/>
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get wallet identifier"
+        android:id="@+id/get_wallet_identifier"/>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"

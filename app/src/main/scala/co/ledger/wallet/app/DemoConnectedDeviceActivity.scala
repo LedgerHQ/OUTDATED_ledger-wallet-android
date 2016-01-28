@@ -61,6 +61,7 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
   lazy val getVersionButton: Button = R.id.get_version_button
   lazy val getAttestationButton: Button = R.id.get_attestation_button
   lazy val getPublicAddressButton: Button = R.id.get_public_address
+  lazy val getWalletIdentifierButton: Button = R.id.get_wallet_identifier
   lazy val getFirstAccountXpubButton: Button = R.id.get_first_account_xpub
   lazy val logView: TextView = R.id.log_view
 
@@ -127,6 +128,7 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
       }
     }
     getPublicAddressButton onClick getPublicAddress()
+    getWalletIdentifierButton onClick getWalletIdentifier()
     getFirstAccountXpubButton onClick getXpub()
   }
 
@@ -149,6 +151,40 @@ class DemoConnectedDeviceActivity extends BaseActivity with DeviceActivity with 
         unlockDevice(api) {
           case Success(_) =>
             getPublicAddress(attempts + 1)
+          case Failure(ex) =>
+            ex.printStackTrace()
+            Try(d.foreach(_.disconnect()))
+            Toast.makeText(this, "Wrong pin code", Toast.LENGTH_LONG).show()
+            onDeviceDisconnection()
+        }
+      case Failure(ex) =>
+        progress.dismiss()
+        ex.printStackTrace()
+        Try(d.foreach(_.disconnect()))
+        Toast.makeText(this, "Fail to send command", Toast.LENGTH_LONG).show()
+        onDeviceDisconnection()
+    }
+  }
+
+  def getWalletIdentifier(attempts: Int = 0): Unit = {
+    var d: Option[Device] = None
+    var api: LedgerApi = null
+    val progress = ProgressDialog.show(this, "Derivation", "Please wait")
+    connectedDevice flatMap {device =>
+      d = Some(device)
+      api = LedgerApi(device)
+      api.walletIdentifier(MainNetParams.get())
+    } onComplete {
+      case Success(result) =>
+        progress.dismiss()
+        logView.append(s"--- GET WALLET IDENTIFIER ---\n")
+        logView.append(s"Address: ${result}\n")
+        logView.append(s"------------------------------\n")
+      case Failure(ex: LedgerApiInvalidAccessRightException) =>
+        progress.dismiss()
+        unlockDevice(api) {
+          case Success(_) =>
+            getWalletIdentifier(attempts + 1)
           case Failure(ex) =>
             ex.printStackTrace()
             Try(d.foreach(_.disconnect()))

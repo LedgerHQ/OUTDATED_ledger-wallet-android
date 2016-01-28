@@ -94,7 +94,7 @@ trait LedgerDerivationApi extends LedgerFirmwareApi {
         val n = path(i).get
         writer.writeInt(n.childNum)
       }
-      $(s"GET PUBLIC ADDRESS $path") {
+      $$(s"GET PUBLIC ADDRESS $path") {
         sendApdu(0xe0, 0x40, 0x00, 0x00, writer.toByteArray, 0x00) map {(result) =>
           matchErrorsAndThrow(result)
           PublicAddressResult(result.data)
