@@ -31,7 +31,7 @@
 package co.ledger.wallet.service.wallet.spv
 
 import java.util
-import java.util.Date
+import java.util.{NoSuchElementException, Date}
 
 import android.content.Context
 import co.ledger.wallet.app.Config
@@ -39,7 +39,8 @@ import co.ledger.wallet.core.concurrent.{AbstractAsyncCursor, AsyncCursor, Seria
 import co.ledger.wallet.core.utils.{BitcoinjUtils, Preferences}
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns
-import co.ledger.wallet.service.wallet.database.cursor.OperationCursor
+import co.ledger.wallet.service.wallet.database.cursor.{BlockCursor, OperationCursor}
+import co.ledger.wallet.service.wallet.database.model.{BlockRow, AccountRow}
 import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
 import co.ledger.wallet.service.wallet.database.{WalletDatabaseOpenHelper, WalletDatabaseWriter}
 import co.ledger.wallet.wallet.DerivationPath.dsl._
@@ -49,7 +50,7 @@ import co.ledger.wallet.wallet.events.WalletEvents._
 import co.ledger.wallet.wallet.exceptions._
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.AbstractBlockChain.NewBlockType
-import org.bitcoinj.core.{Wallet => JWallet, Context => JContext, _}
+import org.bitcoinj.core.{Wallet => JWallet, Context => JContext, Block => JBlock, _}
 import org.bitcoinj.crypto.DeterministicKey
 
 import scala.collection.JavaConverters._
@@ -109,7 +110,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
           eventBus.post(StartSynchronization())
         }
 
-        override def onBlocksDownloaded(peer: Peer, block: Block, filteredBlock: FilteredBlock,
+        override def onBlocksDownloaded(peer: Peer, block: JBlock, filteredBlock: FilteredBlock,
                                         blocksLeft: Int): Unit = {
           super.onBlocksDownloaded(peer, block, filteredBlock, blocksLeft)
           Future {
@@ -309,6 +310,16 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       eventBus.post(AccountCreated(0))
       ()}
 
+
+  override def mostRecentBlock(): Future[Block] = {
+    init() map {(_) =>
+      val cursor = new BlockCursor(_database.reader.lastBlock())
+      if (cursor.moveToFirst())
+        new BlockRow(cursor)
+      else
+        throw new NoSuchElementException
+    }
+  }
 
   override def needsSetup(): Future[Boolean] = init().map((_) => true).recover {
     case WalletNotSetupException() => false

@@ -1,9 +1,9 @@
 /**
  *
- * WalletRef
+ * Block
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 29/01/16.
  *
  * The MIT License (MIT)
  *
@@ -30,30 +30,12 @@
  */
 package co.ledger.wallet.wallet
 
-import co.ledger.wallet.core.concurrent.AsyncCursor
-import de.greenrobot.event.EventBus
-import org.bitcoinj.core.{Transaction, Coin}
+import java.util.Date
 
-import scala.concurrent.Future
+trait Block {
 
-trait Wallet {
-
-  def name: String
-  def account(index: Int): Future[Account]
-  def accounts(): Future[Array[Account]]
-  def accountsCount(): Future[Int]
-  def balance(): Future[Coin]
-  def setup(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit]
-  def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit]
-  def isSynchronizing(): Future[Boolean]
-  def operations(batchSize: Int = Wallet.DefaultOperationsBatchSize): Future[AsyncCursor[Operation]]
-  def needsSetup(): Future[Boolean]
-  def eventBus: EventBus
-  def mostRecentBlock(): Future[Block]
-
-}
-
-object Wallet {
-  val DefaultOperationsBatchSize = 20
+  val height: Int
+  val date: Date
+  val hash: String
 
 }

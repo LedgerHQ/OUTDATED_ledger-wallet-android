@@ -36,7 +36,7 @@ import android.util.Log
 import co.ledger.wallet.core.concurrent.AsyncCursor
 import co.ledger.wallet.service.wallet.WalletService
 import co.ledger.wallet.service.wallet.spv.SpvAccountClient
-import co.ledger.wallet.wallet.{Operation, ExtendedPublicKeyProvider, Account, Wallet}
+import co.ledger.wallet.wallet._
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Transaction, Coin}
 import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.ui
@@ -76,6 +76,8 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
   override def accountsCount(): Future[Int] = connect().flatMap(_.accountsCount())
 
   override def isSynchronizing(): Future[Boolean] = connect().flatMap(_.isSynchronizing())
+
+  override def mostRecentBlock(): Future[Block] = connect().flatMap(_.mostRecentBlock())
 
   val eventBus =  EventBus
     .builder()

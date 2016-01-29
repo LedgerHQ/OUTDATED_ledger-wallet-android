@@ -164,7 +164,10 @@ trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
     */
   protected def $$[T <: Any](name: String)(handler: => Future[T]): Future[T] = synchronized {
     if (!_resultCache.contains(name)) {
-     _resultCache(name) = $(name)(handler)
+      _resultCache(name) = $(name)(handler)
+      _resultCache(name).onFailure {
+        case all => _resultCache.remove(name)
+      }
     }
     _resultCache(name).asInstanceOf[Future[T]]
   }
@@ -207,7 +210,7 @@ object LedgerCommonApiInterface {
   case class LedgerApiFileNotFoundException() extends
     LedgerApiException(0x6A82, "File not found")
   case class LedgerApiInvalidParameterException() extends
-    LedgerApiException(0x6B00, "incorect parameter P1 or P2")
+    LedgerApiException(0x6B00, "Incorrect parameter P1 or P2")
   case class LedgerApiNotImplementedException() extends
     LedgerApiException(0x6D00, "Not implemented")
   case class LedgerApiTechnicalProblemException(code: Int) extends

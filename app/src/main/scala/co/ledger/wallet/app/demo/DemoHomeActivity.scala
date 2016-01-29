@@ -33,7 +33,7 @@ package co.ledger.wallet.app.demo
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import co.ledger.wallet.core.base.BaseActivity
+import co.ledger.wallet.core.base.{WalletActivity, BaseActivity}
 import co.ledger.wallet.service.wallet.WalletService
 
 class DemoHomeActivity extends BaseActivity {
@@ -62,6 +62,7 @@ class DemoHomeActivity extends BaseActivity {
 
   private def openWallet(): Unit = {
     val intent = new Intent(this, classOf[DemoOpenWalletActivity])
+    intent.putExtra(WalletActivity.ExtraWalletName, WalletService.currentWalletName.get)
     startActivity(intent)
     finish()
   }

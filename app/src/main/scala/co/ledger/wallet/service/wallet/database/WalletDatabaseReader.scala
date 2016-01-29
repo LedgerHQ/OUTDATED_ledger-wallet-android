@@ -102,6 +102,17 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
     count
   }
 
+  def lastBlock(): Cursor = {
+    import DatabaseStructure.BlockTableColumns._
+    val SelectLastBlock =
+      s"""
+        | SELECT ${projection.mkString(",")} FROM $BlockTableName
+        | ORDER BY $Height
+        | LIMIT 1
+    """
+    SelectLastBlock.execute()
+  }
+
   private implicit class SqlString(val sql: String) {
 
     def execute(params: Array[String] = Array()): Cursor = {

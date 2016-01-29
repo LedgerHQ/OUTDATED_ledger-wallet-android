@@ -1,9 +1,9 @@
 /**
  *
- * WalletRef
+ * BlockCursor
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 29/01/16.
  *
  * The MIT License (MIT)
  *
@@ -28,32 +28,15 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
+package co.ledger.wallet.service.wallet.database.cursor
 
-import co.ledger.wallet.core.concurrent.AsyncCursor
-import de.greenrobot.event.EventBus
-import org.bitcoinj.core.{Transaction, Coin}
+import android.database.Cursor
+import co.ledger.wallet.service.wallet.database.DatabaseStructure.BlockTableColumns.ProjectionIndex._
 
-import scala.concurrent.Future
+class BlockCursor(override val self: Cursor) extends CursorExtension(self) {
 
-trait Wallet {
-
-  def name: String
-  def account(index: Int): Future[Account]
-  def accounts(): Future[Array[Account]]
-  def accountsCount(): Future[Int]
-  def balance(): Future[Coin]
-  def setup(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit]
-  def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit]
-  def isSynchronizing(): Future[Boolean]
-  def operations(batchSize: Int = Wallet.DefaultOperationsBatchSize): Future[AsyncCursor[Operation]]
-  def needsSetup(): Future[Boolean]
-  def eventBus: EventBus
-  def mostRecentBlock(): Future[Block]
-
-}
-
-object Wallet {
-  val DefaultOperationsBatchSize = 20
+  val date = self.getLong(Time)
+  val height = self.getInt(Height)
+  val hash = self.getString(Hash)
 
 }
