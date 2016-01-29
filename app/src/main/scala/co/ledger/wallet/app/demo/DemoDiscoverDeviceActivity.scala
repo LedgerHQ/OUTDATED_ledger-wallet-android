@@ -30,19 +30,26 @@
  */
 package co.ledger.wallet.app.demo
 
+import android.app.{Activity, ProgressDialog}
 import android.content.DialogInterface
 import android.os.Bundle
 import android.support.v7.app.AlertDialog.Builder
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
-import android.view.View.OnClickListener
-import android.view.{View, ViewGroup, LayoutInflater}
+import android.text.InputType
+import android.view.{LayoutInflater, View, ViewGroup}
+import android.widget.Toast
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{BaseActivity, DeviceActivity}
-import co.ledger.wallet.core.device.{DeviceFactory, Device}
+import co.ledger.wallet.core.device.api.LedgerApi
+import co.ledger.wallet.core.device.api.LedgerCommonApiInterface.LedgerApiInvalidAccessRightException
+import co.ledger.wallet.core.device.{Device, DeviceFactory}
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.core.view.{ViewFinder, ViewHolder}
-import co.ledger.wallet.core.widget.TextView
+import co.ledger.wallet.core.widget.{EditText, TextView}
+import co.ledger.wallet.service.wallet.WalletService
+import org.bitcoinj.params.MainNetParams
 
+import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 
 class DemoDiscoverDeviceActivity extends BaseActivity
@@ -118,7 +125,59 @@ class DemoDiscoverDeviceActivity extends BaseActivity
   }
 
   def connect(device: Device): Unit = {
+    stopScan()
+    val dialog = ProgressDialog.show(this, "Connecting", s"Connecting to ${device.name}")
+    device.connect() flatMap { (device) =>
+      registerDevice(device).map((_) => LedgerApi(device))
+    } flatMap {(api) =>
+      retrieveWalletName(api, dialog)
+    } map {(identifier) =>
+      WalletService.setCurrentWalletName(identifier)
+    } onComplete {
+      case Success(_) =>
+        Toast.makeText(this, s"Connected to ${device.name}", Toast.LENGTH_LONG).show()
+        setResult(DemoDiscoverDeviceActivity.ResultOk)
+        finish()
+      case Failure(ex) =>
+        Toast.makeText(this, s"Failed to connect: ${ex.getMessage}", Toast.LENGTH_LONG).show()
+        ex.printStackTrace()
+        dialog.dismiss()
+        startScan()
+    }
+  }
 
+  def retrieveWalletName(api: LedgerApi, dialog: ProgressDialog): Future[String] = {
+    api.walletIdentifier(MainNetParams.get()) recoverWith {
+      case ex: LedgerApiInvalidAccessRightException =>
+        dialog.dismiss()
+        unlockDevice(api) flatMap {(_) =>
+          dialog.show()
+          retrieveWalletName(api, dialog)
+        }
+      case all => throw all
+    }
+  }
+
+  private def unlockDevice(api: LedgerApi): Future[Null] = {
+    val promise = Promise[Null]()
+    val input = new EditText(this)
+    input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
+    new Builder(this)
+      .setTitle("Unlock device")
+      .setMessage("Enter PIN:")
+      .setView(input)
+      .setPositiveButton("Submit", new DialogInterface.OnClickListener {
+        override def onClick(dialog: DialogInterface, which: Int): Unit = {
+          promise.completeWith(api.verifyPin(input.getText.toString))
+        }
+      })
+      .setNegativeButton("Cancel", new DialogInterface.OnClickListener {
+        override def onClick(dialog: DialogInterface, which: Int): Unit = {
+          promise.failure(new Exception("Cancel"))
+        }
+      })
+      .show()
+    promise.future
   }
 
   private var _scanRequest: Option[ScanRequest] = None
@@ -175,7 +234,7 @@ class DemoDiscoverDeviceActivity extends BaseActivity
         case Tee => "TEE"
       }
       deviceType.setText(s"[$t]")
-      v.setOnClickListener(new OnClickListener {
+      v.setOnClickListener(new View.OnClickListener {
         override def onClick(v: View): Unit = {
           new Builder(DemoDiscoverDeviceActivity.this)
             .setTitle("Connect")
@@ -207,6 +266,7 @@ object DemoDiscoverDeviceActivity {
   val DiscoveryRequest = 0x01
   val ReconnectRequest = 0x02
 
+  val ResultOk = Activity.RESULT_OK
   val ResultError = 0xe7707
 
 }

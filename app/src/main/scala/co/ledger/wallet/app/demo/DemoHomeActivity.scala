@@ -46,7 +46,6 @@ class DemoHomeActivity extends BaseActivity {
     } else {
       val intent = new Intent(this, classOf[DemoDiscoverDeviceActivity])
       startActivityForResult(intent, DemoDiscoverDeviceActivity.DiscoveryRequest)
-      finish()
     }
   }
 

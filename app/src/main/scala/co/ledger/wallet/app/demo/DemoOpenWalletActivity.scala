@@ -30,8 +30,18 @@
  */
 package co.ledger.wallet.app.demo
 
+import android.os.Bundle
 import co.ledger.wallet.core.base.{WalletActivity, BaseActivity}
 
 class DemoOpenWalletActivity extends BaseActivity with WalletActivity {
-  override def receive: Receive = ???
+
+
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate (savedInstanceState)
+  }
+
+
+  override def receive: Receive = {
+    case all =>
+  }
 }

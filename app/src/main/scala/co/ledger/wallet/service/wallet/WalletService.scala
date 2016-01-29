@@ -107,4 +107,15 @@ object WalletService {
     val preferences = Preferences(WalletServicePreferencesName)(context)
     Option(preferences.reader.getString(CurrentWalletNameKey, null))
   }
+
+  def setCurrentWalletName(walletIdentifier: String)(implicit context: Context): Unit = {
+    val preferences = Preferences(WalletServicePreferencesName)(context)
+    preferences.writer.putString(CurrentWalletNameKey, walletIdentifier).commit()
+  }
+
+  def closeCurrentWallet()(implicit context: Context): Unit = {
+    val preferences = Preferences(WalletServicePreferencesName)(context)
+    preferences.writer.remove(CurrentWalletNameKey).commit()
+  }
+
 }
