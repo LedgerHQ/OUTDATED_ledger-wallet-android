@@ -30,23 +30,30 @@
  */
 package co.ledger.wallet.app.demo
 
-import java.util.{Calendar, Date}
+import java.util.{UUID, Calendar, Date}
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import co.ledger.wallet.R
-import co.ledger.wallet.core.base.{WalletActivity, BaseActivity}
+import co.ledger.wallet.core.base.DeviceActivity.ConnectedDeviceNotFoundException
+import co.ledger.wallet.core.base.{DeviceActivity, WalletActivity, BaseActivity}
+import co.ledger.wallet.core.device.api.LedgerApi
 import co.ledger.wallet.core.view.ViewFinder
 import co.ledger.wallet.core.widget.TextView
 import co.ledger.wallet.wallet.{DerivationPath, ExtendedPublicKeyProvider}
 import co.ledger.wallet.wallet.exceptions._
 import org.bitcoinj.crypto.DeterministicKey
+import org.bitcoinj.params.MainNetParams
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-class DemoOpenWalletActivity extends BaseActivity with WalletActivity with ViewFinder {
+class DemoOpenWalletActivity extends BaseActivity
+  with WalletActivity
+  with DeviceActivity
+  with ViewFinder {
 
   lazy val title: TextView = R.id.title
   lazy val text: TextView = R.id.text
@@ -57,6 +64,10 @@ class DemoOpenWalletActivity extends BaseActivity with WalletActivity with ViewF
     openWallet()
   }
 
+  def startWalletHomeActivity(): Unit = {
+
+  }
+
   def openWallet(): Unit = {
     wallet.mostRecentBlock() map {(block) =>
       val calendar = Calendar.getInstance()
@@ -64,31 +75,71 @@ class DemoOpenWalletActivity extends BaseActivity with WalletActivity with ViewF
       val minSyncDate = calendar.getTime
       if (block.date.before(minSyncDate))
         throw TooOldException()
-      // TODO Open wallet
+      startWalletHomeActivity()
       ()
     } recover {
+      case ex: AccountHasNoXpubException => synchronizeWallet()
+      case ex: NoSuchElementException => synchronizeWallet()
       case ex: TooOldException => synchronizeWallet()
       case ex: WalletNotSetupException => setupWallet()
+      case ex: Throwable => ex.printStackTrace()
     }
   }
 
   def setupWallet(): Unit = {
     wallet.setup(_keyProvider) onComplete {
       case Success(_) => synchronizeWallet()
+      case Failure(ex: ConnectedDeviceNotFoundException) =>
+        connectDevice()
       case Failure(ex) =>
         ex.printStackTrace()
-        Toast.makeText(this, s"Fatal error ${ex.getMessage}", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, s"Fatal error during setup ${ex.getMessage}", Toast.LENGTH_LONG).show()
         finish()
     }
   }
 
   def synchronizeWallet(): Unit = {
     title.setText("Synchronizing your wallet")
-
+    text.setText(s"Please wait this will take a while...")
+    wallet.synchronize(_keyProvider) onComplete {
+      case Success(_) =>
+        startWalletHomeActivity()
+      case Failure(ex: ConnectedDeviceNotFoundException) =>
+        connectDevice()
+      case Failure(ex) =>
+        ex.printStackTrace()
+        Toast.makeText(this, s"Fatal error during sync ${ex.getMessage}", Toast.LENGTH_LONG).show()
+        finish()
+    }
   }
 
+  def connectDevice(): Unit = {
+    val intent = new Intent(this, classOf[DemoDiscoverDeviceActivity])
+    intent.putExtra(DemoDiscoverDeviceActivity.ExtraRequestType, DemoDiscoverDeviceActivity.ReconnectRequest)
+    startActivityForResult(intent, DemoDiscoverDeviceActivity.ReconnectRequest)
+  }
+
+  override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == DemoDiscoverDeviceActivity.ReconnectRequest) {
+      resultCode match {
+        case DemoDiscoverDeviceActivity.ResultOk =>
+          val deviceUuid = data.getStringExtra(DemoDiscoverDeviceActivity.ExtraDeviceUuid)
+          connectedDeviceUuid = UUID.fromString(deviceUuid)
+          openWallet()
+        case others => finish()
+      }
+    }
+  }
+
+  import co.ledger.wallet.wallet.events.PeerGroupEvents._
   override def receive: Receive = {
-    case all =>
+    case StartSynchronization() =>
+    case StopSynchronization() =>
+    case SynchronizationProgress(current, total, date) =>
+      title.setText(s"Synchronizing your wallet (${(current * 100) / total}%)")
+      text.setText(s"Please wait this will take a while...")
+    case others =>
   }
 
   private val _keyProvider = new KeyProvider
@@ -99,7 +150,10 @@ class DemoOpenWalletActivity extends BaseActivity with WalletActivity with ViewF
   private class KeyProvider extends ExtendedPublicKeyProvider {
 
     override def generateXpub(path: DerivationPath): Future[DeterministicKey] = {
-      null
+      connectedDevice flatMap {(device) =>
+        text.setText(s"Creating account ${path(2).get.index}...")
+        LedgerApi(device).deriveExtendedPublicKey(path, MainNetParams.get())
+      }
     }
 
   }

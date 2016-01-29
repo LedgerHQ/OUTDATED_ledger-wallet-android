@@ -90,7 +90,6 @@ class DemoActivity extends BaseActivity with WalletActivity {
     _xpubProvider.enable()
   }
 
-
   override def onPause(): Unit = {
     super.onPause()
     _xpubProvider.disable()

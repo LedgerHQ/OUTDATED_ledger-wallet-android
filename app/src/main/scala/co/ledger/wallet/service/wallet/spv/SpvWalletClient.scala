@@ -148,8 +148,6 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
           )
           eventBus.post(AccountCreated(index))
           performSynchronization(extendedPublicKeyProvider)
-        } recover {
-          case all => throw AccountHasNoXpubException(index)
         }
     }
   }
@@ -314,7 +312,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   override def mostRecentBlock(): Future[Block] = {
     init() map {(_) =>
       val cursor = new BlockCursor(_database.reader.lastBlock())
-      if (cursor.moveToFirst())
+      if (cursor.moveToFirst() && cursor.getCount > 0)
         new BlockRow(cursor)
       else
         throw new NoSuchElementException

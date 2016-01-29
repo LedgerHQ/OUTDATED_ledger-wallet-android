@@ -37,7 +37,7 @@ import co.ledger.wallet.wallet.Block
 
 class BlockRow(cursor: BlockCursor) extends Block {
 
-  override val date = new Date(cursor.date)
+  override val date = new Date(cursor.date * 1000)
   override val height = cursor.height
   override val hash = cursor.hash
 

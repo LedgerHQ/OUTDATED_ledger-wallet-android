@@ -35,8 +35,8 @@ import co.ledger.wallet.service.wallet.database.DatabaseStructure.BlockTableColu
 
 class BlockCursor(override val self: Cursor) extends CursorExtension(self) {
 
-  val date = self.getLong(Time)
-  val height = self.getInt(Height)
-  val hash = self.getString(Hash)
+  def date = self.getLong(Time)
+  def height = self.getInt(Height)
+  def hash = self.getString(Hash)
 
 }

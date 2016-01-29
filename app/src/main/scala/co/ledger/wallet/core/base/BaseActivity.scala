@@ -112,6 +112,12 @@ abstract class BaseActivity extends AppCompatActivity with Loggable with UiConte
   }
 
 
+  def runOnUiThread(f: => Unit): Unit = {
+    runOnUiThread(new Runnable {
+      override def run(): Unit = f
+    })
+  }
+
   override def onOptionsItemSelected(item: MenuItem): Boolean = {
     if ((item.getItemId == android.R.id.home && !onClickHome()) || item.getItemId != android.R.id.home)
       super.onOptionsItemSelected(item)

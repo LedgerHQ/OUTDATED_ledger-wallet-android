@@ -33,18 +33,18 @@ package co.ledger.wallet.app.demo
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import co.ledger.wallet.core.base.{WalletActivity, BaseActivity}
+import co.ledger.wallet.core.base.{BaseActivity, DeviceActivity, WalletActivity}
 import co.ledger.wallet.service.wallet.WalletService
 
 class DemoHomeActivity extends BaseActivity {
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-
     if (WalletService.currentWalletName.isDefined) {
      openWallet()
     } else {
       val intent = new Intent(this, classOf[DemoDiscoverDeviceActivity])
+      intent.putExtra(DemoDiscoverDeviceActivity.ExtraRequestType, DemoDiscoverDeviceActivity.DiscoveryRequest)
       startActivityForResult(intent, DemoDiscoverDeviceActivity.DiscoveryRequest)
     }
   }
@@ -54,15 +54,18 @@ class DemoHomeActivity extends BaseActivity {
     if (requestCode == DemoDiscoverDeviceActivity.DiscoveryRequest) {
       resultCode match {
         case Activity.RESULT_OK =>
-          openWallet()
+          openWallet(Option(data.getStringExtra(DemoDiscoverDeviceActivity.ExtraDeviceUuid)))
         case all => finish()
       }
     }
   }
 
-  private def openWallet(): Unit = {
+  private def openWallet(deviceUuid: Option[String] = None): Unit = {
     val intent = new Intent(this, classOf[DemoOpenWalletActivity])
     intent.putExtra(WalletActivity.ExtraWalletName, WalletService.currentWalletName.get)
+    if (deviceUuid.isDefined) {
+      intent.putExtra(DeviceActivity.ConnectedDeviceUuid, deviceUuid.get)
+    }
     startActivity(intent)
     finish()
   }

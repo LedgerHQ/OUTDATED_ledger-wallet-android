@@ -30,8 +30,10 @@
  */
 package co.ledger.wallet.app.demo
 
+import java.util.UUID
+
 import android.app.{Activity, ProgressDialog}
-import android.content.DialogInterface
+import android.content.{Intent, DialogInterface}
 import android.os.Bundle
 import android.support.v7.app.AlertDialog.Builder
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
@@ -127,16 +129,27 @@ class DemoDiscoverDeviceActivity extends BaseActivity
   def connect(device: Device): Unit = {
     stopScan()
     val dialog = ProgressDialog.show(this, "Connecting", s"Connecting to ${device.name}")
+    var uuid: UUID = null
     device.connect() flatMap { (device) =>
-      registerDevice(device).map((_) => LedgerApi(device))
+      registerDevice(device).map((u) => {
+        uuid = u
+        LedgerApi(device)
+      })
     } flatMap {(api) =>
       retrieveWalletName(api, dialog)
     } map {(identifier) =>
-      WalletService.setCurrentWalletName(identifier)
+      if (requestType == ReconnectRequest) {
+        if (!WalletService.currentWalletName.contains(identifier))
+          throw new Exception("You connected the wrong wallet")
+      } else {
+        WalletService.setCurrentWalletName(identifier)
+      }
     } onComplete {
       case Success(_) =>
         Toast.makeText(this, s"Connected to ${device.name}", Toast.LENGTH_LONG).show()
-        setResult(DemoDiscoverDeviceActivity.ResultOk)
+        val result = new Intent()
+        result.putExtra(ExtraDeviceUuid, uuid.toString)
+        setResult(DemoDiscoverDeviceActivity.ResultOk, result)
         finish()
       case Failure(ex) =>
         Toast.makeText(this, s"Failed to connect: ${ex.getMessage}", Toast.LENGTH_LONG).show()
@@ -258,6 +271,8 @@ class DemoDiscoverDeviceActivity extends BaseActivity
 
   }
 
+  def requestType = getIntent.getIntExtra(ExtraRequestType, DiscoveryRequest)
+
   override implicit def viewId2View[V <: View](id: Int): V = findViewById(id).asInstanceOf[V]
 }
 
@@ -268,5 +283,9 @@ object DemoDiscoverDeviceActivity {
 
   val ResultOk = Activity.RESULT_OK
   val ResultError = 0xe7707
+
+  val ExtraRequestType = "ExtraRequestType"
+
+  val ExtraDeviceUuid = "ExtraDeviceUuid"
 
 }

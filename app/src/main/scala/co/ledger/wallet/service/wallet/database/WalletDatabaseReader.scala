@@ -107,9 +107,9 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
     val SelectLastBlock =
       s"""
         | SELECT ${projection.mkString(",")} FROM $BlockTableName
-        | ORDER BY $Height
+        | ORDER BY $Height DESC
         | LIMIT 1
-    """
+    """.stripMargin
     SelectLastBlock.execute()
   }
 
