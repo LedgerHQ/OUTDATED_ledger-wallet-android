@@ -44,7 +44,7 @@ import android.widget.Toast
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{BaseActivity, DeviceActivity}
 import co.ledger.wallet.core.device.Device
-import co.ledger.wallet.core.device.DeviceFactory.{DeviceDiscovered, DeviceLost, ScanUpdate, ScanningRequest}
+import co.ledger.wallet.core.device.DeviceFactory.{DeviceDiscovered, DeviceLost, ScanUpdate, ScanRequest}
 import co.ledger.wallet.core.device.DeviceManager.ConnectivityTypes
 import co.ledger.wallet.core.utils.TR
 import co.ledger.wallet.core.view.ViewHolder
@@ -132,7 +132,7 @@ class DeviceDemoActivity extends BaseActivity with DeviceActivity {
   }
 
   private[this] val _adapter = new DeviceAdapter
-  private[this] var _scanRequest: Option[ScanningRequest] = None
+  private[this] var _scanRequest: Option[ScanRequest] = None
 
   class DeviceAdapter extends RecyclerView.Adapter[DeviceViewHolder] {
 

@@ -32,7 +32,7 @@ package co.ledger.wallet.core.device
 
 import android.app.Activity
 import android.os.Handler
-import co.ledger.wallet.core.device.DeviceFactory.ScanningRequest
+import co.ledger.wallet.core.device.DeviceFactory.ScanRequest
 
 import scala.concurrent.{Promise, ExecutionContext, Future}
 
@@ -63,25 +63,28 @@ trait DeviceFactory {
     */
   def requestPermission(activity: Activity): Future[Unit]
 
-  def requestScan(): ScanningRequest
+  def requestScan(): ScanRequest
 }
 
 object DeviceFactory {
   val DefaultScanDuration = 10000L
+  val InfiniteScanDuration = -1L
 
   trait DeviceScanCallback {
 
   }
 
-  trait ScanningRequest {
+  trait ScanRequest {
     def start(): Unit = {
       if (_promise.isCompleted || _isStarted)
         throw new IllegalStateException("Request already completed")
       _isStarted = true
       onStart()
-      new Handler().postDelayed(new Runnable {
-        override def run(): Unit = stop()
-      }, duration)
+      if (duration != InfiniteScanDuration) {
+        new Handler().postDelayed(new Runnable {
+          override def run(): Unit = stop()
+        }, duration)
+      }
     }
     def onStart(): Unit
     def onStop(): Unit
@@ -98,10 +101,9 @@ object DeviceFactory {
 
     private[this] var _duration = DefaultScanDuration
     def duration = _duration
-    def duration_=(duration: Int) = _duration = duration
+    def duration_=(duration: Long) = _duration = duration
 
-    def onScanUpdate(callback: PartialFunction[ScanUpdate, Unit])(implicit ec: ExecutionContext):
-    Unit = {
+    def onScanUpdate(callback: PartialFunction[ScanUpdate, Unit])(implicit ec: ExecutionContext): Unit = {
       _callback = Some(callback)
       _ec = Some(ec)
     }

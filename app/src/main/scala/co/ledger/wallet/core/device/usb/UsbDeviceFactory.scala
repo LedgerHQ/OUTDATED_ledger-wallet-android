@@ -35,8 +35,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.hardware.usb.UsbManager
 import android.os.Handler
-import co.ledger.wallet.core.device.DeviceFactory
-import co.ledger.wallet.core.device.DeviceFactory.ScanningRequest
+import co.ledger.wallet.core.device.{Device, DeviceFactory}
+import co.ledger.wallet.core.device.DeviceFactory.ScanRequest
 
 import scala.concurrent.{Future, ExecutionContext}
 
@@ -44,7 +44,7 @@ import scala.collection.JavaConverters._
 
 class UsbDeviceFactory(context: Context, executionContext: ExecutionContext) extends DeviceFactory {
 
-  val ScanInterval = 1000L
+  val ScanInterval = 500L
 
   /** *
     * Check if the android device is compatible with the technology (may block the current thread)
@@ -54,8 +54,9 @@ class UsbDeviceFactory(context: Context, executionContext: ExecutionContext) ext
       android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB_MR1 &&
       context.getPackageManager.hasSystemFeature(PackageManager.FEATURE_USB_HOST)
 
-  override def requestScan(): ScanningRequest = new ScanningRequest {
+  override def requestScan(): ScanRequest = new ScanRequest {
 
+    private var devices = Array[Device]()
     val handler = new Handler()
     var lastRunnable: Option[Runnable] = None
 
@@ -66,6 +67,20 @@ class UsbDeviceFactory(context: Context, executionContext: ExecutionContext) ext
     def schedule(now: Boolean): Unit = {
       lastRunnable = Some(new Runnable {
         override def run(): Unit = {
+          val deviceList = _service.getDeviceList.asScala map {
+            case (name, device) =>
+              val d = new UsbDeviceImpl(context, name, device, _service)
+              if (!devices.contains(d)) {
+                notifyDeviceDiscovered(d)
+              }
+              (name, d)
+          }
+          for (device <- devices) {
+            if (!deviceList.exists(_._2 == device)) {
+              notifyDeviceLost(device)
+            }
+          }
+          devices = deviceList.toArray.map(_._2)
           for ((name, device) <- _service.getDeviceList.asScala) {
             notifyDeviceDiscovered(new UsbDeviceImpl(context, name, device, _service))
           }

@@ -30,6 +30,7 @@
  */
 package co.ledger.wallet.app.demo
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import co.ledger.wallet.core.base.BaseActivity
@@ -41,14 +42,29 @@ class DemoHomeActivity extends BaseActivity {
     super.onCreate(savedInstanceState)
 
     if (WalletService.currentWalletName.isDefined) {
-      val intent = new Intent(this, classOf[DemoOpenWalletActivity])
-      startActivity(intent)
-      finish()
+     openWallet()
     } else {
       val intent = new Intent(this, classOf[DemoDiscoverDeviceActivity])
-      startActivity(intent)
+      startActivityForResult(intent, DemoDiscoverDeviceActivity.DiscoveryRequest)
       finish()
     }
+  }
+
+  override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == DemoDiscoverDeviceActivity.DiscoveryRequest) {
+      resultCode match {
+        case Activity.RESULT_OK =>
+          openWallet()
+        case all => finish()
+      }
+    }
+  }
+
+  private def openWallet(): Unit = {
+    val intent = new Intent(this, classOf[DemoOpenWalletActivity])
+    startActivity(intent)
+    finish()
   }
 
 }

@@ -37,7 +37,7 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.le.{ScanCallback, ScanResult}
 import android.content.Context
 import android.content.pm.PackageManager
-import co.ledger.wallet.core.device.DeviceFactory.ScanningRequest
+import co.ledger.wallet.core.device.DeviceFactory.ScanRequest
 import co.ledger.wallet.core.device.{DeviceFactory, DeviceManager}
 import scala.collection.JavaConverters._
 
@@ -63,7 +63,7 @@ class BleDeviceFactory(context: Context, executionContext: ExecutionContext) ext
   override def hasPermissions: Boolean = true
 
 
-  override def requestScan(): ScanningRequest = new ScanningRequest {
+  override def requestScan(): ScanRequest = new ScanRequest {
 
     private[this] var _stop: Option[() => Unit] = None
 

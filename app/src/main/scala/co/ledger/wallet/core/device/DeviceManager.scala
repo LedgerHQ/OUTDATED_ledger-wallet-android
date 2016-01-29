@@ -33,7 +33,7 @@ package co.ledger.wallet.core.device
 import java.util.UUID
 
 import android.content.Context
-import co.ledger.wallet.core.device.DeviceFactory.{DeviceLost, DeviceDiscovered, ScanningRequest}
+import co.ledger.wallet.core.device.DeviceFactory.{DeviceLost, DeviceDiscovered, ScanRequest}
 import co.ledger.wallet.core.device.ble.BleDeviceFactory
 import co.ledger.wallet.core.device.usb.UsbDeviceFactory
 import co.ledger.wallet.core.utils.Preferenceable
@@ -65,11 +65,11 @@ trait DeviceManager extends Preferenceable {
     _deviceManager(connectivityType)
   }
 
-  def requestScan(): ScanningRequest = {
+  def requestScan(): ScanRequest = {
     val requests = allCompatibleFactories.map({(factory) =>
       factory.requestScan()
     })
-    new CompoundScanningRequest(requests)
+    new CompoundScanRequest(requests)
   }
 
   def registerDevice(device: Device): Future[UUID] = Future {
@@ -108,7 +108,14 @@ trait DeviceManager extends Preferenceable {
 
   override def PreferencesName: String = "DeviceManager"
 
-  private class CompoundScanningRequest(requests: Iterable[ScanningRequest]) extends ScanningRequest {
+  private class CompoundScanRequest(requests: Iterable[ScanRequest]) extends ScanRequest {
+
+    override def start(): Unit = {
+      requests foreach {
+        _.duration = duration
+      }
+      super.start()
+    }
 
     override def onStart(): Unit = {
       for (request <- requests) {
