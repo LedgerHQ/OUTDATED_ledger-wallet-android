@@ -140,7 +140,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     } recoverWith {
       case AccountHasNoXpubException(index) =>
         Logger.d(s"Need $index account")
-        extendedPublicKeyProvider.generateXpub(rootPath/index).flatMap {(xpub) =>
+        extendedPublicKeyProvider.generateXpub(rootPath/index.h).flatMap {(xpub) =>
           _database.writer.createAccountRow(
             index = Some(index),
             xpub58 = Some(xpub.serializePubB58(networkParameters)),

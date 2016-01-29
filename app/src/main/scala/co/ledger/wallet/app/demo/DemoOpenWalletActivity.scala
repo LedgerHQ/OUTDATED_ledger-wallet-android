@@ -65,7 +65,9 @@ class DemoOpenWalletActivity extends BaseActivity
   }
 
   def startWalletHomeActivity(): Unit = {
-
+    val intent = new Intent(this, classOf[DemoWalletHomeActivity])
+    startActivity(intent)
+    finish()
   }
 
   def openWallet(): Unit = {
