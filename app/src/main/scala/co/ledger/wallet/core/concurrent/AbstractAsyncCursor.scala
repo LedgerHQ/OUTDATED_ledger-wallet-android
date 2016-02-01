@@ -56,7 +56,8 @@ abstract class AbstractAsyncCursor[A : ClassTag](executionContext: EC, override 
         val p = Promise[Array[A]]()
         ec.execute(new Runnable {
           override def run(): Unit =
-            p.complete(Try(performQuery(index * chunkSize, index * chunkSize + chunkSize)))
+            p.complete(Try(performQuery(index * chunkSize,
+              Math.min(index * chunkSize + chunkSize, count))))
         })
         _chunks(index) = p.future
         p.future

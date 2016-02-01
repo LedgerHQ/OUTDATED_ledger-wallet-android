@@ -1,9 +1,9 @@
 /**
  *
- * WalletRef
+ * DemoWalletHomeFragment
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 23/11/15.
+ * Created by Pierre Pollastri on 01/02/16.
  *
  * The MIT License (MIT)
  *
@@ -28,32 +28,24 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
+package co.ledger.wallet.app.demo
 
-import co.ledger.wallet.core.concurrent.AsyncCursor
-import de.greenrobot.event.EventBus
-import org.bitcoinj.core.{Transaction, Coin}
+import android.os.Bundle
+import android.view.{LayoutInflater, View, ViewGroup}
+import co.ledger.wallet.R
+import co.ledger.wallet.core.base.BaseFragment
 
-import scala.concurrent.Future
+class DemoWalletSettingsFragment extends BaseFragment {
 
-trait Wallet {
+  override def onCreateView(inflater: LayoutInflater,
+                            container: ViewGroup,
+                            savedInstanceState: Bundle): View = {
+    inflater.inflate(R.layout.demo_wallet_home_fragment, container, false)
+  }
 
-  def name: String
-  def account(index: Int): Future[Account]
-  def accounts(): Future[Array[Account]]
-  def accountsCount(): Future[Int]
-  def balance(): Future[Coin]
-  def setup(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit]
-  def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit]
-  def isSynchronizing(): Future[Boolean]
-  def operations(limit: Int = -1, batchSize: Int = Wallet.DefaultOperationsBatchSize): Future[AsyncCursor[Operation]]
-  def needsSetup(): Future[Boolean]
-  def eventBus: EventBus
-  def mostRecentBlock(): Future[Block]
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+    super.onViewCreated(view, savedInstanceState)
 
-}
-
-object Wallet {
-  val DefaultOperationsBatchSize = 20
+  }
 
 }

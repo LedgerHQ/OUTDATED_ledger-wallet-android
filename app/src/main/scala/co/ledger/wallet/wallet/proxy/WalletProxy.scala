@@ -67,8 +67,8 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
   override def account(index: Int): Future[Account] =
     connect().flatMap(_.account(index)).map(AccountProxy(this, _))
 
-  override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = {
-    connect().flatMap(_.operations(batchSize))
+  override def operations(limit: Int, batchSize: Int): Future[AsyncCursor[Operation]] = {
+    connect().flatMap(_.operations(limit, batchSize))
   }
 
   override def balance(): Future[Coin] = connect().flatMap(_.balance())

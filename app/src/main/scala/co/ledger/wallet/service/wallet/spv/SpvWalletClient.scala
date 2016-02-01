@@ -69,14 +69,19 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
   override def account(index: Int): Future[Account] = init() map {(_) => _accounts(index)}
 
-  override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = Future {
+  override def operations(limit: Int, batchSize: Int): Future[AsyncCursor[Operation]] = Future {
     new AbstractAsyncCursor[Operation](ec, batchSize) {
       override protected def performQuery(from: Int, to: Int): Array[Operation] = {
         OperationCursor.toArray(_database.reader.allFullOperations(from, to - from))
           .asInstanceOf[Array[Operation]]
       }
 
-      override def count: Int = _database.reader.operationCount()
+      override def count: Int = {
+        if (limit == -1)
+          _database.reader.operationCount()
+        else
+          Math.min(limit, _database.reader.operationCount())
+      }
 
       override def requery(): Future[AsyncCursor[Operation]] = operations(batchSize)
     }

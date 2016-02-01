@@ -30,13 +30,45 @@
  */
 package co.ledger.wallet.app.demo
 
+import android.os.Bundle
+import android.support.design.widget.TabLayout
+import android.support.v4.app.{Fragment, FragmentPagerAdapter}
+import android.support.v4.view.ViewPager
+import android.view.View
+import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{WalletActivity, BaseActivity}
+import co.ledger.wallet.core.view.ViewFinder
 
-class DemoWalletActivity extends BaseActivity with WalletActivity {
+class DemoWalletActivity extends BaseActivity with WalletActivity with ViewFinder {
 
+  lazy val viewPager: ViewPager = R.id.viewpager
+  lazy val tabLayout: TabLayout = R.id.tabs
+
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.demo_wallet_activity)
+    tabLayout.setupWithViewPager(viewPager)
+    viewPager.setAdapter(new ViewPagerAdapter)
+  }
 
 
   override def receive: Receive = {
     case all =>
   }
+
+  override implicit def viewId2View[V <: View](id: Int): V = findViewById(id).asInstanceOf[V]
+
+  private class ViewPagerAdapter extends FragmentPagerAdapter(getSupportFragmentManager) {
+
+    val fragments = Array(
+      "Home" -> new DemoWalletHomeFragment
+    )
+
+    override def getItem(position: Int): Fragment = fragments(position)._2
+
+    override def getCount: Int = fragments.length
+
+    override def getPageTitle(position: Int): CharSequence = fragments(position)._1
+  }
+
 }

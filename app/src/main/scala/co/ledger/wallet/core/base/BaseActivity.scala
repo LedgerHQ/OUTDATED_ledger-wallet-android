@@ -76,6 +76,12 @@ abstract class BaseActivity extends AppCompatActivity with Loggable with UiConte
     toolbar.setTitle(getTitle)
   }
 
+
+  override def setTitle(title: CharSequence): Unit = {
+    super.setTitle(title)
+    toolbar.setTitle(getTitle)
+  }
+
   override def onResume(): Unit = {
     super.onResume()
     _visible = true
