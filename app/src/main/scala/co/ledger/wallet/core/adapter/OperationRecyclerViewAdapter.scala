@@ -97,11 +97,11 @@ object OperationRecyclerViewAdapter {
         case Some(op) =>
           if (op.isReception) {
             address.setText(op.senders.headOption.getOrElse("Unknown"))
-            amount.setTextColor(Color.GREEN)
+            amount.setTextColor(v.getContext.getColor(R.color.valid_green))
             amount.setText("+" + op.value.toFriendlyString)
           } else {
             address.setText(op.recipients.headOption.getOrElse("Unknown"))
-            amount.setTextColor(Color.RED)
+            amount.setTextColor(v.getContext.getColor(R.color.invalid_red))
             amount.setText("-" + op.value.toFriendlyString)
           }
           switcher.setDisplayedChild(0)

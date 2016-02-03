@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:padding="@dimen/large_margin"
+    android:gravity="center">
+
+    <co.ledger.wallet.core.widget.TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textIsSelectable="true"
+        android:id="@+id/address"
+        android:layout_marginBottom="@dimen/large_margin"/>
+
+    <ImageView
+        android:id="@+id/qr_code"
+        android:background="@drawable/bg_bip39_edittext"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_gravity="center_horizontal"
+        android:padding="2dp"
+        android:layout_marginBottom="@dimen/large_margin"
+        />
+
+    <Spinner
+        android:id="@+id/accounts"
+        android:layout_width="250dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_height="wrap_content" />
+
+    <EditText
+        android:id="@+id/amount"
+        android:layout_width="250dp"
+        android:layout_gravity="center_horizontal"
+        android:hint="Amount (optional)"
+        android:inputType="numberDecimal"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>
