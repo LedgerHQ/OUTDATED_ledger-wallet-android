@@ -107,8 +107,9 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     value.put(Time, JLong(tx.getUpdateTime.getTime / 1000L))
     value.put(LockTime, JLong(tx.getLockTime))
 
-    val block: Option[(Sha256Hash, Integer)] = tx.getAppearsInHashes.asScala.toList.sortBy(_._2)
-      .headOption
+    val block: Option[(Sha256Hash, Integer)] = Option(tx.getAppearsInHashes) flatMap {(hashes) =>
+      hashes.asScala.toList.sortBy(_._2).headOption
+    }
 
     value.put(BlockHash, block.map(_._1.toString).orNull)
 

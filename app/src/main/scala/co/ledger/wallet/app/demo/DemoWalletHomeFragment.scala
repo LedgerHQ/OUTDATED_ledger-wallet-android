@@ -33,23 +33,26 @@ package co.ledger.wallet.app.demo
 import android.os.Bundle
 import android.support.v7.widget.RecyclerView.{AdapterDataObserver, ViewHolder}
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
-import android.view.{View, ViewGroup, LayoutInflater}
+import android.view.{LayoutInflater, View, ViewGroup}
 import co.ledger.wallet.R
 import co.ledger.wallet.core.adapter.OperationRecyclerViewAdapter
 import co.ledger.wallet.core.adapter.OperationRecyclerViewAdapter.OperationViewHolder
-import co.ledger.wallet.core.base.{WalletActivity, BaseFragment}
+import co.ledger.wallet.core.base.{BaseFragment, WalletActivity}
 import co.ledger.wallet.core.concurrent.AsyncCursor
+import co.ledger.wallet.core.event.MainThreadEventReceiver
 import co.ledger.wallet.core.view.ViewFinder
-import co.ledger.wallet.core.widget.{TextView, DividerItemDecoration}
+import co.ledger.wallet.core.widget.TextView
+import co.ledger.wallet.wallet.events.WalletEvents
 import co.ledger.wallet.wallet.{Account, Operation}
 import org.bitcoinj.core.Coin
+import WalletEvents._
 
-import scala.collection.parallel.mutable
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 class DemoWalletHomeFragment extends BaseFragment
-  with ViewFinder {
+  with ViewFinder
+  with MainThreadEventReceiver {
 
   override def onCreateView(inflater: LayoutInflater,
                             container: ViewGroup,
@@ -67,7 +70,7 @@ class DemoWalletHomeFragment extends BaseFragment
   }
 
   def setupAdapter(): Unit = {
-    wallet.operations(5) flatMap {(cursor) =>
+    wallet.operations() flatMap {(cursor) =>
       wallet.accounts().map((cursor, _))
     } onComplete {
       case Success((cursor, accounts)) =>
@@ -78,11 +81,30 @@ class DemoWalletHomeFragment extends BaseFragment
     }
   }
 
+  override def onResume(): Unit = {
+    super.onResume()
+    register(wallet.eventBus)
+  }
+
+
+  override def onPause(): Unit = {
+    super.onPause()
+    unregisterAll()
+  }
+
   override implicit def viewId2View[V <: View](id: Int): V = getView.findViewById(id)
     .asInstanceOf[V]
 
   def wallet = getActivity.asInstanceOf[WalletActivity].wallet
   def recyclerView = getView.asInstanceOf[RecyclerView]
+
+  override def receive: Receive = {
+    case CoinSent(_, coin) => setupAdapter()
+    case CoinReceived(_, coin) => setupAdapter()
+    case NewOperation(_, _) => setupAdapter()
+    case OperationChanged(_, _) => setupAdapter()
+    case ignore =>
+  }
 
   private var _adapter: Option[HomeRecyclerViewAdapter] = None
 

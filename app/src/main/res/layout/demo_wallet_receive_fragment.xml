@@ -6,6 +6,15 @@
               android:padding="@dimen/large_margin"
     android:gravity="center">
 
+    <EditText
+        android:id="@+id/amount"
+        android:layout_width="250dp"
+        android:layout_gravity="center_horizontal"
+        android:hint="Amount (optional)"
+        android:inputType="numberDecimal"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/large_margin"/>
+
     <co.ledger.wallet.core.widget.TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -30,12 +39,5 @@
         android:layout_gravity="center_horizontal"
         android:layout_height="wrap_content" />
 
-    <EditText
-        android:id="@+id/amount"
-        android:layout_width="250dp"
-        android:layout_gravity="center_horizontal"
-        android:hint="Amount (optional)"
-        android:inputType="numberDecimal"
-        android:layout_height="wrap_content" />
 
 </LinearLayout>

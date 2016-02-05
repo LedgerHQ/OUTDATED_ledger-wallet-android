@@ -104,6 +104,12 @@ object OperationRecyclerViewAdapter {
             amount.setTextColor(v.getContext.getColor(R.color.invalid_red))
             amount.setText("-" + op.value.toFriendlyString)
           }
+          if (op.blockHash == null) {
+            v.setBackgroundColor(Color.argb(0xa0, 0xea, 0x2e, 0x49))
+          } else {
+            v.setBackgroundColor(Color.TRANSPARENT)
+          }
+
           switcher.setDisplayedChild(0)
         case None =>
           switcher.setDisplayedChild(1)

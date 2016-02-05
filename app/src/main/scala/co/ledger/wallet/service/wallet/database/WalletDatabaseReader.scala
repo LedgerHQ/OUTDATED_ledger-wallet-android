@@ -69,11 +69,26 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
          | SELECT ${allFieldProjectionKeys.mkString(",")} FROM $OperationTableName
          | JOIN $TransactionTableName ON ${Keys.TransactionHash} = ${Keys.TransactionJoinKey}
          | JOIN $AccountTableName ON ${Keys.AccountIndex} = ${Keys.AccountJoinKey}
-         | JOIN $BlockTableName ON ${Keys.BlockHash} = ${Keys.BlockJoinKey}
+         | LEFT OUTER JOIN $BlockTableName ON ${Keys.BlockHash} = ${Keys.BlockJoinKey}
          | ORDER BY ${Keys.TransactionTime} DESC
          | LIMIT $limit OFFSET $offset
      """.stripMargin
     SelectFullOperation.execute()
+  }
+
+  def allPendingFullOperations(offset: Int = 0, limit: Int = -1): Cursor = {
+    import DatabaseStructure.OperationTableColumns.FullOperationProjection._
+    val SelectPendingFullOperation =
+      s"""
+         | SELECT ${allFieldProjectionKeys.mkString(",")} FROM $OperationTableName
+         | JOIN $TransactionTableName ON ${Keys.TransactionHash} = ${Keys.TransactionJoinKey}
+         | JOIN $AccountTableName ON ${Keys.AccountIndex} = ${Keys.AccountJoinKey}
+         | LEFT OUTER JOIN $BlockTableName ON ${Keys.BlockHash} = ${Keys.BlockJoinKey}
+         | WHERE ${Keys.BlockHash} IS NULL
+         | ORDER BY ${Keys.TransactionTime} DESC
+         | LIMIT $limit OFFSET $offset
+     """.stripMargin
+    SelectPendingFullOperation.execute()
   }
 
   def querySingleFullOperation(uid: String): Cursor = {
@@ -111,6 +126,23 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
         | LIMIT 1
     """.stripMargin
     SelectLastBlock.execute()
+  }
+
+  def lastUsedPath(account: Int, node: Int): Option[String] = {
+    import DatabaseStructure.OutputTableColumns._
+    val l = account.toString.length + node.toString.length
+    val SelectLastPath =
+      s"""
+        | SELECT $Path FROM $OutputTableName
+        | WHERE $Path LIKE 'm/$account''/$node/%'
+        | ORDER BY CAST(SUBSTR($Path, ${6 + l}) AS INTEGER) DESC
+        | LIMIT 1
+      """.stripMargin
+    val cursor = SelectLastPath.execute()
+    if (cursor.getCount == 1 && cursor.moveToFirst()) {
+      Some(cursor.getString(0))
+    } else
+      None
   }
 
   private implicit class SqlString(val sql: String) {

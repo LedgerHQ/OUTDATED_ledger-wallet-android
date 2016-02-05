@@ -36,9 +36,9 @@ import android.support.v4.app.{Fragment, FragmentPagerAdapter}
 import android.support.v4.view.ViewPager
 import android.view.View
 import co.ledger.wallet.R
-import co.ledger.wallet.core.base.{WalletActivity, BaseActivity}
+import co.ledger.wallet.core.base.{BaseActivity, WalletActivity}
 import co.ledger.wallet.core.view.ViewFinder
-import co.ledger.wallet.wallet.events.WalletEvents.{CoinReceived, CoinSent}
+import co.ledger.wallet.wallet.events.WalletEvents._
 
 class DemoWalletHomeActivity extends BaseActivity
   with WalletActivity
@@ -54,13 +54,16 @@ class DemoWalletHomeActivity extends BaseActivity
     tabLayout.setupWithViewPager(viewPager)
     setTitle("")
     fetchBalance()
+    wallet.synchronize(null)
   }
 
 
   override def receive: Receive = {
     case CoinSent(_, _) => fetchBalance()
     case CoinReceived(_, _) => fetchBalance()
-    case all =>
+    case NewOperation(_, _) => fetchBalance()
+    case OperationChanged(_, _) => fetchBalance()
+    case ignore =>
   }
 
   def fetchBalance(): Unit = {

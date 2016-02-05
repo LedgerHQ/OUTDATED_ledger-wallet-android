@@ -30,19 +30,16 @@
  */
 package co.ledger.wallet.service.wallet.spv
 
-import java.util
-
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.service.wallet.database.model.AccountRow
-import com.google.common.util.concurrent.{ListenableFuture, FutureCallback, Futures}
+import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture}
 import org.bitcoinj.core.{Wallet => JWallet, _}
 import org.bitcoinj.net.discovery.DnsDiscovery
 import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.store.BlockStore
-import org.slf4j.LoggerFactory
-import scala.concurrent.ExecutionContext.Implicits.global
 
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Future, Promise}
 import scala.util.Try
 
 class SpvAppKit(

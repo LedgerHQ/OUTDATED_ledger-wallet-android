@@ -36,9 +36,9 @@ import java.util.concurrent.Executor
 import co.ledger.wallet.core.concurrent.AsyncCursor
 import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
 import co.ledger.wallet.service.wallet.database.model.AccountRow
-import co.ledger.wallet.wallet.{Operation, ExtendedPublicKeyProvider, Account}
+import co.ledger.wallet.wallet.{DerivationPath, Operation, ExtendedPublicKeyProvider, Account}
 import org.bitcoinj.core._
-import org.bitcoinj.crypto.DeterministicKey
+import org.bitcoinj.crypto.{ChildNumber, DeterministicKey}
 import co.ledger.wallet.wallet.events.WalletEvents._
 
 import scala.collection.JavaConverters._
@@ -53,7 +53,15 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
   val xpubWatcher = data._2
   val index = row.index
 
-  override def freshPublicAddress(): Future[Address] = Future.successful(xpubWatcher.freshReceiveAddress())
+  override def freshPublicAddress(): Future[Address] = Future {
+    val reader = wallet.asInstanceOf[SpvWalletClient].databaseReader
+    val path = DerivationPath(reader.lastUsedPath(index, 0).getOrElse(s"m/$index'/0/0"))
+    val newPath = new DerivationPath(path.parent, path.childNum + 1)
+    val childNums = newPath.toBitcoinJList
+    childNums.set(0, new ChildNumber(0, true))
+    val key = xpubWatcher.getActiveKeychain.getKeyByPath(childNums, true)
+    key.toAddress(wallet.networkParameters)
+  }
 
   override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = ???
 
@@ -93,8 +101,13 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
 
     override def onTransactionConfidenceChanged(w: Wallet, tx: Transaction): Unit = {
       super.onTransactionConfidenceChanged(w, tx)
-      if (tx.getConfidence.getConfidenceType == TransactionConfidence.ConfidenceType.DEAD) {
-
+      import TransactionConfidence.ConfidenceType._
+      tx.getConfidence.getConfidenceType match {
+        case DEAD => // TODO: DELETE OPS
+          wallet.notifyDeadTransaction(tx)
+        case BUILDING =>
+        case PENDING =>
+        case UNKNOWN =>
       }
     }
 

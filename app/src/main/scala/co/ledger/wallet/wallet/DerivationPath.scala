@@ -31,6 +31,10 @@
 package co.ledger.wallet.wallet
 
 import java.security.InvalidParameterException
+import java.util
+
+import org.bitcoinj.crypto.ChildNumber
+import shapeless.ops.nat.LT.<
 
 import scala.annotation.tailrec
 
@@ -64,6 +68,15 @@ class DerivationPath(p: DerivationPath, val childNum: Long) {
       "m"
     else
       s"${parent.toString}/${if (isHardened) index + "'" else index}"
+  }
+
+  def toBitcoinJList: java.util.List[ChildNumber] = {
+    val list = new util.ArrayList[ChildNumber](depth)
+    for (i <- 0 to depth) {
+      val node = this(i).get
+      list.add(i, new ChildNumber(node.index.toInt, node.isHardened))
+    }
+    list
   }
 
 }

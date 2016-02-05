@@ -50,8 +50,10 @@ import co.ledger.wallet.wallet.events.WalletEvents._
 import co.ledger.wallet.wallet.exceptions._
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.AbstractBlockChain.NewBlockType
+import org.bitcoinj.core.TransactionConfidence.Listener
 import org.bitcoinj.core.{Wallet => JWallet, Context => JContext, Block => JBlock, _}
 import org.bitcoinj.crypto.DeterministicKey
+import org.bitcoinj.core.TransactionConfidence.Listener.ChangeReason
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
@@ -157,11 +159,18 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     }
   }
 
+  def notifyDeadTransaction(tx: Transaction): Unit = Future {
+    // TODO: Implement
+  }
+
   def notifyAccountTransaction(account: SpvAccountClient, tx: Transaction): Unit = Future {
     if (_accounts.length > 0 && account == _accounts.last) {
+      Logger.d("Need a new account")
       // TODO: Get block height
       notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000, 0)
     }
+    if (tx.getConfidence.getConfidenceType == TransactionConfidence.ConfidenceType.PENDING)
+      observePendingTransaction(account,tx)
     pushTransaction(account, tx)
   } recover {
     case throwable: Throwable => throwable.printStackTrace()
@@ -329,6 +338,8 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     case throwable: Throwable => throw throwable
   }
 
+  def databaseReader = _database.reader
+
   private def init(): Future[SpvAppKit] = Future.successful() flatMap {(_) =>
     _spvAppKitFuture getOrElse {
       Logger.d("Initialize app kit")
@@ -375,6 +386,13 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     })
     _accounts = appKit.accounts.map((d) => new SpvAccountClient(this, d))
     Logger.d(s"Accounts init ${appKit.accounts.length} ${_accounts.length}")
+    val operations = OperationCursor.toArray(_database.reader.allPendingFullOperations(0, Int.MaxValue))
+    for (operation <- operations) {
+      val account = _accounts(operation.accountIndex)
+      val tx = account.xpubWatcher.getTransaction(Sha256Hash.wrap(operation.transactionHash))
+      if (tx != null)
+        observePendingTransaction(account, tx)
+    }
     appKit
   }
 
@@ -396,6 +414,39 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     _accounts.foreach(_.release())
     _accounts = Array()
   }
+
+  // Transaction observer
+  private def observePendingTransaction(account: SpvAccountClient, tx: Transaction): Unit = {
+    // Must be called from the queue
+    val listener = new Listener {
+      override def onConfidenceChanged(confidence: TransactionConfidence, reason: ChangeReason): Unit = Future {
+        if (confidence.getConfidenceType == TransactionConfidence.ConfidenceType.DEAD) {
+          removeObserver(account, tx, this.asInstanceOf[Listener])
+        } else if (confidence.getDepthInBlocks >= 0) {
+          removeObserver(account, tx, this.asInstanceOf[Listener])
+          notifyAccountTransaction(account, tx)
+        }
+      }
+    }
+    tx.getConfidence.addEventListener(listener)
+    _transactionObservers = _transactionObservers :+ (account, tx, listener.asInstanceOf[Listener])
+  }
+
+  private def removeObserver(account: SpvAccountClient, tx: Transaction, listener: Listener): Unit = {
+    tx.getConfidence.removeEventListener(listener)
+    _transactionObservers = _transactionObservers.filter {
+      case (a, t, l) => !(account == a && t == tx && l == listener)
+    }
+  }
+
+  private def clearTransactionObservers(): Unit = {
+    // Must be called from the queue
+    _transactionObservers foreach {
+      case (a, t, l) =>
+        t.getConfidence.removeEventListener(l)
+    }
+  }
+  private[this] var _transactionObservers = Array[(SpvAccountClient, Transaction, Listener)]()
 
   private[this] var _accounts = Array[SpvAccountClient]()
   private[this] var _spvAppKitFuture: Option[Future[SpvAppKit]] = None
@@ -480,7 +531,9 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     lazy val recipients = {
       val recipients = ArrayBuffer[String]()
       val lt = {(a: WalletTransactionOutput, b: WalletTransactionOutput) =>
-        !(a.isOnExternalBranch && !b.isOnExternalBranch)
+        val aWeight = if (a.isOnExternalBranch) 0 else 1
+        val bWeight = if (b.isOnExternalBranch) 0 else 1
+        aWeight < bWeight
       }
       for (output <- outputs.sortWith(lt)) {
         BitcoinjUtils.toAddress(output.output, networkParameters).map(_.toString).foreach({(a) =>
