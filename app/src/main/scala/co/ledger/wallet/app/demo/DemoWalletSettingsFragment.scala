@@ -30,21 +30,29 @@
  */
 package co.ledger.wallet.app.demo
 
+import android.content.Intent
 import android.os.Bundle
-import android.view.{LayoutInflater, View, ViewGroup}
+import android.support.v7.preference.Preference.OnPreferenceClickListener
+import android.support.v7.preference.{Preference, PreferenceFragmentCompat}
 import co.ledger.wallet.R
-import co.ledger.wallet.core.base.BaseFragment
+import co.ledger.wallet.service.wallet.WalletService
 
-class DemoWalletSettingsFragment extends BaseFragment {
-
-  override def onCreateView(inflater: LayoutInflater,
-                            container: ViewGroup,
-                            savedInstanceState: Bundle): View = {
-    inflater.inflate(R.layout.demo_wallet_home_fragment, container, false)
+class DemoWalletSettingsFragment extends PreferenceFragmentCompat {
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate(savedInstanceState)
+    addPreferencesFromResource(R.xml.demo_wallet_preferences)
+    findPreference("close_wallet").setOnPreferenceClickListener(new OnPreferenceClickListener {
+      override def onPreferenceClick(preference: Preference): Boolean = {
+        WalletService.closeCurrentWallet()(getActivity)
+        getActivity.finish()
+        val intent = new Intent(getActivity, classOf[DemoHomeActivity])
+        getActivity.startActivity(intent)
+        true
+      }
+    })
   }
 
-  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    super.onViewCreated(view, savedInstanceState)
+  override def onCreatePreferences(bundle: Bundle, s: String): Unit = {
 
   }
 

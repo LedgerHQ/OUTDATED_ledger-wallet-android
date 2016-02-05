@@ -35,7 +35,7 @@ import android.support.v4.app.Fragment
 import co.ledger.wallet.core.concurrent.ExecutionContext
 import co.ledger.wallet.core.utils.logs.Loggable
 
-class BaseFragment extends Fragment with Loggable with RichFragment {
+trait BaseFragment extends Fragment with Loggable with RichFragment {
 
   implicit val ec = ExecutionContext.Implicits.ui
 
