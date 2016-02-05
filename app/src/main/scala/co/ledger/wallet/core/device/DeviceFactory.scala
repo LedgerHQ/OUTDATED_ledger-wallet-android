@@ -63,7 +63,7 @@ trait DeviceFactory {
     */
   def requestPermission(activity: Activity): Future[Unit]
 
-  def requestScan(): ScanRequest
+  def requestScan(activity: Activity): ScanRequest
 }
 
 object DeviceFactory {
@@ -114,7 +114,10 @@ object DeviceFactory {
       if (!_devices.contains(device)) {
         _devices = _devices :+ device
         _callback.foreach({ (callback) =>
-          callback(DeviceDiscovered(device))
+          _ec.get.execute(new Runnable {
+            override def run(): Unit = callback(DeviceDiscovered(device))
+          })
+
         })
       }
     }
@@ -123,7 +126,9 @@ object DeviceFactory {
       if (_devices.contains(device)) {
         _devices = _devices.filter(_ != device)
         _callback foreach { (callback) =>
-          callback(DeviceLost(device))
+          _ec.get.execute(new Runnable {
+            override def run(): Unit = callback(DeviceLost(device))
+          })
         }
       }
     }

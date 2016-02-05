@@ -33,6 +33,7 @@ package co.ledger.wallet.core.device.api
 import java.util.UUID
 
 import co.ledger.wallet.core.device.Device
+import co.ledger.wallet.core.device.DeviceManager.ConnectivityTypes
 import co.ledger.wallet.wallet.DerivationPath
 import co.ledger.wallet.wallet.DerivationPath.Root
 import org.bitcoinj.core.NetworkParameters
@@ -61,7 +62,10 @@ object LedgerApi {
   def apply(device: Device): LedgerApi = {
     val lastApi = _lastApi.filter(device.uuid == _.device.uuid)
     lastApi.getOrElse {
-      val api = new LedgerApi(device)
+      val api = device.connectivityType match {
+        case ConnectivityTypes.Nfc => new LedgerApi(device) with LedgerUnpluggedApi
+        case others => new LedgerApi(device)
+      }
       _lastApi = Some(api)
       api
     }

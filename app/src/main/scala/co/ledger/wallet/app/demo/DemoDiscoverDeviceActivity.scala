@@ -92,7 +92,7 @@ class DemoDiscoverDeviceActivity extends BaseActivity
       def scan(): Unit = {
         deviceManagerService onComplete {
           case Success(service) =>
-            val request = service.requestScan()
+            val request = service.requestScan(this)
             request.onScanUpdate(onScanUpdate)
             _scanRequest = Some(request)
             request.duration = DeviceFactory.InfiniteScanDuration

@@ -46,7 +46,8 @@ trait LedgerFirmwareApi extends LedgerCommonApiInterface {
   import LedgerFirmwareApi._
 
   def firmwareVersion(): Future[Version] = $$("GET FIRMWARE VERSION") {
-    sendApdu(0xE0, 0xC4, 0x00, 0x00, 0x00, 0x07).map({(result) =>
+    sendApdu(0xE0, 0xC4, 0x00, 0x00, Array(0x00.toByte), 0x08).map({(result) =>
+      matchErrorsAndThrow(result)
       new Version(result.data)
     })
   }

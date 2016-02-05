@@ -31,16 +31,16 @@
 package co.ledger.wallet.service.wallet.spv
 
 import java.util
-import java.util.{NoSuchElementException, Date}
+import java.util.{Date, NoSuchElementException}
 
 import android.content.Context
 import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.{AbstractAsyncCursor, AsyncCursor, SerialQueueTask}
-import co.ledger.wallet.core.utils.{BitcoinjUtils, Preferences}
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
+import co.ledger.wallet.core.utils.{BitcoinjUtils, Preferences}
 import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns
 import co.ledger.wallet.service.wallet.database.cursor.{BlockCursor, OperationCursor}
-import co.ledger.wallet.service.wallet.database.model.{BlockRow, AccountRow}
+import co.ledger.wallet.service.wallet.database.model.BlockRow
 import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
 import co.ledger.wallet.service.wallet.database.{WalletDatabaseOpenHelper, WalletDatabaseWriter}
 import co.ledger.wallet.wallet.DerivationPath.dsl._
@@ -51,9 +51,9 @@ import co.ledger.wallet.wallet.exceptions._
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.AbstractBlockChain.NewBlockType
 import org.bitcoinj.core.TransactionConfidence.Listener
-import org.bitcoinj.core.{Wallet => JWallet, Context => JContext, Block => JBlock, _}
-import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.core.TransactionConfidence.Listener.ChangeReason
+import org.bitcoinj.core.{Block => JBlock, Context => JContext, Wallet => JWallet, _}
+import org.bitcoinj.crypto.DeterministicKey
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer

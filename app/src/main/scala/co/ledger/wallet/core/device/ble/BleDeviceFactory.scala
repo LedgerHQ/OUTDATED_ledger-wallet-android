@@ -63,7 +63,7 @@ class BleDeviceFactory(context: Context, executionContext: ExecutionContext) ext
   override def hasPermissions: Boolean = true
 
 
-  override def requestScan(): ScanRequest = new ScanRequest {
+  override def requestScan(activity: Activity): ScanRequest = new ScanRequest {
 
     private[this] var _stop: Option[() => Unit] = None
 

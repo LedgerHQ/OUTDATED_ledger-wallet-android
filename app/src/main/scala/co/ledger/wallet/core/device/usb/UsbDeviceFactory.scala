@@ -54,7 +54,7 @@ class UsbDeviceFactory(context: Context, executionContext: ExecutionContext) ext
       android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB_MR1 &&
       context.getPackageManager.hasSystemFeature(PackageManager.FEATURE_USB_HOST)
 
-  override def requestScan(): ScanRequest = new ScanRequest {
+  override def requestScan(activity: Activity): ScanRequest = new ScanRequest {
 
     private var devices = Array[Device]()
     val handler = new Handler()

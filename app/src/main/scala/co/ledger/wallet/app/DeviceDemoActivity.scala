@@ -95,7 +95,7 @@ class DeviceDemoActivity extends BaseActivity with DeviceActivity {
     if (_scanRequest.isEmpty) {
       deviceManagerService map { (service) =>
         //_scanRequest = Some(service.deviceFactory(ConnectivityTypes.Ble).requestScan())
-        _scanRequest = Some(service.requestScan())
+        _scanRequest = Some(service.requestScan(this))
         _scanRequest.get
       } flatMap { (request) =>
         request.onScanUpdate(onScanDeviceUpdate)

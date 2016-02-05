@@ -32,9 +32,11 @@ package co.ledger.wallet.core.device
 
 import java.util.UUID
 
+import android.app.Activity
 import android.content.Context
 import co.ledger.wallet.core.device.DeviceFactory.{DeviceLost, DeviceDiscovered, ScanRequest}
 import co.ledger.wallet.core.device.ble.BleDeviceFactory
+import co.ledger.wallet.core.device.nfc.NfcDeviceFactory
 import co.ledger.wallet.core.device.usb.UsbDeviceFactory
 import co.ledger.wallet.core.utils.Preferenceable
 
@@ -65,9 +67,9 @@ trait DeviceManager extends Preferenceable {
     _deviceManager(connectivityType)
   }
 
-  def requestScan(): ScanRequest = {
+  def requestScan(activity: Activity): ScanRequest = {
     val requests = allCompatibleFactories.map({(factory) =>
-      factory.requestScan()
+      factory.requestScan(activity)
     })
     new CompoundScanRequest(requests)
   }
@@ -103,7 +105,8 @@ trait DeviceManager extends Preferenceable {
   import DeviceManager.ConnectivityTypes._
   private[this] lazy val _deviceManager = Map[ConnectivityType, DeviceFactory](
     Ble -> new BleDeviceFactory(context, ec),
-    Usb -> new UsbDeviceFactory(context, ec)
+    Usb -> new UsbDeviceFactory(context, ec),
+    Nfc -> new NfcDeviceFactory(context, ec)
   )
 
   override def PreferencesName: String = "DeviceManager"
