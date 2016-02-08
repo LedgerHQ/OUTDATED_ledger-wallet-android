@@ -21,6 +21,20 @@
     <string name="home_activity_menu_export_logs">Export logs</string>
     <string name="home_activity_menu_settings">Settings</string>
 
+    <!-- Install Keystore Activity -->
+    <string name="install_keystore_title">Choose a password</string>
+    <string name="install_keystore_top_text">Secure your Ledger Wallet app installation by
+        choosing a master password:</string>
+    <string name="install_keystore_password_hint">Password</string>
+    <string name="install_keystore_confirm_hint">Confirmation</string>
+    <string name="install_keystore_bottom_text">It will be required when launching the app
+and accessing personal sensitive data.</string>
+    <string name="install_keystore_password_mismatch">The password and the confirmation
+        don\'t match.</string>
+    <string name="install_keystore_install_error">An error occurred. Please contact the
+        support.</string>
+    <string name="install_keystore_too_short">Password must be at least 6 characters long.</string>
+
     <!-- Paired Dongle Activity -->
     <string name="paired_dongle_activity_name">Paired Ledger Wallets</string>
     <string name="paired_dongle_paired_on">Paired on %s</string>

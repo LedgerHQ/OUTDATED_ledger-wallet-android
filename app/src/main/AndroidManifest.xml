@@ -42,6 +42,13 @@
         </activity>
 
         <activity
+            android:name=".app.ui.InstallKeystoreActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/install_keystore_title"
+            android:launchMode="singleTask">
+        </activity>
+
+        <activity
             android:name=".app.ui.SettingsActivity"
             android:screenOrientation="portrait"
             android:label="@string/settings_activity_name"

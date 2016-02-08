@@ -3,7 +3,7 @@
 
 <!-- General -->
 <string name="app_name">"Ledger Wallet"</string>
-<string name="app_version">"Ledger Wallet Android %s"</string>
+<string name="app_version" formatted="false">"Ledger Wallet Android %s"</string>
 <string name="btc_acronyme">"BTC"</string>
 
 <!-- Home Activity -->
@@ -18,7 +18,7 @@
 
 <!-- Paired Dongle Activity -->
 <string name="paired_dongle_activity_name">"ペアリングされたLedger Wallet"</string>
-<string name="paired_dongle_paired_on">"%sにペアリングされています"</string>
+<string name="paired_dongle_paired_on" formatted="false">"%sにペアリングされています"</string>
 
 <!-- Create Dongle Pairing Activity -->
 <string name="create_dongle_title">"Ledger Walletをペアリング"</string>
@@ -27,7 +27,8 @@
 <string name="create_dongle_instruction_step_2_title">"接続の確立中..."</string>
 <string name="create_dongle_instruction_step_2_text">"しばらくお待ちください。この作業は時間がかかる場合があります。"</string>
 <string name="create_dongle_instruction_step_3">"&lt;b&gt;セキュリティーカード&lt;/b&gt;を手に取り、それぞれの文字に一致した値を入力してください。"</string>
-<string name="create_dongle_instruction_step_3_bottom">"セキュリティカードで\"%s\"に一致する英数字をブラックボックス中に入力してください。"</string>
+<string name="create_dongle_instruction_step_3_bottom" formatted="false">"セキュリティカードで\"%s
+    \"に一致する英数字をブラックボックス中に入力してください。"</string>
 <string name="create_dongle_instruction_step_4">"Ledger Walletはスマートフォンとのペアリングプロセスの最終調整中です。"</string>
 <string name="create_dongle_instruction_step_4_title">"ペアリングが進行中..."</string>
 <string name="create_dongle_instruction_step_4_text">"しばらくお待ちください。この作業は時間がかかる場合があります。"</string>
@@ -43,11 +44,12 @@
 
 <!-- Incoming Transaction Dialog -->
 <string name="incoming_tx_title">"トランザクションの確認"</string>
-<string name="incoming_tx_date">"リクエスト日時　%s日%s時"</string>
+<string name="incoming_tx_date" formatted="false">"リクエスト日時　%s日%s時"</string>
 
 <!-- Pairing Success Dialog -->
 <string name="pairing_success_dialog_title">"ペアリング成功"</string>
-<string name="pairing_success_dialog_content">"Ledger Wallet \"%s\"は現在あなたのスマートフォンとペアリングされています。"</string>
+<string name="pairing_success_dialog_content" formatted="false">"Ledger Wallet
+    \"%s\"は現在あなたのスマートフォンとペアリングされています。"</string>
 
 <!-- Pairing Failure Dialog -->
 <string name="pairing_failure_dialog_title">"ペアリング失敗"</string>

@@ -35,6 +35,7 @@ import java.security.KeyStore.PasswordProtection
 import android.content.Intent
 import android.os.Bundle
 import android.view._
+import android.widget.Toast
 import co.ledger.wallet.R
 import co.ledger.wallet.app.api.TeeAPI
 import co.ledger.wallet.app.api.m2fa.{GcmAPI, IncomingTransactionAPI}
@@ -44,7 +45,7 @@ import co.ledger.wallet.app.ui.unplugged.UnpluggedTapActivity
 import co.ledger.wallet.app.base.{BaseActivity, BaseFragment, BigIconAlertDialog}
 import co.ledger.wallet.common._
 import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
-import co.ledger.wallet.core.security.{AndroidKeystore, ApplicationKeystore}
+import co.ledger.wallet.core.security.{Keystore, AndroidKeystore, ApplicationKeystore}
 import co.ledger.wallet.core.utils.logs.{LogCatReader, Logger}
 import co.ledger.wallet.core.utils.{AndroidUtils, GooglePlayServiceHelper, TR}
 import co.ledger.wallet.core.widget.TextView
@@ -114,22 +115,15 @@ class HomeActivity extends BaseActivity {
 
     refreshPairedDongleList()
 
-    val ak = new AndroidKeystore(this)
-    val ik = new ApplicationKeystore(this, s"toto${System.currentTimeMillis()}.keystore")
-    ak.load(null).andThen({
-      case Success(keystore) =>
-        ik.install(new PasswordProtection("toto".toCharArray))
-    }).andThen({
-      case Success(_) =>
-        for (alias <- ak.aliases) {
-          Logger.d(s"Got alias(AK) $alias")
-          ik.generateKey(alias)
+    Keystore.defaultInstance match {
+      case keystore: ApplicationKeystore =>
+        if (keystore.isInstalled) {
+          Toast.makeText(this, "Keystore is installed ask for password", Toast.LENGTH_SHORT).show()
+        } else {
+          startActivity(new Intent(this, classOf[InstallKeystoreActivity]))
         }
-        for (alias <- ak.aliases) {
-          Logger.d(s"Got alias(IK) $alias")
-        }
-    })
-
+      case others => // Do nothing
+    }
 
   }
 

@@ -3,11 +3,11 @@
 
 <!-- General -->
 <string name="app_name">"Ledger Wallet"</string>
-<string name="app_version">"Ledger Wallet Android %s "</string>
+<string name="app_version" formatted="false">"Ledger Wallet Android %s "</string>
 <string name="btc_acronyme">"BTC"</string>
 
 <!-- Home Activity -->
-<string name="home_p_title">"Warte auf Transaktionen..."</string>
+<string name="home_p_title">"Warte auf Transaktionen…"</string>
 <string name="home_p_subtitle">"Transaktionen erscheinen automatisch, wenn eine manuelle Bestätigung erforderlich ist."</string>
 <string name="home_p_action">"GEPAARTE LEDGER WALLETS"</string>
 <string name="home_p_bottom">"Hilfe? Besuchen Sie unseren Hilfe-Bereich!"</string>
@@ -18,7 +18,7 @@
 
 <!-- Paired Dongle Activity -->
 <string name="paired_dongle_activity_name">"Gepaarte Ledger Wallets"</string>
-<string name="paired_dongle_paired_on">"Gepaart mit %s"</string>
+<string name="paired_dongle_paired_on" formatted="false">"Gepaart mit %s"</string>
 
 <!-- Create Dongle Pairing Activity -->
 <string name="create_dongle_title">"Paaren Sie eine Ledger Wallet"</string>
@@ -27,7 +27,8 @@
 <string name="create_dongle_instruction_step_2_title">"Erstelle Verbindung..."</string>
 <string name="create_dongle_instruction_step_2_text">"Bitte warten Sie, diese Aktion kann eine Weile dauern."</string>
 <string name="create_dongle_instruction_step_3">"Halten Sie Ihre &lt;b&gt;Security Card&lt;/b&gt; bereit und geben Sie den passenden Wert für jeden Buchstaben ein."</string>
-<string name="create_dongle_instruction_step_3_bottom">"Geben Sie den Buchstaben oder die Zahl in die schwarze Box ein, die mit \"%s\" auf Ihrer Security Card übereinstimmt."</string>
+<string name="create_dongle_instruction_step_3_bottom" formatted="false">"Geben Sie den
+    Buchstaben oder die Zahl in die schwarze Box ein, die mit \"%s\" auf Ihrer Security Card übereinstimmt."</string>
 <string name="create_dongle_instruction_step_4">"Ihre Ledger Wallet schließt den Verbindungsprozess mit diesem Smartphone ab."</string>
 <string name="create_dongle_instruction_step_4_title">"Paarung im Gange..."</string>
 <string name="create_dongle_instruction_step_4_text">"Bitte warten, diese Aktion kann eine Weile dauern."</string>
@@ -43,11 +44,12 @@
 
 <!-- Incoming Transaction Dialog -->
 <string name="incoming_tx_title">"BESTÄTIGEN SIE DIE TRANSAKTION"</string>
-<string name="incoming_tx_date">"angefordert am %s um %s"</string>
+<string name="incoming_tx_date" formatted="false">"angefordert am %s um %s"</string>
 
 <!-- Pairing Success Dialog -->
 <string name="pairing_success_dialog_title">"PAARUNG ERFOLGREICH"</string>
-<string name="pairing_success_dialog_content">"Ihre Ledger Wallet \"%s\" ist nun mit diesem Smartphone gepaart."</string>
+<string name="pairing_success_dialog_content" formatted="false">"Ihre Ledger Wallet \"%s\" ist nun mit diesem
+    Smartphone gepaart."</string>
 
 <!-- Pairing Failure Dialog -->
 <string name="pairing_failure_dialog_title">"PAARUNG FEHLGESCHLAGEN"</string>

@@ -3,11 +3,11 @@
 
 <!-- General -->
 <string name="app_name">"Ledger Wallet"</string>
-<string name="app_version">"Ledger Wallet Android %s"</string>
+<string name="app_version" formatted="false">"Ledger Wallet Android %s"</string>
 <string name="btc_acronyme">"BTC"</string>
 
 <!-- Home Activity -->
-<string name="home_p_title">"Esperando transacciones..."</string>
+<string name="home_p_title">"Esperando transacciones…"</string>
 <string name="home_p_subtitle">"Transactions will automatically appear when manual validation is required."</string>
 <string name="home_p_action">"LEDGER WALLETS EMPAREJADAS"</string>
 <string name="home_p_bottom">"¿Necesitas ayuda? Visita nuestro centro de ayuda."</string>
@@ -25,12 +25,13 @@ pair your Ledger Wallet with this smartphone."</string>
 <string name="create_dongle_title">"Emparejar una Ledger Wallet"</string>
 <string name="create_dongle_instruction_step_1">"Escanea el &lt;b&gt;código QR de emparejamiento&lt;/b&gt; en la aplicación Ledger Wallet de Chrome."</string>
 <string name="create_dongle_instruction_step_2">"Este smartphone está creando una conexión segura con tu Ledger Wallet."</string>
-<string name="create_dongle_instruction_step_2_title">"Estableciendo conexión..."</string>
+<string name="create_dongle_instruction_step_2_title">"Estableciendo conexión…"</string>
 <string name="create_dongle_instruction_step_2_text">"Espere por favor, esta operación puede tardar un poco."</string>
 <string name="create_dongle_instruction_step_3">"Grab your &lt;b&gt;security card&lt;/b&gt; and enter the matching value for each character."</string>
-<string name="create_dongle_instruction_step_3_bottom">"Enter the letter or digit in the black box matching \"%s\" on your security card."</string>
+<string name="create_dongle_instruction_step_3_bottom" formatted="false">"Enter the letter or digit in the black
+    box matching \"%s\" on your security card."</string>
 <string name="create_dongle_instruction_step_4">"Tu Ledger Wallet está finalizando el proceso de emparejamiento con este smartphone."</string>
-<string name="create_dongle_instruction_step_4_title">"Emparejamiento en proceso..."</string>
+<string name="create_dongle_instruction_step_4_title">"Emparejamiento en proceso…"</string>
 <string name="create_dongle_instruction_step_4_text">"Espere por favor, esta operación puede tardar un poco."</string>
 <string name="create_dongle_instruction_step_5">"El proceso de emparejamiento está completado. Introduce un nombre para este Ledger Wallet."</string>
 <string name="create_dongle_instruction_step_5_default_name">"Mi Ledger Wallet"</string>
@@ -44,11 +45,12 @@ pair your Ledger Wallet with this smartphone."</string>
 
 <!-- Incoming Transaction Dialog -->
 <string name="incoming_tx_title">"CONFIRMAR TRANSACCIÓN"</string>
-<string name="incoming_tx_date">"requested on %s at %s"</string>
+<string name="incoming_tx_date" formatted="false">"requested on %s at %s"</string>
 
 <!-- Pairing Success Dialog -->
 <string name="pairing_success_dialog_title">"EMPAREJAMIENTO COMPLETADO"</string>
-<string name="pairing_success_dialog_content">"Tu Ledger Wallet \"%s\" está ahora emparejada con tu smartphone."</string>
+<string name="pairing_success_dialog_content" formatted="false">"Tu Ledger Wallet \"%s\" está ahora emparejada con
+    tu smartphone."</string>
 
 <!-- Pairing Failure Dialog -->
 <string name="pairing_failure_dialog_title">"EL EMPAREJAMIENTO FALLÓ"</string>
@@ -164,7 +166,7 @@ Por favor verifica tu conexión a internet."</string>
 <!-- Unplugged In Progress Activity -->
 <string name="unplugged_in_progress_activity_title">"Configuración"</string>
 <string name="unplugged_in_progress_please_wait">"Espera por favor, esta operación puede tardar un poco."</string>
-<string name="unplugged_in_progress_configuration">"Configuración en progreso..."</string>
+<string name="unplugged_in_progress_configuration">"Configuración en progreso…"</string>
 <string name="unplugged_in_progress_step_text_creation">"Keep holding your card while the creation of your wallet is in progress"</string>
 <string name="unplugged_in_progress_step_text_restore">"Keep holding your card while the recovery of your wallet is in progress"</string>
 <string name="unplugged_in_progress_step_number">"7."</string>

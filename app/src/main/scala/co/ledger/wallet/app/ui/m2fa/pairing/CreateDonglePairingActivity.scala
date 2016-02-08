@@ -104,7 +104,8 @@ class CreateDonglePairingActivity extends BaseActivity with CreateDonglePairingA
 
   override def onDestroy(): Unit = {
     super.onDestroy()
-    pairingApi.abortPairingProcess()
+    if (pairingApi != null)
+      pairingApi.abortPairingProcess()
   }
 
   def pairingApi_=(api: PairingAPI): Unit = {

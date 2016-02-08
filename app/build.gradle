@@ -41,7 +41,7 @@ android {
         dev {
             applicationId "co.ledger.wallet.dev"
             resValue "string", "app_name", "Ledger Wallet (Dev)"
-            minSdkVersion 22
+            minSdkVersion 14
         }
 
         beta {

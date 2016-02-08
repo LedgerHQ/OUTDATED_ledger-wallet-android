@@ -103,6 +103,8 @@ class ApplicationKeystore(context: Context, val keystoreName: String) extends Ke
     file.delete()
   }
 
+  def isInstalled = file.exists()
+
   private[this] def store(): Unit = {
     file.delete()
     val output = context.openFileOutput(keystoreName, Context.MODE_PRIVATE)
