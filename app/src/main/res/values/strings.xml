@@ -91,7 +91,7 @@
     <string name="unplugged_seed_header_step_number_create">4.</string>
     <string name="unplugged_seed_header_step_text_create">Write down your recovery phrase in the provided recovery sheet</string>
     <string name="unplugged_seed_bottom_text_create">Your recovery phrase won\'t be displayed again. Without it, you will not be able to access your bitcoins in case of loss or your Ledger Wallet.</string>
-    <string name="unplugged_seed_button_text_create">I WROTE MY RECOVERY PHRASE</string>
+    <string name="unplugged_seed_button_text_create">I HAVE NOTED MY RECOVERY PHRASE</string>
     <string name="unplugged_seed_header_step_number_restore">4.</string>
     <string name="unplugged_seed_header_step_text_restore">Enter your 24 words recovery phrase to recover your bitcoin wallet</string>
     <string name="unplugged_seed_bottom_text_restore">Your recovery phrase is a group of 24 words that was provided to you when creating your wallet.</string>
