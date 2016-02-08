@@ -75,7 +75,6 @@ class HomeActivity extends BaseActivity {
 
   override def onOptionsItemSelected(item: MenuItem): Boolean = {
     super.onOptionsItemSelected(item)
-
     item.getItemId match {
       case R.id.export_logs =>
         exportLogs()
@@ -117,10 +116,10 @@ class HomeActivity extends BaseActivity {
 
     Keystore.defaultInstance match {
       case keystore: ApplicationKeystore =>
-        if (keystore.isInstalled) {
-          Toast.makeText(this, "Keystore is installed ask for password", Toast.LENGTH_SHORT).show()
-        } else {
+        if (!keystore.isInstalled) {
           startActivity(new Intent(this, classOf[InstallKeystoreActivity]))
+        } else if (!keystore.isLoaded) {
+          startActivity(new Intent(this, classOf[UnlockKeystoreActivity]))
         }
       case others => // Do nothing
     }

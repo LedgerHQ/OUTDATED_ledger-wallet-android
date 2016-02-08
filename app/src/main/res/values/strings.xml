@@ -35,6 +35,14 @@ and accessing personal sensitive data.</string>
         support.</string>
     <string name="install_keystore_too_short">Password must be at least 6 characters long.</string>
 
+    <!-- Unlock Keystore Activity -->
+    <string name="unlock_keystore_title">Password required</string>
+    <string name="unlock_keystore_top_text">To continue, please enter your master password:</string>
+    <string name="unlock_keystore_password_hint">Password</string>
+    <string name="unlock_keystore_bottom_text">If you can’t remember your master password,
+you will need to reinstall the app.</string>
+    <string name="unlock_keystore_wrong_password">Wrong password.</string>
+
     <!-- Paired Dongle Activity -->
     <string name="paired_dongle_activity_name">Paired Ledger Wallets</string>
     <string name="paired_dongle_paired_on">Paired on %s</string>

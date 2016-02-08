@@ -1,6 +1,6 @@
 /**
  *
- * InstallKeystoreActivity
+ * UnlockKeystoreActivity
  * Ledger wallet
  *
  * Created by Pierre Pollastri on 08/02/16.
@@ -34,34 +34,32 @@ import java.security.KeyStore.PasswordProtection
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.{KeyEvent, MenuItem, Menu, View}
+import android.view.{MenuItem, Menu, KeyEvent}
 import android.widget.{Toast, TextView}
 import android.widget.TextView.OnEditorActionListener
-import co.ledger.wallet.app.ui.unplugged.UnpluggedTapActivity
-import co.ledger.wallet.core.security.{ApplicationKeystore, Keystore}
-import co.ledger.wallet.core.utils.logs.LogCatReader
-import co.ledger.wallet.{common, R}
+import co.ledger.wallet.R
 import co.ledger.wallet.app.base.BaseActivity
+import co.ledger.wallet.app.ui.unplugged.UnpluggedTapActivity
+import co.ledger.wallet.core.security.Keystore
+import co.ledger.wallet.core.utils.logs.LogCatReader
 import co.ledger.wallet.core.utils.{AndroidUtils, TR}
 import co.ledger.wallet.core.widget.EditText
-import common._
-import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.ui
 
+import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.ui
 import scala.util.{Failure, Success}
 
-class InstallKeystoreActivity extends BaseActivity {
+class UnlockKeystoreActivity extends BaseActivity {
 
   lazy val passwordEditText = TR(R.id.password).as[EditText]
-  lazy val confirmEditText = TR(R.id.confirmation).as[EditText]
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.install_keystore_activity)
-    confirmEditText.setImeActionLabel(getString(R.string.action_done), KeyEvent.KEYCODE_ENTER)
-    confirmEditText.setOnEditorActionListener(new OnEditorActionListener {
+    setContentView(R.layout.unlock_keystore_activity)
+    passwordEditText.setImeActionLabel(getString(R.string.action_done), KeyEvent.KEYCODE_ENTER)
+    passwordEditText.setOnEditorActionListener(new OnEditorActionListener {
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
         if (event.getAction == KeyEvent.ACTION_DOWN && event.getKeyCode == KeyEvent.KEYCODE_ENTER) {
-          installKeystore()
+          unlockKeystore()
           true
         } else {
           false
@@ -85,7 +83,6 @@ class InstallKeystoreActivity extends BaseActivity {
 
   override def onOptionsItemSelected(item: MenuItem): Boolean = {
     super.onOptionsItemSelected(item)
-
     item.getItemId match {
       case R.id.export_logs =>
         exportLogs()
@@ -94,26 +91,15 @@ class InstallKeystoreActivity extends BaseActivity {
     }
   }
 
-  def installKeystore(): Unit = {
-    val pwd = passwordEditText.getText.toString
-    val confirmation = confirmEditText.getText.toString
-
-    if (pwd.length < 6) {
-      Toast.makeText(this, R.string.install_keystore_too_short, Toast.LENGTH_SHORT).show()
-    } else if (pwd != confirmation) {
-      passwordEditText.setText("")
-      confirmEditText.setText("")
-      Toast.makeText(this, R.string.install_keystore_password_mismatch, Toast.LENGTH_SHORT).show()
-    } else {
-      Keystore.defaultInstance.asInstanceOf[ApplicationKeystore].install(new PasswordProtection(pwd.toCharArray)) onComplete {
-        case Success(_) => finish()
-        case Failure(ex) =>
-          ex.printStackTrace()
-          Toast.makeText(this, R.string.install_keystore_install_error, Toast.LENGTH_SHORT).show()
-      }
+  def unlockKeystore(): Unit = {
+    val password = passwordEditText.getText.toString
+    Keystore.defaultInstance.load(new PasswordProtection(password.toCharArray)) onComplete {
+      case Success(_) => finish()
+      case Failure(ex) =>
+        ex.printStackTrace()
+        Toast.makeText(this, R.string.unlock_keystore_wrong_password, Toast.LENGTH_SHORT).show()
     }
   }
-
 
   private[this] def exportLogs(): Unit = {
     LogCatReader.createEmailIntent(this).onComplete {
