@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:padding="@dimen/large_margin"
+    android:gravity="center">
+
+    <EditText
+        android:id="@+id/amount"
+        android:layout_width="match_parent"
+        android:layout_gravity="center_horizontal"
+        android:hint="Amount"
+        android:inputType="numberDecimal"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/large_margin"/>
+
+    <EditText
+        android:id="@+id/address"
+        android:layout_width="match_parent"
+        android:layout_gravity="center_horizontal"
+        android:hint="Address"
+        android:inputType="numberDecimal"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/large_margin"/>
+
+    <Button
+        android:id="@+id/scan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Scan QR Code"
+        android:layout_marginBottom="@dimen/large_margin"
+        />
+
+    <Spinner
+        android:id="@+id/accounts"
+        android:layout_width="match_parent"
+        android:layout_gravity="center_horizontal"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/large_margin"/>
+
+    <Spinner
+        android:id="@+id/fees"
+        android:layout_width="match_parent"
+        android:layout_gravity="center_horizontal"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/large_margin"/>
+
+    <TextView
+        android:id="@+id/total_amount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/large_margin"
+        android:text="Total: 0.00 BTC"
+        />
+
+    <Button
+        android:id="@+id/send"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Send"
+        />
+
+</LinearLayout>

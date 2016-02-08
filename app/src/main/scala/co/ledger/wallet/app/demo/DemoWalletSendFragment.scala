@@ -32,20 +32,54 @@ package co.ledger.wallet.app.demo
 
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
-import co.ledger.wallet.R
-import co.ledger.wallet.core.base.BaseFragment
+import android.widget.{Toast, Button, Spinner}
+import co.ledger.wallet.{common, R}
+import co.ledger.wallet.core.base.{WalletActivity, BaseFragment}
+import co.ledger.wallet.core.view.ViewFinder
+import co.ledger.wallet.core.widget.{EditText, TextView}
+import common._
 
-class DemoWalletSendFragment extends BaseFragment {
+class DemoWalletSendFragment extends BaseFragment with ViewFinder {
+
+  def accountSpinner: Spinner = R.id.accounts
+  def feesSpinner: Spinner = R.id.fees
+  def totalAmountTextView: TextView = R.id.total_amount
+  def amountEditText: EditText = R.id.amount
+  def scanButton: Button = R.id.scan
+  def sendButton: Button = R.id.send
 
   override def onCreateView(inflater: LayoutInflater,
                             container: ViewGroup,
                             savedInstanceState: Bundle): View = {
-    inflater.inflate(R.layout.demo_wallet_home_fragment, container, false)
+    inflater.inflate(R.layout.demo_wallet_send_fragment, container, false)
   }
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     super.onViewCreated(view, savedInstanceState)
+    setupUi()
+
+    wallet.accounts() foreach {(accounts) =>
+
+    }
+
+    sendButton onClick onSendClicked
+    scanButton onClick onScanClicked
+  }
+
+  def onSendClicked(): Unit = {
+    Toast.makeText(getActivity, "Send it now", Toast.LENGTH_SHORT).show()
+  }
+
+  def onScanClicked(): Unit = {
+    Toast.makeText(getActivity, "Scan QR code", Toast.LENGTH_SHORT).show()
+  }
+
+  private def setupUi(): Unit = {
 
   }
 
+  def wallet = getActivity.asInstanceOf[WalletActivity].wallet
+
+  override implicit def viewId2View[V <: View](id: Int): V = getView.findViewById(id)
+    .asInstanceOf[V]
 }
