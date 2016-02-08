@@ -75,7 +75,7 @@ class ApplicationKeystore(context: Context, val keystoreName: String) extends Ke
   }
 
   override def generateKey(alias: String): JavaKeyPair = {
-    Crypto.ensureSpongyIsRemoved()
+    Crypto.ensureSpongyIsInserted()
     val kpg = java.security.KeyPairGenerator.getInstance("RSA")
     val calendar = Calendar.getInstance()
     val now = calendar.getTime
@@ -92,10 +92,15 @@ class ApplicationKeystore(context: Context, val keystoreName: String) extends Ke
     certGen.setNotAfter(end)
     certGen.setPublicKey(keypair.getPublic)
     certGen.setSignatureAlgorithm("SHA256WithRSAEncryption")
-    val certificate = certGen.generate(keypair.getPrivate)
+    val certificate = certGen.generate(keypair.getPrivate, "SC")
     javaKeystore.get.setEntry(alias, new PrivateKeyEntry(keypair.getPrivate, Array(certificate)), null)
     store()
+    Crypto.ensureSpongyIsRemoved()
     keypair
+  }
+
+  def delete(): Unit = {
+    file.delete()
   }
 
   private[this] def store(): Unit = {

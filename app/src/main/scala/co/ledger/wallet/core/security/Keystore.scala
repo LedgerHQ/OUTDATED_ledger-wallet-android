@@ -35,6 +35,7 @@ import java.security.{Provider, KeyStore}
 import java.security.KeyStore.{Entry, ProtectionParameter, PasswordProtection, PrivateKeyEntry}
 
 import android.content.Context
+import android.os.Build
 import android.preference.PreferenceManager
 import co.ledger.wallet.core.security.Keystore.{KeystoreNotInstalledException, LockedKeystoreException}
 import scala.concurrent.{Promise, Future}
@@ -134,7 +135,10 @@ object Keystore {
 
   def defaultInstance(implicit context: Context) = {
     _defaultInstance.getOrElse({
-      _defaultInstance = Option(new AndroidKeystore(context))
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
+        _defaultInstance = Option(new AndroidKeystore(context))
+      else
+        _defaultInstance = Option(new ApplicationKeystore(context, "m2fa_keystore"))
       _defaultInstance.get
     })
   }
