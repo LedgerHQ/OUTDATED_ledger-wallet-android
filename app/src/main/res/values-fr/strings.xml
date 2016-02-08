@@ -22,6 +22,30 @@
     <string name="home_activity_menu_export_logs">Exporter les logs</string>
     <string name="home_activity_menu_settings">Paramètres</string>
 
+    <!-- Install Keystore Activity -->
+    <string name="install_keystore_title">Choisissez un mot de passe</string>
+    <string name="install_keystore_top_text">Securisez votre application Ledger Wallet grâce
+        à un mot de passe maître:</string>
+    <string name="install_keystore_password_hint">Mot de passe</string>
+    <string name="install_keystore_confirm_hint">Confirmation</string>
+    <string name="install_keystore_bottom_text">Ce mot de passe sera requis à chaque lancement de
+     l'application ou lors de l'accès à des données sensibles.</string>
+    <string name="install_keystore_password_mismatch">La confirmation ne correspond pas au mot
+        de passe.</string>
+    <string name="install_keystore_install_error">Une erreur est survenue. Veuillez
+        contacter le support</string>
+    <string name="install_keystore_too_short">Votre mot de passe doit contenir au minimum 6
+    caractères</string>
+
+    <!-- Unlock Keystore Activity -->
+    <string name="unlock_keystore_title">Mot de passe requis</string>
+    <string name="unlock_keystore_top_text">Afin de continuer, veuillez renseigner votre mot de
+        passe maître:</string>
+    <string name="unlock_keystore_password_hint">Mot de passe</string>
+    <string name="unlock_keystore_bottom_text">Si vous ne vous souvenez pas de votre mot de
+        passe. Il vous faudra réinstaller l'application.</string>
+    <string name="unlock_keystore_wrong_password">Mauvais mot de passe.</string>
+
     <!-- Paired Dongle Activity -->
     <string name="paired_dongle_activity_name">Ledger Wallet Associés</string>
     <string name="paired_dongle_paired_on">Associé le %s</string>
