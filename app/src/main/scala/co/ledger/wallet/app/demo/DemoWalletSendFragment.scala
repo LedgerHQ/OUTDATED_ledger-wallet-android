@@ -30,24 +30,41 @@
  */
 package co.ledger.wallet.app.demo
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.support.v7.widget.{AppCompatTextView, AppCompatEditText}
+import android.text.{Editable, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.{Toast, Button, Spinner}
+import android.widget.AdapterView.OnItemSelectedListener
+import android.widget._
+import co.ledger.wallet.core.bitcoin.BitcoinUtils
+import co.ledger.wallet.wallet.Account
 import co.ledger.wallet.{common, R}
 import co.ledger.wallet.core.base.{WalletActivity, BaseFragment}
 import co.ledger.wallet.core.view.ViewFinder
 import co.ledger.wallet.core.widget.{EditText, TextView}
 import common._
+import org.bitcoinj.core.Coin
+
+import scala.concurrent.Future
+import scala.util.Try
 
 class DemoWalletSendFragment extends BaseFragment with ViewFinder {
 
   val ScanQrCodeRequest = 0x21
 
+  val Fees = Array(
+    "Normal" -> Coin.parseCoin("0.00001"),
+    "High" -> Coin.parseCoin("0.0001"),
+    "Low" -> Coin.parseCoin("0.000001")
+  )
+
   def accountSpinner: Spinner = R.id.accounts
   def feesSpinner: Spinner = R.id.fees
-  def totalAmountTextView: TextView = R.id.total_amount
-  def amountEditText: EditText = R.id.amount
+  def totalAmountTextView: AppCompatTextView = R.id.total_amount
+  def amountEditText: AppCompatEditText = R.id.amount
+  def addressEditText: AppCompatEditText = R.id.address
   def scanButton: Button = R.id.scan
   def sendButton: Button = R.id.send
 
@@ -61,28 +78,83 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
     super.onViewCreated(view, savedInstanceState)
     setupUi()
 
-    wallet.accounts() foreach {(accounts) =>
-
-    }
-
     sendButton onClick onSendClicked
     scanButton onClick onScanClicked
   }
 
   def onSendClicked(): Unit = {
-    Toast.makeText(getActivity, "Send it now", Toast.LENGTH_SHORT).show()
+    val amount = Try(computeTotalAmount())
+    val address = addressEditText.getText.toString
+    if (amount.isFailure) {
+      Toast.makeText(getActivity, "Invalid amount", Toast.LENGTH_SHORT).show()
+    } else if (!BitcoinUtils.isAddressValid(address)) {
+      Toast.makeText(getActivity, "Invalid address", Toast.LENGTH_SHORT).show()
+    } else {
+      Toast.makeText(getActivity, "Send it now", Toast.LENGTH_SHORT).show()
+    }
   }
 
   def onScanClicked(): Unit = {
     startActivityForResult(new Intent(getActivity, classOf[DemoQrCodeScannerActivity]), ScanQrCodeRequest)
   }
 
-  private def setupUi(): Unit = {
+  def computeTotalAmount(): Coin = {
+    val amount = Coin.parseCoin(amountEditText.getText.toString)
+    val fees = Fees(feesSpinner.getSelectedItemPosition)._2
+    val total = amount add fees
+    totalAmountTextView.setText(s"Total: ${total.toFriendlyString}")
+    total
+  }
 
+  override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == ScanQrCodeRequest && resultCode == Activity.RESULT_OK) {
+      import DemoQrCodeScannerActivity._
+      addressEditText.setText(data.getStringExtra(Address))
+      if (data.hasExtra(Amount))
+        amountEditText.setText(data.getStringExtra(Amount))
+    }
+  }
+
+  private def setupUi(): Unit = {
+    wallet.accounts() flatMap {(accounts) =>
+      Future.sequence(accounts.map(_.balance()).toList) map {
+        accounts -> _.toArray
+      }
+    } foreach {
+      case (accounts: Array[Account], balances: Array[Coin]) =>
+        val display = accounts.indices map {(index) =>
+          s"Account #$index (${balances(index).toFriendlyString})"
+        }
+        val adapter = new ArrayAdapter[String](getActivity, android.R.layout.simple_list_item_1,
+          display.toArray)
+        accountSpinner.setAdapter(adapter)
+    }
+    val fees = Fees.map({case (name, _) => name})
+    val adapter = new ArrayAdapter[String](getActivity, android.R.layout.simple_list_item_1, fees)
+    feesSpinner.setAdapter(adapter)
+    feesSpinner.setOnItemSelectedListener(new OnItemSelectedListener {
+      override def onNothingSelected(parent: AdapterView[_]): Unit = ()
+
+      override def onItemSelected(parent: AdapterView[_], view: View, position: Int, id: Long):
+      Unit = {
+        Try(computeTotalAmount())
+      }
+    })
+    amountEditText.removeTextChangedListener(_textWatcher)
+    amountEditText.addTextChangedListener(_textWatcher)
   }
 
   def wallet = getActivity.asInstanceOf[WalletActivity].wallet
 
   override implicit def viewId2View[V <: View](id: Int): V = getView.findViewById(id)
     .asInstanceOf[V]
+
+  private val _textWatcher = new TextWatcher {
+    override def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int): Unit = ()
+
+    override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit = ()
+
+    override def afterTextChanged(s: Editable): Unit = Try(computeTotalAmount())
+  }
 }

@@ -33,6 +33,8 @@ package co.ledger.wallet.app.demo
 import java.util
 
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.ViewGroup.LayoutParams
 import android.view.{View, ViewGroup, LayoutInflater}
@@ -49,7 +51,7 @@ import org.spongycastle.util.encoders.Hex
 class DemoQrCodeScannerActivity extends BaseActivity
   with ViewFinder
   with ResultHandler {
-
+  import DemoQrCodeScannerActivity._
   private lazy val _scannerView = new ZBarScannerView(this)
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
@@ -77,25 +79,31 @@ class DemoQrCodeScannerActivity extends BaseActivity
     _scannerView.stopCamera()
   }
 
-  override def handleResult(result: Result): Unit = {
+  override def handleResult(result: Result): Unit = runOnUiThread {
     val content = result.getContents
     try {
-      val bytes = Hex.decode(content)
-      if (bytes.length != 17) return
-      val data = bytes.slice(0, 16)
-      val chks = bytes(16).toInt
-      val validChecksum = new Array[Byte](32)
-      val sha256 = new SHA256Digest()
-      sha256.update(data, 0, data.length)
-      sha256.doFinal(validChecksum, 0)
-      if (chks != validChecksum(0).toInt) {
-        Logger.d("Invalid checksum")
-      }
-      setResult(Activity.RESULT_OK)
+      val uri = Uri.parse(content.replaceFirst(":", ":/"))
+      val address = Option(uri.getLastPathSegment)
+      val amount = Option(uri.getQueryParameter("amount"))
+
+      val result = new Intent()
+      result.putExtra(Address, address.getOrElse(throw new Exception()))
+      if (amount.isDefined)
+        result.putExtra(Amount, amount.get)
+      setResult(Activity.RESULT_OK, result)
+      finish()
     } catch {
-      case ex: Throwable => ex.printStackTrace()
+      case ex: Throwable =>
+        ex.printStackTrace()
+        _scannerView.startCamera()
     }
   }
 
   override implicit def viewId2View[V <: View](id: Int): V = findViewById(id).asInstanceOf[V]
+}
+
+object DemoQrCodeScannerActivity {
+
+  val Address = "address"
+  val Amount = "amount"
 }
