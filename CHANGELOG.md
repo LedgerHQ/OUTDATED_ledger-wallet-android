@@ -1,4 +1,9 @@
 # Changelog
+1.0.5
+===
+- Use an application keystore when the android keystore is not available
+- Add spanish and japanese translation
+
 1.0.4
 ===
 - Fix 3DES CBC decryption
