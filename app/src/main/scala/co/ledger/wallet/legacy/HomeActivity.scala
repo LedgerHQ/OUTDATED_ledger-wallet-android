@@ -30,17 +30,15 @@
  */
 package co.ledger.wallet.legacy
 
-import java.security.KeyStore.PasswordProtection
-
 import android.content.Intent
 import android.os.Bundle
 import android.view._
 import co.ledger.wallet.R
-import co.ledger.wallet.app.{SettingsActivity, Config}
+import co.ledger.wallet.app.{Config, SettingsActivity}
 import co.ledger.wallet.common._
 import co.ledger.wallet.core.base.{BaseActivity, BaseFragment, BigIconAlertDialog}
-import co.ledger.wallet.core.security.{AndroidKeystore, ApplicationKeystore}
-import co.ledger.wallet.core.utils.logs.{LogCatReader, Logger}
+import co.ledger.wallet.core.security.{ApplicationKeystore, Keystore}
+import co.ledger.wallet.core.utils.logs.LogCatReader
 import co.ledger.wallet.core.utils.{AndroidUtils, GooglePlayServiceHelper, TR}
 import co.ledger.wallet.core.widget.TextView
 import co.ledger.wallet.legacy.pairing.CreateDonglePairingActivity
@@ -70,7 +68,6 @@ class HomeActivity extends BaseActivity {
 
   override def onOptionsItemSelected(item: MenuItem): Boolean = {
     super.onOptionsItemSelected(item)
-
     item.getItemId match {
       case R.id.export_logs =>
         exportLogs()
@@ -110,22 +107,15 @@ class HomeActivity extends BaseActivity {
 
     refreshPairedDongleList()
 
-    val ak = new AndroidKeystore(this)
-    val ik = new ApplicationKeystore(this, s"toto${System.currentTimeMillis()}.keystore")
-    ak.load(null).andThen({
-      case Success(keystore) =>
-        ik.install(new PasswordProtection("toto".toCharArray))
-    }).andThen({
-      case Success(_) =>
-        for (alias <- ak.aliases) {
-          Logger.d(s"Got alias(AK) $alias")
-          ik.generateKey(alias)
+    Keystore.defaultInstance match {
+      case keystore: ApplicationKeystore =>
+        if (!keystore.isInstalled) {
+          startActivity(new Intent(this, classOf[InstallKeystoreActivity]))
+        } else if (!keystore.isLoaded) {
+          startActivity(new Intent(this, classOf[UnlockKeystoreActivity]))
         }
-        for (alias <- ak.aliases) {
-          Logger.d(s"Got alias(IK) $alias")
-        }
-    })
-
+      case others => // Do nothing
+    }
 
   }
 

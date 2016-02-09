@@ -9,8 +9,8 @@ android {
     defaultConfig {
         applicationId "co.ledger.wallet"
         targetSdkVersion 23
-        versionCode 7
-        versionName "1.0.4"
+        versionCode 8
+        versionName "1.0.5"
         testInstrumentationRunner "com.android.test.runner.MultiDexTestRunner"
         multiDexEnabled true
     }
@@ -53,6 +53,9 @@ android {
 
         production {
             minSdkVersion 14
+            lintOptions {
+                disable 'MissingTranslation'
+            }
         }
     }
 

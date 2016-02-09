@@ -21,6 +21,28 @@
     <string name="home_activity_menu_export_logs">Export logs</string>
     <string name="home_activity_menu_settings">Settings</string>
 
+    <!-- Install Keystore Activity -->
+    <string name="install_keystore_title">Choose a password</string>
+    <string name="install_keystore_top_text">Secure your Ledger Wallet app installation by
+        choosing a master password:</string>
+    <string name="install_keystore_password_hint">Password</string>
+    <string name="install_keystore_confirm_hint">Confirmation</string>
+    <string name="install_keystore_bottom_text">It will be required when launching the app
+and accessing personal sensitive data.</string>
+    <string name="install_keystore_password_mismatch">The password and the confirmation
+        don\'t match.</string>
+    <string name="install_keystore_install_error">An error occurred. Please contact the
+        support.</string>
+    <string name="install_keystore_too_short">Password must be at least 6 characters long.</string>
+
+    <!-- Unlock Keystore Activity -->
+    <string name="unlock_keystore_title">Password required</string>
+    <string name="unlock_keystore_top_text">To continue, please enter your master password:</string>
+    <string name="unlock_keystore_password_hint">Password</string>
+    <string name="unlock_keystore_bottom_text">If you can’t remember your master password,
+you will need to reinstall the app.</string>
+    <string name="unlock_keystore_wrong_password">Wrong password.</string>
+
     <!-- Paired Dongle Activity -->
     <string name="paired_dongle_activity_name">Paired Ledger Wallets</string>
     <string name="paired_dongle_paired_on">Paired on %s</string>
@@ -91,7 +113,7 @@
     <string name="unplugged_seed_header_step_number_create">4.</string>
     <string name="unplugged_seed_header_step_text_create">Write down your recovery phrase in the provided recovery sheet</string>
     <string name="unplugged_seed_bottom_text_create">Your recovery phrase won\'t be displayed again. Without it, you will not be able to access your bitcoins in case of loss or your Ledger Wallet.</string>
-    <string name="unplugged_seed_button_text_create">I WROTE MY RECOVERY PHRASE</string>
+    <string name="unplugged_seed_button_text_create">I HAVE NOTED MY RECOVERY PHRASE</string>
     <string name="unplugged_seed_header_step_number_restore">4.</string>
     <string name="unplugged_seed_header_step_text_restore">Enter your 24 words recovery phrase to recover your bitcoin wallet</string>
     <string name="unplugged_seed_bottom_text_restore">Your recovery phrase is a group of 24 words that was provided to you when creating your wallet.</string>

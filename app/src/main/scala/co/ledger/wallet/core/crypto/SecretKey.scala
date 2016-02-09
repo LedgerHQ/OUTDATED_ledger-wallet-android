@@ -36,11 +36,11 @@ import javax.crypto.spec.SecretKeySpec
 
 import android.content.Context
 import co.ledger.wallet.core.security.Keystore
-import co.ledger.wallet.core.utils.logs.Logger
+import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import org.spongycastle.util.encoders.Hex
 
 import scala.concurrent.Future
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 sealed trait SecretKey {
 
@@ -50,7 +50,7 @@ sealed trait SecretKey {
 
 }
 
-object SecretKey {
+object SecretKey extends Loggable {
 
   private type JavaKeystore = java.security.KeyStore
   private type JavaKeyPair = java.security.KeyPair
@@ -103,9 +103,9 @@ object SecretKey {
         context.getSharedPreferences(PreferenceName, Context.MODE_PRIVATE)
           .edit()
           .putString(alias, Hex.toHexString(wrappedSecret))
-          .commit()
+          .apply()
         Try(new SecretKeyImpl(alias, wrappedSecret, kp))
-      case unsupported => Try(throw new Exception("Unable to create certificates"))
+      case unsupported => Failure(new Exception("Unable to create certificates"))
     }
   }
 

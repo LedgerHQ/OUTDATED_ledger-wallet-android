@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+<!-- General -->
+<string name="app_name">"Ledger Wallet"</string>
+<string name="app_version" formatted="false">"Ledger Wallet Android %s"</string>
+<string name="btc_acronyme">"BTC"</string>
+
+<!-- Home Activity -->
+<string name="home_p_title">"Esperando transacciones…"</string>
+<string name="home_p_subtitle">"Transactions will automatically appear when manual validation is required."</string>
+<string name="home_p_action">"LEDGER WALLETS EMPAREJADAS"</string>
+<string name="home_p_bottom">"¿Necesitas ayuda? Visita nuestro centro de ayuda."</string>
+<string name="home_np_title">"No paired Ledger Wallet"</string>
+<string name="home_np_subtitle">"To enable second factor validation,
+pair your Ledger Wallet with this smartphone."</string>
+<string name="home_np_action">"EMPAREJAR UNA LEDGER WALLET"</string>
+<string name="home_np_bottom">"¿Necesitas ayuda? Visita nuestro centro de ayuda."</string>
+
+<!-- Paired Dongle Activity -->
+<string name="paired_dongle_activity_name">"Ledger Wallets emparejadas"</string>
+<string name="paired_dongle_paired_on">"Emparejado el %s"</string>
+
+<!-- Create Dongle Pairing Activity -->
+<string name="create_dongle_title">"Emparejar una Ledger Wallet"</string>
+<string name="create_dongle_instruction_step_1">"Escanea el &lt;b&gt;código QR de emparejamiento&lt;/b&gt; en la aplicación Ledger Wallet de Chrome."</string>
+<string name="create_dongle_instruction_step_2">"Este smartphone está creando una conexión segura con tu Ledger Wallet."</string>
+<string name="create_dongle_instruction_step_2_title">"Estableciendo conexión…"</string>
+<string name="create_dongle_instruction_step_2_text">"Espere por favor, esta operación puede tardar un poco."</string>
+<string name="create_dongle_instruction_step_3">"Grab your &lt;b&gt;security card&lt;/b&gt; and enter the matching value for each character."</string>
+<string name="create_dongle_instruction_step_3_bottom" formatted="false">"Enter the letter or digit in the black
+    box matching \"%s\" on your security card."</string>
+<string name="create_dongle_instruction_step_4">"Tu Ledger Wallet está finalizando el proceso de emparejamiento con este smartphone."</string>
+<string name="create_dongle_instruction_step_4_title">"Emparejamiento en proceso…"</string>
+<string name="create_dongle_instruction_step_4_text">"Espere por favor, esta operación puede tardar un poco."</string>
+<string name="create_dongle_instruction_step_5">"El proceso de emparejamiento está completado. Introduce un nombre para este Ledger Wallet."</string>
+<string name="create_dongle_instruction_step_5_default_name">"Mi Ledger Wallet"</string>
+<string name="create_dongle_instruction_step_5_name_hint">"Ledger Wallet name"</string>
+<string name="create_dongle_instruction_step_5_error_title">"Error"</string>
+<string name="create_dongle_instruction_step_5_error_message">"This name is used by another paired Ledger Wallet."</string>
+<string name="create_dongle_instruction_step_5_bottom">"Elige un nombre para asignar a a esta Ledger Wallet."</string>
+
+<!-- Delete Pairing Dialog -->
+<string name="delete_pairing_dialog_message">"By deleting this Ledger Wallet, you will no longer be able to manually validate transaction from this smartphone. Do you want to continue?"</string>
+
+<!-- Incoming Transaction Dialog -->
+<string name="incoming_tx_title">"CONFIRMAR TRANSACCIÓN"</string>
+<string name="incoming_tx_date" formatted="false">"requested on %s at %s"</string>
+
+<!-- Pairing Success Dialog -->
+<string name="pairing_success_dialog_title">"EMPAREJAMIENTO COMPLETADO"</string>
+<string name="pairing_success_dialog_content" formatted="false">"Tu Ledger Wallet \"%s\" está ahora emparejada con
+    tu smartphone."</string>
+
+<!-- Pairing Failure Dialog -->
+<string name="pairing_failure_dialog_title">"EL EMPAREJAMIENTO FALLÓ"</string>
+<string name="pairing_failure_dialog_error_network">"Ocurrió un problema en la red.
+Por favor verifica tu conexión a internet."</string>
+<string name="pairing_failure_dialog_wrong_answer">"The security card validation code is incorrect. Please try again."</string>
+<string name="pairing_failure_dialog_cancelled">"La aplicación Ledger Wallet de Chrome canceló el proceso de emparejamiento."</string>
+<string name="pairing_failure_dialog_timeout">"El proceso de emparejamiento tardó demasiado (timeout)."</string>
+
+<!-- Trustlet Promotion Dialog -->
+<string name="trustlet_promotion_dialog_title">"LEDGER TRUSTLET"</string>
+<string name="trustlet_promotion_dialog_main_message">"Your smartphone is compatible with Ledger Trustlet, our new Trusted Execution Environment technology."</string>
+<string name="trustlet_promotion_dialog_bottom_message">"¿Te gustaría saber más acerca de ello?"</string>
+
+<!-- Actions -->
+<string name="action_done">"Listo"</string>
+
+<!-- Dialog Actions -->
+<string name="dialog_action_confirm">"CONFIRMAR"</string>
+<string name="dialog_action_refuse">"REJECT"</string>
+<string name="dialog_action_close">"CERRAR"</string>
+<string name="dialog_action_ok">"OK"</string>
+<string name="dialog_action_cancel">"CANCELAR"</string>
+<string name="dialog_action_see_more">"VER MÁS"</string>
+<string name="dialog_action_no_thanks">"NO GRACIAS"</string>
+
+<!-- Home Activity Menu -->
+<string name="home_activity_menu_export_logs">"Exportar logs"</string>
+<string name="home_activity_menu_settings">"Ajustes"</string>
+
+<!-- Settings -->
+<string name="settings_activity_name">"Ajustes"</string>
+<string name="settings_pref_internal_keystore_name">"Usar almacén de claves interno"</string>
+<string name="settings_pref_internal_keystore_summary">"This will force you to unlock the application with a password each time."</string>
+<string name="settings_pref_change_password_name">"Cambiar la contraseña del almacén de claves"</string>
+<string name="settings_pref_change_password_summary">"Cambiar la contraseña del almacén de claves"</string>
+<string name="settings_pref_licences_name">"Licencias"</string>
+<string name="settings_pref_licences_summary">"Licencia de la aplicación e información sobre las librerías"</string>
+<string name="settings_category_security">"Seguridad"</string>
+<string name="settings_category_about">"Acerca de"</string>
+<string name="settings_category_application">"Aplicación "</string>
+<string name="settings_category_libraries">"Librerias"</string>
+<string name="home_np_setup_unplugged">"CONFIGURAR UN LEDGER UNPLUGGED"</string>
+
+<!-- Home Activity Menu -->
+<string name="home_activity_menu_setup_unplugged">"Ledger Unplugged"</string>
+
+<!-- Unplugged Welcome Activity -->
+<string name="unplugged_welcome_activity_title">"Nueva cartera"</string>
+<string name="unplugged_welcome_welcome_to_your_new_wallet">"Bienvenido a tu nuevo Ledger Unplugged"</string>
+<string name="unplugged_welcome_create_or_recover">"¿Te gustaría crear una cartera nueva o restablecer una ya existente?"</string>
+<string name="unplugged_welcome_use_as_new">"Crear nueva cartera"</string>
+<string name="unplugged_welcome_if_its_your_first_wallet">"By generating a new recovery phrase"</string>
+<string name="unplugged_welcome_recover_wallet">"Recuperar una cartera existente"</string>
+<string name="unplugged_welcome_if_you_lost_your_wallet">"By entering your recovery phrase"</string>
+
+<!-- Unplugged Welcome Activity -->
+<string name="unplugged_existing_activity_title">"Cartera existente"</string>
+<string name="unplugged_existing_existing_wallet">"Tu cartera ya está configurada."</string>
+<string name="unplugged_existing_compatible_wallets">"Ledger Unplugged can be used with Mycelium and GreenBits Android bitcoin wallets."</string>
+<string name="unplugged_existing_install_mycelium">"Mycelium"</string>
+<string name="unplugged_existing_install_greenbits">"GreenBits"</string>
+<string name="unplugged_existing_view_on_play_store">"Ver en Google Play Store"</string>
+<string name="unplugged_existing_delete_unplugged">"Reset the card"</string>
+<string name="unplugged_existing_delete_unplugged_description">"Ver en Fidesmo app"</string>
+
+<!-- Unplugged Security Activity -->
+<string name="unplugged_security_activity_title">"Información de seguridad "</string>
+<string name="unplugged_security_step_text">"A trusted smartphone is required to configure your Ledger Unplugged"</string>
+<string name="unplugged_security_step_number">"1."</string>
+<string name="unplugged_security_line_1">"Este asistente de configuración maneja información muy sensible de tu cartera."</string>
+<string name="unplugged_security_line_2_creation">"It is very important to continue the creation process using a fully trusted smartphone to prevent anyone from accessing these data."</string>
+<string name="unplugged_security_line_2_restore">"It is very important to continue the recovery process using a fully trusted smartphone to prevent anyone from accessing these data."</string>
+<string name="unplugged_security_line_3">"A secure provisioning system will soon be available in a next release of this app."</string>
+<string name="unplugged_security_line_4">"By clicking CONTINUE, you confirm that you are currently using a trusted smartphone."</string>
+<string name="unplugged_security_understood">"ENTIENDO, CONTINUAR"</string>
+
+<!-- Unplugged PIN Choice Activity -->
+<string name="unplugged_pin_choice_activity_title_enter">"Código PIN"</string>
+<string name="unplugged_pin_choice_step_number_enter">"2."</string>
+<string name="unplugged_pin_choice_step_instruction_enter">"Elige un código de 4 dígitos para permitirte un acceso seguro a tu cartera"</string>
+<string name="unplugged_pin_choice_step_bottom_enter">"Por favor considera: tu año de nacimiento o el pin de tu tarjeta de débito/crédito no son códigos PIN seguros."</string>
+<string name="unplugged_pin_choice_activity_title_confirm">"Confirmación"</string>
+<string name="unplugged_pin_choice_step_number_confirm">"3."</string>
+<string name="unplugged_pin_choice_step_instruction_confirm">"Re-introduce el código PIN elegido en el paso previo"</string>
+<string name="unplugged_pin_choice_step_bottom_confirm">"Tu código PIN será preguntado cada vez que uses tu Ledger Unplugged."</string>
+<string name="unplugged_pin_choice_dont_match_error">"La confirmación de tu código PIN no coincide"</string>
+
+<!-- Unplugged Seed Activity -->
+<string name="unplugged_seed_activity_title">"Frase de recuperación"</string>
+<string name="unplugged_seed_invalid_seed">"Tu frase de recuperación parece no ser válida."</string>
+<string name="unplugged_seed_header_step_number_create">"4."</string>
+<string name="unplugged_seed_header_step_text_create">"Write down your recovery phrase in the provided recovery sheet"</string>
+<string name="unplugged_seed_bottom_text_create">"Your recovery phrase won't be displayed again. Without it, you will not be able to access your bitcoins in case of loss or your Ledger Wallet."</string>
+<string name="unplugged_seed_button_text_create">"I WROTE MY RECOVERY PHRASE"</string>
+<string name="unplugged_seed_header_step_number_restore">"4."</string>
+<string name="unplugged_seed_header_step_text_restore">"Introduce las 24 palabras de tu frase de recuperación para recuperar tu cartera bitcoin"</string>
+<string name="unplugged_seed_bottom_text_restore">"Tu frase de recuperación es un grupo de 24 palabras que fueron proporcionadas cuando creaste tu cartera."</string>
+<string name="unplugged_seed_button_text_restore">"I ENTERED MY RECOVERY PHRASE"</string>
+
+<!-- Unplugged Tap Activity -->
+<string name="unplugged_tap_activity_title">"Ledger Unplugged"</string>
+<string name="unplugged_tap_looking_for">"Looking for your NFC wallet..."</string>
+<string name="unplugged_tap_place_at_backside">"Place your Ledger Unplugged card against the backside of your smartphone."</string>
+<string name="unplugged_tap_error_occured">"Error en la comunicación, por favor prueba de nuevo."</string>
+
+<!-- Unplugged Finalize Setup Activity -->
+<string name="unplugged_finalize_setup_activity_title">"Almost ready"</string>
+<string name="unplugged_finalize_setup_few_moments">"In a few moments, you will be able to use your bitcoins in the fastest possible way."</string>
+<string name="unplugged_finalize_setup_step_text">"Place and hold your Ledger Unplugged card against the backside of your smartphone"</string>
+<string name="unplugged_finalize_setup_step_number">"6."</string>
+
+<!-- Unplugged In Progress Activity -->
+<string name="unplugged_in_progress_activity_title">"Configuración"</string>
+<string name="unplugged_in_progress_please_wait">"Espera por favor, esta operación puede tardar un poco."</string>
+<string name="unplugged_in_progress_configuration">"Configuración en progreso…"</string>
+<string name="unplugged_in_progress_step_text_creation">"Keep holding your card while the creation of your wallet is in progress"</string>
+<string name="unplugged_in_progress_step_text_restore">"Keep holding your card while the recovery of your wallet is in progress"</string>
+<string name="unplugged_in_progress_step_number">"7."</string>
+
+<!-- Unplugged Install Fidesmo Activity -->
+<string name="unplugged_fidesmo_activity_title">"Blank card"</string>
+<string name="unplugged_fidesmo_top_text">"Tu Ledger Unplugged parece estar vacío."</string>
+<string name="unplugged_fidesmo_top_description">"Para configurar tu cartera , necesitas instalar Ledger Unplugged Fidesmo app en tu tarjeta NFC. "</string>
+<string name="unplugged_fidesmo_install_apk_action_title">"1. Instalar Fidesmo"</string>
+<string name="unplugged_fidesmo_install_apk_action_subtitle">"Ver en Google Play Store"</string>
+<string name="unplugged_fidesmo_install_app_action_title">"2. Instalar Ledger Unplugged"</string>
+<string name="unplugged_fidesmo_install_app_action_subtitle">"Ver en Fidesmo app"</string>
+<string name="unplugged_fidesmo_error_not_installed">"Fidesmo app parece no estar instalado. Por favor visita Google Play Store y descarga la aplicación primero."</string>
+
+<!-- Unplugged Scan Keycard Activity -->
+<string name="unplugged_scan_title">"Tarjeta de seguridad"</string>
+<string name="unplugged_scan_step_number">"5."</string>
+<string name="unplugged_scan_step_instruction">"Scan or type in your security card QR code from your recovery sheet"</string>
+<string name="unplugged_scan_manual_pincode">"MANUALLY ENTER MY QR CODE"</string>
+<string name="unplugged_scan_create_keycard">"Necesito una nueva tarjeta de seguridad"</string>
+<string name="unplugged_scan_dialog_title">"Security card code"</string>
+<string name="unplugged_scan_dialog_message">"Por favor introduce los 32 caracteres de tu tarjeta de seguridad:"</string>
+<string name="unplugged_scan_dialog_error">"Código de tarjeta de seguridad inválido"</string>
+
+<!-- Unplugged Setup Complete Activity -->
+<string name="unplugged_setup_complete_activity_title">"All good"</string>
+<string name="unplugged_setup_complete_top_text_creation">"Creación completada"</string>
+<string name="unplugged_setup_complete_top_text_restore">"Recuperación completada"</string>
+<string name="unplugged_setup_complete_top_description">"You can now use your Ledger Unplugged safely with the following compatible wallets."</string>
+
+<!-- Unplugged Actions -->
+<string name="unplugged_management_continue">"CONTINUAR"</string>
+<string name="unplugged_management_finish">"FINALIZAR"</string>
+</resources>
