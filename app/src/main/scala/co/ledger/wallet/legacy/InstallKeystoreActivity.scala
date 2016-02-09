@@ -44,6 +44,7 @@ import co.ledger.wallet.core.security.{ApplicationKeystore, Keystore}
 import co.ledger.wallet.core.utils.logs.LogCatReader
 import co.ledger.wallet.core.utils.{AndroidUtils, TR}
 import co.ledger.wallet.core.widget.EditText
+import co.ledger.wallet.legacy.unplugged.UnpluggedTapActivity
 
 import scala.util.{Failure, Success}
 

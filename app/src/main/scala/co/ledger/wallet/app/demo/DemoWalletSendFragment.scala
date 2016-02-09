@@ -30,6 +30,7 @@
  */
 package co.ledger.wallet.app.demo
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{Toast, Button, Spinner}
@@ -40,6 +41,8 @@ import co.ledger.wallet.core.widget.{EditText, TextView}
 import common._
 
 class DemoWalletSendFragment extends BaseFragment with ViewFinder {
+
+  val ScanQrCodeRequest = 0x21
 
   def accountSpinner: Spinner = R.id.accounts
   def feesSpinner: Spinner = R.id.fees
@@ -71,7 +74,7 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
   }
 
   def onScanClicked(): Unit = {
-    Toast.makeText(getActivity, "Scan QR code", Toast.LENGTH_SHORT).show()
+    startActivityForResult(new Intent(getActivity, classOf[DemoQrCodeScannerActivity]), ScanQrCodeRequest)
   }
 
   private def setupUi(): Unit = {
