@@ -52,6 +52,9 @@ android {
 
         production {
             minSdkVersion 14
+            lintOptions {
+                disable 'MissingTranslation'
+            }
         }
     }
 

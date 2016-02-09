@@ -29,7 +29,7 @@
     <string name="install_keystore_password_hint">Mot de passe</string>
     <string name="install_keystore_confirm_hint">Confirmation</string>
     <string name="install_keystore_bottom_text">Ce mot de passe sera requis à chaque lancement de
-     l'application ou lors de l'accès à des données sensibles.</string>
+     l\'application ou lors de l\'accès à des données sensibles.</string>
     <string name="install_keystore_password_mismatch">La confirmation ne correspond pas au mot
         de passe.</string>
     <string name="install_keystore_install_error">Une erreur est survenue. Veuillez
@@ -43,7 +43,7 @@
         passe maître:</string>
     <string name="unlock_keystore_password_hint">Mot de passe</string>
     <string name="unlock_keystore_bottom_text">Si vous ne vous souvenez pas de votre mot de
-        passe. Il vous faudra réinstaller l'application.</string>
+        passe. Il vous faudra réinstaller l\'application.</string>
     <string name="unlock_keystore_wrong_password">Mauvais mot de passe.</string>
 
     <!-- Paired Dongle Activity -->
