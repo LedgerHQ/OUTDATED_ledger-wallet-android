@@ -8,8 +8,8 @@ android {
     defaultConfig {
         applicationId "co.ledger.wallet"
         targetSdkVersion 22
-        versionCode 8
-        versionName "1.0.5"
+        versionCode 9
+        versionName "1.0.6"
         testInstrumentationRunner "com.android.test.runner.MultiDexTestRunner"
         multiDexEnabled true
     }
