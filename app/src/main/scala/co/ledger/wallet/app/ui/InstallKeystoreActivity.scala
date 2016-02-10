@@ -34,6 +34,7 @@ import java.security.KeyStore.PasswordProtection
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.inputmethod.EditorInfo
 import android.view.{KeyEvent, MenuItem, Menu, View}
 import android.widget.{Toast, TextView}
 import android.widget.TextView.OnEditorActionListener
@@ -60,8 +61,13 @@ class InstallKeystoreActivity extends BaseActivity {
     confirmEditText.setImeActionLabel(getString(R.string.action_done), KeyEvent.KEYCODE_ENTER)
     confirmEditText.setOnEditorActionListener(new OnEditorActionListener {
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
-        if (event.getAction == KeyEvent.ACTION_DOWN && event.getKeyCode == KeyEvent.KEYCODE_ENTER) {
+        val isEnterEvent = event != null && event.getKeyCode == KeyEvent.KEYCODE_ENTER
+        val isEnterUpEvent = isEnterEvent && event.getAction == KeyEvent.ACTION_UP
+        val isEnterDownEvent = isEnterEvent && event.getAction == KeyEvent.ACTION_DOWN
+        if (actionId == EditorInfo.IME_ACTION_DONE || isEnterUpEvent) {
           installKeystore()
+          true
+        } else if (isEnterDownEvent) {
           true
         } else {
           false
