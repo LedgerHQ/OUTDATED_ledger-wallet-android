@@ -1,5 +1,5 @@
 # Changelog
-1.0.5
+1.0.5/1.0.6
 ===
 - Use an application keystore when the android keystore is not available
 - Add spanish and japanese translation
