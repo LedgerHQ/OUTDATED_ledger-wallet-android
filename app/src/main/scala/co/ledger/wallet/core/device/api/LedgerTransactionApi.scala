@@ -30,8 +30,21 @@
  */
 package co.ledger.wallet.core.device.api
 
+import scala.concurrent.Future
+
 trait LedgerTransactionApi extends LedgerCommonApiInterface {
+  import LedgerTransactionApi._
 
+  def getTrustedInput(): Future[Array[Byte]] = {
+    null
+  }
 
+}
+
+object LedgerTransactionApi {
+
+  class PreviousOutput {
+
+  }
 
 }
