@@ -33,7 +33,7 @@ package co.ledger.wallet.wallet.proxy
 
 import android.util.Log
 import co.ledger.wallet.core.concurrent.AsyncCursor
-import co.ledger.wallet.wallet.{Operation, ExtendedPublicKeyProvider, Account}
+import co.ledger.wallet.wallet.{Utxo, Operation, ExtendedPublicKeyProvider, Account}
 import org.bitcoinj.core.{Address, Transaction, Coin}
 import org.bitcoinj.crypto.DeterministicKey
 import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
@@ -55,6 +55,8 @@ class AccountProxy(val wallet: WalletProxy, account: Account) extends Account {
     connect().flatMap(_.operations(batchSize))
 
   override def balance(): Future[Coin] = connect().flatMap(_.balance())
+
+  override def utxo(targetValue: Option[Coin]): Future[Array[Utxo]] = connect().flatMap(_.utxo(targetValue))
 
   private def connect(): Future[Account] = {
     wallet.connect().flatMap({(w) =>

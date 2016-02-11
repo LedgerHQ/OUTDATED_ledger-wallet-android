@@ -46,4 +46,6 @@ trait Account {
   def balance(): Future[Coin]
   def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit]
   def operations(batchSize: Int = Wallet.DefaultOperationsBatchSize): Future[AsyncCursor[Operation]]
+  def utxo(targetValue: Option[Coin] = None): Future[Array[Utxo]]
+
 }

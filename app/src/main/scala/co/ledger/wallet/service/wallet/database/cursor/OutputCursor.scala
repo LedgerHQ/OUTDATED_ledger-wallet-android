@@ -1,9 +1,9 @@
 /**
  *
- * LedgerTransactionApi
+ * OutputCursor
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 09/02/16.
+ * Created by Pierre Pollastri on 11/02/16.
  *
  * The MIT License (MIT)
  *
@@ -28,44 +28,19 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.core.device.api
+package co.ledger.wallet.service.wallet.database.cursor
 
-import co.ledger.wallet.wallet.DerivationPath
-import org.bitcoinj.core.{Transaction => JTransaction, Coin, Address}
+import android.database.Cursor
 
-import scala.concurrent.Future
+class OutputCursor(override val self: Cursor) extends CursorExtension(self) {
+  import co.ledger.wallet.service.wallet.database.DatabaseStructure.OutputTableColumns.ProjectionIndex._
 
-trait LedgerTransactionApi extends LedgerCommonApiInterface {
-  import LedgerTransactionApi._
-
-  def getTrustedInput(transaction: JTransaction, inputIndex: Int): Future[Input] = {
-    null
-  }
-
-  def startUntrustedTransaction(newTransaction: Boolean,
-                                inputIndex: Long,
-                                usedInputList: Array[Input],
-                                redeemScript: Array[Byte]): Future[Unit] = {
-    null
-  }
-
-  def finalizeInput(address: Address,
-                    amount: Coin,
-                    fees: Coin,
-                    changePath: DerivationPath): Future[Output] = {
-    null
-  }
-
-}
-
-object LedgerTransactionApi {
-
-  class Input {
-
-  }
-
-  class Output {
-
-  }
+  def uid = self.getString(Uid)
+  def transactionHash = self.getString(TransactionHash)
+  def index = self.getLong(Index)
+  def path = self.getString(Path)
+  def value = self.getLong(Value)
+  def pkScript = self.getString(PubKeyScript)
+  def address = self.getString(Address)
 
 }

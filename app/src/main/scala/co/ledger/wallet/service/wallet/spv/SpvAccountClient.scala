@@ -36,7 +36,8 @@ import java.util.concurrent.Executor
 import co.ledger.wallet.core.concurrent.AsyncCursor
 import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
 import co.ledger.wallet.service.wallet.database.model.AccountRow
-import co.ledger.wallet.wallet.{DerivationPath, Operation, ExtendedPublicKeyProvider, Account}
+import co.ledger.wallet.wallet._
+import org.bitcoinj.core.Wallet
 import org.bitcoinj.core._
 import org.bitcoinj.crypto.{ChildNumber, DeterministicKey}
 import co.ledger.wallet.wallet.events.WalletEvents._
@@ -71,6 +72,10 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
   override def xpub(): Future[DeterministicKey] = Future.successful(xpubWatcher.getWatchingKey)
 
   override def balance(): Future[Coin] = Future.successful(xpubWatcher.getBalance)
+
+  override def utxo(targetValue: Option[Coin]): Future[Array[Utxo]] = {
+    null
+  }
 
   def release(): Unit = {
     xpubWatcher.removeEventListener(_eventListener)

@@ -1,9 +1,9 @@
 /**
  *
- * LedgerTransactionApi
+ * Utxo
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 09/02/16.
+ * Created by Pierre Pollastri on 11/02/16.
  *
  * The MIT License (MIT)
  *
@@ -28,44 +28,31 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.core.device.api
+package co.ledger.wallet.wallet
 
-import co.ledger.wallet.wallet.DerivationPath
-import org.bitcoinj.core.{Transaction => JTransaction, Coin, Address}
+import co.ledger.wallet.service.wallet.database.model.OutputRow
+import org.bitcoinj.core.{Coin, Transaction}
 
-import scala.concurrent.Future
+trait Utxo {
 
-trait LedgerTransactionApi extends LedgerCommonApiInterface {
-  import LedgerTransactionApi._
-
-  def getTrustedInput(transaction: JTransaction, inputIndex: Int): Future[Input] = {
-    null
-  }
-
-  def startUntrustedTransaction(newTransaction: Boolean,
-                                inputIndex: Long,
-                                usedInputList: Array[Input],
-                                redeemScript: Array[Byte]): Future[Unit] = {
-    null
-  }
-
-  def finalizeInput(address: Address,
-                    amount: Coin,
-                    fees: Coin,
-                    changePath: DerivationPath): Future[Output] = {
-    null
-  }
+  def transaction: Transaction
+  def outputIndex: Long
+  def path: DerivationPath
+  def value: Coin
 
 }
 
-object LedgerTransactionApi {
+object Utxo {
 
-  class Input {
+  def apply(tx: Transaction, row: OutputRow): Utxo = new UtxoImpl(tx, row)
+
+
+  private class UtxoImpl(tx: Transaction, row: OutputRow) extends Utxo{
+
+    override val transaction = tx
+    override val outputIndex = row.index
+    override val path = row.path.get
+    override val value = row.value
 
   }
-
-  class Output {
-
-  }
-
 }
