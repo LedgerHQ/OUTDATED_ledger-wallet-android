@@ -145,6 +145,22 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
       None
   }
 
+  def utxo(account: Int): Cursor = {
+    import DatabaseStructure.OutputTableColumns.UtxoProjection._
+    val SelectUtxo =
+      s"""
+        | SELECT ${projection.mkString(",")} FROM $OutputTableName
+        | LEFT OUTER JOIN $InputTableName ON
+        |   $InputTransactionHash = $OutputTransactionHash AND
+        |   $InputIndex = $OutputIndex
+        | WHERE
+        |   $InputTransactionHash IS NULL AND
+        |   $OutputPath IS NOT NULL AND
+        |   $OutputPath LIKE 'm/$account''/'
+      """.stripMargin
+    SelectUtxo.execute()
+  }
+
   private implicit class SqlString(val sql: String) {
 
     def execute(params: Array[String] = Array()): Cursor = {

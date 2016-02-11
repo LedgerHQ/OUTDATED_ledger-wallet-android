@@ -35,7 +35,8 @@ import java.util.concurrent.Executor
 
 import co.ledger.wallet.core.concurrent.AsyncCursor
 import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
-import co.ledger.wallet.service.wallet.database.model.AccountRow
+import co.ledger.wallet.service.wallet.database.cursor.OutputCursor
+import co.ledger.wallet.service.wallet.database.model.{OutputRow, AccountRow}
 import co.ledger.wallet.wallet._
 import org.bitcoinj.core.Wallet
 import org.bitcoinj.core._
@@ -43,6 +44,7 @@ import org.bitcoinj.crypto.{ChildNumber, DeterministicKey}
 import co.ledger.wallet.wallet.events.WalletEvents._
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 
 class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
@@ -73,8 +75,22 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
 
   override def balance(): Future[Coin] = Future.successful(xpubWatcher.getBalance)
 
-  override def utxo(targetValue: Option[Coin]): Future[Array[Utxo]] = {
-    null
+  override def utxo(targetValue: Option[Coin]): Future[Array[Utxo]] = Future {
+    val database = wallet.databaseReader
+    val cursor = new OutputCursor(database.utxo(index))
+    if (cursor.getCount == 0 || !cursor.moveToFirst())
+      Array.empty[Utxo]
+    else {
+      val result = new ArrayBuffer[Utxo]()
+      var collectedValue = Coin.ZERO
+      do {
+        val row = new OutputRow(cursor)
+        val tx = xpubWatcher.getTransaction(new Sha256Hash(row.transactionHash))
+        collectedValue = collectedValue add row.value
+        result += Utxo(tx, row)
+      } while (cursor.moveToNext() && (targetValue.isEmpty || targetValue.get.isLessThan(collectedValue)))
+      result.toArray
+    }
   }
 
   def release(): Unit = {

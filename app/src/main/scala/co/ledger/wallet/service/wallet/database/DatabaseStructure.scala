@@ -210,6 +210,34 @@ object DatabaseStructure {
       val PubKeyScript = 5
       val Address = 6
     }
+
+    object UtxoProjection {
+
+      val OutputUid = s"$OutputTableName.$Uid"
+      val OutputTransactionHash = s"$OutputTableName.$TransactionHash"
+      val OutputIndex = s"$OutputTableName.$Index"
+      val OutputPath = s"$OutputTableName.$Path"
+      val OutputValue = s"$OutputTableName.$Value"
+      val OutputPkScript = s"$OutputTableName.$PubKeyScript"
+      val OutputAddress = s"$OutputTableName.$Address"
+      val InputTransactionHash = s"$InputTableName.${InputTableColumns.PreviousTx}"
+      val InputIndex = s"$InputTableName.${InputTableColumns.Index}"
+
+      val projection = Array(
+        OutputUid, OutputTransactionHash, OutputIndex, OutputPath,
+        OutputValue, OutputPkScript, OutputAddress)
+      object ProjectionIndex {
+        val Uid = 0
+        val TransactionHash = 1
+        val Index = 2
+        val Path = 3
+        val Value = 4
+        val PubKeyScript = 5
+        val Address = 6
+      }
+
+    }
+
   }
 
   object TransactionsInputsTableColumns extends BaseColumns {
