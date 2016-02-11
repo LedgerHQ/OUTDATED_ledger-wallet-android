@@ -39,20 +39,21 @@ trait Utxo {
   def outputIndex: Long
   def path: DerivationPath
   def value: Coin
+  def confirmation: Int
 
 }
 
 object Utxo {
 
-  def apply(tx: Transaction, row: OutputRow): Utxo = new UtxoImpl(tx, row)
+  def apply(tx: Transaction, row: OutputRow, confirmation: Int): Utxo = new UtxoImpl(tx, row, confirmation)
 
-
-  private class UtxoImpl(tx: Transaction, row: OutputRow) extends Utxo{
+  private class UtxoImpl(tx: Transaction, row: OutputRow, c: Int) extends Utxo{
 
     override val transaction = tx
     override val outputIndex = row.index
     override val path = row.path.get
     override val value = row.value
+    override val confirmation = c
 
   }
 }

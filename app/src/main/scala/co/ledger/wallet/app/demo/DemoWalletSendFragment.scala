@@ -87,14 +87,18 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
   }
 
   def onSendClicked(): Unit = {
-    val amount = Try(computeTotalAmount())
-    val address = addressEditText.getText.toString
-    if (amount.isFailure) {
-      Toast.makeText(getActivity, "Invalid amount", Toast.LENGTH_SHORT).show()
-    } else if (!BitcoinUtils.isAddressValid(address)) {
-      Toast.makeText(getActivity, "Invalid address", Toast.LENGTH_SHORT).show()
+    if (_utxo.isEmpty) {
+      Toast.makeText(this, "Computing fees please wait", Toast.LENGTH_SHORT).show()
     } else {
-      Toast.makeText(getActivity, "Send it now", Toast.LENGTH_SHORT).show()
+      val amount = Try(computeTotalAmount())
+      val address = addressEditText.getText.toString
+      if (amount.isFailure) {
+        Toast.makeText(getActivity, "Invalid amount", Toast.LENGTH_SHORT).show()
+      } else if (!BitcoinUtils.isAddressValid(address)) {
+        Toast.makeText(getActivity, "Invalid address", Toast.LENGTH_SHORT).show()
+      } else {
+        Toast.makeText(getActivity, "Send it now", Toast.LENGTH_SHORT).show()
+      }
     }
   }
 
@@ -103,20 +107,38 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
   }
 
   def computeTotalAmount(): Coin = {
+    import BitcoinUtils._
     val amount = Coin.parseCoin(amountEditText.getText.toString)
-    val fees = Fees(feesSpinner.getSelectedItemPosition)._2
-    val total = amount add fees
-    totalAmountTextView.setText(s"Total: ${total.toFriendlyString}")
-    total
+    val feesPerB = Fees(feesSpinner.getSelectedItemPosition)._2.divide(1000)
+    val fees: Coin = _utxo match {
+      case Some(inputs) =>
+        val picker = new DefaultUtxoPickPolicy(1)
+        val utxo = picker.pick(inputs, amount)
+        if (utxo.isDefined) {
+          val s = estimateTransactionSize(utxo.get, 2) // TODO: Do not consider that we always need change
+          val v = feesPerB multiply s.max
+          totalAmountTextView.setText(s"Total: ${(amount add v).toFriendlyString}")
+          v
+        } else {
+          totalAmountTextView.setText(s"You don't have enough funds")
+          feesPerB multiply 1000
+        }
+      case None =>
+        totalAmountTextView.setText(s"Computing total amount, please wait...")
+        feesPerB multiply 1000
+    }
+    amount add fees
   }
 
   def refreshUtxoList(): Unit = {
     val selectedAccount = accountSpinner.getSelectedItemPosition
     if (_currentAccount != selectedAccount) {
       _currentAccount = selectedAccount
+      _utxo = None
       wallet.account(selectedAccount).flatMap(_.utxo()) onComplete {
         case Success(utxo) =>
           _utxo = Some(utxo)
+          computeTotalAmount()
         case Failure(ex) =>
           ex.printStackTrace()
       }

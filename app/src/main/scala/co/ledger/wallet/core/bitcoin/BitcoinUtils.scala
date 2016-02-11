@@ -61,5 +61,41 @@ object BitcoinUtils {
   }
 
 
+  /** *
+    * Estimates the fees depending on the size of the transaction
+    * @param utxo The inputs you want to spend
+    * @param outputsValue The values in output. The method will add a change outputs if necessary
+    * @param feePerByte The number of fee per byte
+    * @return
+    */
+  def estimateTransactionFees(utxo: Array[Utxo],
+                              outputsValue: Array[Coin],
+                              feePerByte: Coin): Coin = {
+    null
+  }
+
+  trait UtxoPickPolicy {
+    def pick(availableUtxo: Array[Utxo], value: Coin): Option[Array[Utxo]]
+  }
+
+  class DefaultUtxoPickPolicy(minimumConfirmation: Int) extends UtxoPickPolicy{
+
+    override def pick(availableUtxo: Array[Utxo], value: Coin): Option[Array[Utxo]] = {
+      var collectedAmount = Coin.ZERO
+      val result = availableUtxo.sortBy(-_.confirmation) filter {(u) =>
+        val goalReached = value isLessThan collectedAmount
+        if (goalReached || u.confirmation < minimumConfirmation)
+          false
+        else {
+          collectedAmount = collectedAmount add u.value
+          true
+        }
+      }
+      if (collectedAmount isLessThan value)
+        None
+      else
+        Some(result)
+    }
+  }
 
 }
