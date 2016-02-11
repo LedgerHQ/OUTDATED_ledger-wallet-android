@@ -139,8 +139,10 @@ class DemoOpenWalletActivity extends BaseActivity
     case StartSynchronization() =>
     case StopSynchronization() =>
     case SynchronizationProgress(current, total, date) =>
-      title.setText(s"Synchronizing your wallet (${(current * 100) / total}%)")
-      text.setText(s"Please wait this will take a while...")
+      if (total > 0) {
+        title.setText(s"Synchronizing your wallet (${(current * 100) / total}%)")
+        text.setText(s"Please wait this will take a while...")
+      }
     case others =>
   }
 

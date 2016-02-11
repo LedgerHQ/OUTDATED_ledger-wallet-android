@@ -156,7 +156,7 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
         | WHERE
         |   $InputTransactionHash IS NULL AND
         |   $OutputPath IS NOT NULL AND
-        |   $OutputPath LIKE 'm/$account''/'
+        |   $OutputPath LIKE 'm/$account''/%'
       """.stripMargin
     SelectUtxo.execute()
   }

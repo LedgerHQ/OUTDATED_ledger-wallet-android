@@ -39,7 +39,7 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.AdapterView.OnItemSelectedListener
 import android.widget._
 import co.ledger.wallet.core.bitcoin.BitcoinUtils
-import co.ledger.wallet.wallet.Account
+import co.ledger.wallet.wallet.{Utxo, Account}
 import co.ledger.wallet.{common, R}
 import co.ledger.wallet.core.base.{WalletActivity, BaseFragment}
 import co.ledger.wallet.core.view.ViewFinder
@@ -48,7 +48,7 @@ import common._
 import org.bitcoinj.core.Coin
 
 import scala.concurrent.Future
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class DemoWalletSendFragment extends BaseFragment with ViewFinder {
 
@@ -82,6 +82,10 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
     scanButton onClick onScanClicked
   }
 
+  override def onResume(): Unit = {
+    super.onResume()
+  }
+
   def onSendClicked(): Unit = {
     val amount = Try(computeTotalAmount())
     val address = addressEditText.getText.toString
@@ -104,6 +108,19 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
     val total = amount add fees
     totalAmountTextView.setText(s"Total: ${total.toFriendlyString}")
     total
+  }
+
+  def refreshUtxoList(): Unit = {
+    val selectedAccount = accountSpinner.getSelectedItemPosition
+    if (_currentAccount != selectedAccount) {
+      _currentAccount = selectedAccount
+      wallet.account(selectedAccount).flatMap(_.utxo()) onComplete {
+        case Success(utxo) =>
+          _utxo = Some(utxo)
+        case Failure(ex) =>
+          ex.printStackTrace()
+      }
+    }
   }
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
@@ -129,6 +146,15 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
         val adapter = new ArrayAdapter[String](getActivity, android.R.layout.simple_list_item_1,
           display.toArray)
         accountSpinner.setAdapter(adapter)
+        accountSpinner.setOnItemSelectedListener(new OnItemSelectedListener {
+          override def onNothingSelected(parent: AdapterView[_]): Unit = ()
+
+          override def onItemSelected(parent: AdapterView[_], view: View, position: Int, id:
+          Long): Unit = {
+            refreshUtxoList()
+          }
+        })
+        refreshUtxoList()
     }
     val fees = Fees.map({case (name, _) => name})
     val adapter = new ArrayAdapter[String](getActivity, android.R.layout.simple_list_item_1, fees)
@@ -157,4 +183,7 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
 
     override def afterTextChanged(s: Editable): Unit = Try(computeTotalAmount())
   }
+
+  private var _utxo: Option[Array[Utxo]] = None
+  private var _currentAccount = -1
 }
