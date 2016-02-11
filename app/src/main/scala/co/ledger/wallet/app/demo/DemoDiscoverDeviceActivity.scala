@@ -136,6 +136,8 @@ class DemoDiscoverDeviceActivity extends BaseActivity
         LedgerApi(device)
       })
     } flatMap {(api) =>
+      api.deviceAttestation().map(_=> api)
+    } flatMap {(api) =>
       retrieveWalletName(api, dialog)
     } map {(identifier) =>
       if (requestType == ReconnectRequest) {

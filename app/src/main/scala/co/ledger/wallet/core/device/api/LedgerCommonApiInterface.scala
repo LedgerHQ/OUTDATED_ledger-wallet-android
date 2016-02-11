@@ -39,6 +39,7 @@ import co.ledger.wallet.core.os.ParcelableObject
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.core.utils.{BytesReader, BytesWriter, HexUtils}
 
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success, Try}
 import co.ledger.wallet.core.os.ParcelExtension._
@@ -114,6 +115,52 @@ trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
       Logger.d(s"<= ${HexUtils.bytesToHex(result)}")("APDU")
       new CommandResult(result)
     }
+  }
+
+  protected def sendApduSplit2(cla: Int,
+                               ins: Int,
+                               p1: Int,
+                               p2: Int,
+                               data: Array[Byte],
+                               data2: Array[Byte],
+                               acceptedSw: Array[Int]): Future[CommandResult] = {
+    val apdus = new ArrayBuffer[Array[Byte]]()
+    val maxBlockSize = 255 - data2.length
+    var offset = 0
+
+    while (offset < data.length) {
+      val blockLength = Math.min(maxBlockSize, data.length - offset)
+      val isLastBlock = (offset + blockLength) == data.length
+      val apdu = new BytesWriter(blockLength + 5 + (if (isLastBlock) data2.length else 0))
+      apdu
+        .writeByte(cla)
+        .writeByte(ins)
+        .writeByte(p1)
+        .writeByte(p2)
+        .writeByte(blockLength + (if (isLastBlock) data2.length else 0))
+        .writeByteArray(data.slice(offset, offset + blockLength))
+      if (isLastBlock)
+        apdu.writeByteArray(data2)
+      apdus += apdu.toByteArray
+      offset += blockLength
+    }
+
+    val promise = Promise[CommandResult]()
+    def iterate(index: Int): Unit = {
+      val apdu = apdus(index)
+      sendApdu(apdu) onComplete {
+        case Success(result) =>
+          if (acceptedSw.contains(result.sw) && (index + 1) < apdus.length) {
+            iterate(index + 1)
+          } else {
+           promise.success(result)
+          }
+        case Failure(ex) =>
+          promise.failure(ex)
+      }
+    }
+    iterate(0)
+    promise.future
   }
 
   protected def matchErrorsAndThrow(result: CommandResult): Unit = matchErrors(result).get

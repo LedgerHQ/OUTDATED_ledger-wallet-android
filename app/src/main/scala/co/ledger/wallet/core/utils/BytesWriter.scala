@@ -30,7 +30,13 @@
  */
 package co.ledger.wallet.core.utils
 
+import java.io.ByteArrayOutputStream
+
 class BytesWriter(length: Int) {
+
+  def this() {
+    this(-1)
+  }
 
   def writeByteArray(array: Array[Byte]): BytesWriter = {
     for (byte <- array)
@@ -43,8 +49,7 @@ class BytesWriter(length: Int) {
   }
 
   def writeByte(byte: Byte): BytesWriter = {
-    _buffer(_offset) = byte
-    _offset += 1
+    _buffer.write(byte)
     this
   }
 
@@ -62,8 +67,30 @@ class BytesWriter(length: Int) {
     writeByte((int & 0xFF).toByte)
   }
 
-  def toByteArray = _buffer
+  def writeLeInt(int: Int): BytesWriter = ???
 
-  private[this] var _offset = 0
-  private[this] val _buffer: Array[Byte] = new Array[Byte](length)
+  def writeVarInt(int: Long): BytesWriter = {
+    if (int < 0xfd) {
+      writeByte(int.toByte)
+    } else if (int <= 0xffff) {
+      writeByte(0xfd)
+      writeByte((int & 0xff).toByte)
+      writeByte(((int >> 8) & 0xff).toByte)
+    } else {
+      writeByte(0xfe)
+      writeByte((int & 0xff).toByte)
+      writeByte(((int >> 8) & 0xff).toByte)
+      writeByte(((int >> 16) & 0xff).toByte)
+      writeByte(((int >> 24) & 0xff).toByte)
+    }
+  }
+
+  def toByteArray = _buffer.toByteArray
+
+  private[this] val _buffer: ByteArrayOutputStream = {
+    if (length > 0)
+      new ByteArrayOutputStream(length)
+    else
+      new ByteArrayOutputStream()
+  }
 }

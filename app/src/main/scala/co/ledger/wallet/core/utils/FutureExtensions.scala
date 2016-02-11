@@ -31,10 +31,12 @@
 package co.ledger.wallet.core.utils
 
 import co.ledger.wallet
+import shapeless.Succ
 
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{Promise, Future}
 import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait FutureExtensions {
 
@@ -68,6 +70,30 @@ trait FutureExtensions {
       })
     }
 
+  }
+
+}
+
+object FutureExtensions {
+
+  def foreach[A, B](items: Array[A])(handler: (A) => Future[B]): Future[Array[B]] = {
+    val promise = Promise[Array[B]]()
+    val results = new ArrayBuffer[B]()
+    def iterate(index: Int): Unit = {
+      if (index < items.length) {
+        handler(items(index)) onComplete {
+          case Success(result) =>
+            results += result
+            iterate(index + 1)
+          case Failure(ex) =>
+            promise.failure(ex)
+        }
+      } else {
+        promise.success(results.toArray)
+      }
+    }
+    iterate(0)
+    promise.future
   }
 
 }
