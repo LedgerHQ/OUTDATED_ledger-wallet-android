@@ -30,7 +30,8 @@
  */
 package co.ledger.wallet.core.bitcoin
 
-import org.bitcoinj.core.NetworkParameters
+import co.ledger.wallet.wallet.Utxo
+import org.bitcoinj.core.{Coin, NetworkParameters}
 import org.bitcoinj.params.Networks
 
 object BitcoinUtils {
@@ -47,5 +48,18 @@ object BitcoinUtils {
     }
     None
   }
+
+  /** *
+    * Estimates the transaction size in bytes once it will be signed
+    * @param utxo The list of inputs
+    * @param outputsCount The number of outputs
+    * @return The estimated size of the signed transaction (plus or minus the number of inputs)
+    */
+  def estimateTransactionSize(utxo: Array[Utxo], outputsCount: Int): Range = {
+    val median: Int = 148 * utxo.length + outputsCount * 34 + 10
+    (median - utxo.length) to (median + utxo.length)
+  }
+
+
 
 }
