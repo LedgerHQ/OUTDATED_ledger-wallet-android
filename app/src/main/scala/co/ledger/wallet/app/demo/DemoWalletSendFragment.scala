@@ -312,7 +312,7 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
     }
 
     private def dequeueUiUpdate(): Unit = {
-      if (!_isPaused && _uiUpdates.length > 0) {
+      if (!_isPaused && _uiUpdates.nonEmpty) {
         val handler = _uiUpdates.dequeue()
         handler()
       }

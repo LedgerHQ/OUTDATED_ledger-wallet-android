@@ -37,14 +37,13 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
 trait LedgerTransactionEasyApi extends LedgerTransactionApi {
+  import LedgerTransactionApi._
 
   def buildTransaction(): TransactionBuilder = new TransactionBuilder
 
   class TransactionBuilder {
 
-    def sign(): Future[Transaction] = {
-      null
-    }
+    // Configuration
 
     def from(utxo: Array[Utxo]): TransactionBuilder = {
       _utxo ++= utxo
@@ -71,15 +70,52 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
       this
     }
 
+    def complete2FA(answer: Array[Byte]): TransactionBuilder = {
+      _2faAnswer = Option(answer)
+      this
+    }
+
     def onProgress(handler: (Int, Int) => Unit)(implicit ec: ExecutionContext): Unit = {
       _progressHandler = Option(handler -> ec)
     }
 
+    // Signature
+
+    def sign(): Future[Transaction] = {
+      if (_changeValue.isEmpty)
+        computeChangeValue()
+      else
+        Future.failed(new Exception("Sign not implemented"))
+    }
+
+    def computeChangeValue(): Future[Transaction] = {
+      require(_fees.isDefined, "You must set fees before signing")
+      require(_change.isDefined, "You must set a change before signing")
+      require(_utxo.nonEmpty, "You must use at least one UTXO")
+      require(_to.nonEmpty, "You must have at least one output")
+      val changeValue =
+        _utxo.map(_.value).fold(Coin.ZERO)(_ add _) subtract
+          _to.map(_._2).fold(Coin.ZERO)(_ add _) subtract _fees.get
+      require(changeValue.isPositive, "Not enough funds")
+      _changeValue = Some(changeValue)
+      sign()
+    }
+
+    private def needsChangeOutput = _changeValue.exists(!_.isZero)
+
+    // Configurable
     private var _progressHandler: Option[((Int, Int) => Unit, ExecutionContext)] = None
     private var _fees: Option[Coin] = None
     private var _utxo: ArrayBuffer[Utxo] = new ArrayBuffer[Utxo]()
     private var _to: ArrayBuffer[(Address, Coin)] = new ArrayBuffer[(Address, Coin)]()
     private var _change: Option[DerivationPath] = None
+    private var _2faAnswer: Option[Array[Byte]] = None
+
+    // Progression
+    private var _changeValue: Option[Coin] = None
+    private var _trustedInputs: Option[Array[Input]] = None
+
   }
+
 
 }

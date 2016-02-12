@@ -34,9 +34,11 @@ import co.ledger.wallet.wallet.Utxo
 import org.bitcoinj.core.{Coin, NetworkParameters}
 import org.bitcoinj.params.Networks
 
+import scala.util.Try
+
 object BitcoinUtils {
 
-  def isAddressValid(address: String): Boolean = Base58.verify(address)
+  def isAddressValid(address: String): Boolean = Try(Base58.verify(address)).getOrElse(false)
 
   def getNetworkFromCoinVersions(regularCoinVersion: Int, p2shCoinVersion: Int)
   : Option[NetworkParameters] = {
