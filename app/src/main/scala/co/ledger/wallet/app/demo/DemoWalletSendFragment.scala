@@ -30,29 +30,34 @@
  */
 package co.ledger.wallet.app.demo
 
+import java.util.UUID
+
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.widget.{AppCompatTextView, AppCompatEditText}
+import android.support.v7.widget.{AppCompatEditText, AppCompatTextView}
 import android.text.{Editable, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.AdapterView.OnItemSelectedListener
 import android.widget._
+import co.ledger.wallet.common._
+import co.ledger.wallet.core.base.{BaseFragment, DeviceActivity, WalletActivity}
 import co.ledger.wallet.core.bitcoin.BitcoinUtils
-import co.ledger.wallet.wallet.{Utxo, Account}
-import co.ledger.wallet.{common, R}
-import co.ledger.wallet.core.base.{WalletActivity, BaseFragment}
+import co.ledger.wallet.core.device.Device
+import co.ledger.wallet.core.device.api.{LedgerApi, LedgerTransactionEasyApi}
 import co.ledger.wallet.core.view.ViewFinder
-import co.ledger.wallet.core.widget.{EditText, TextView}
-import common._
-import org.bitcoinj.core.Coin
+import co.ledger.wallet.wallet.{Account, Utxo}
+import co.ledger.wallet.{R, common}
+import org.bitcoinj.core.{Address => JAddress, Coin}
 
-import scala.concurrent.Future
+import scala.collection.mutable
+import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success, Try}
 
 class DemoWalletSendFragment extends BaseFragment with ViewFinder {
 
   val ScanQrCodeRequest = 0x21
+  val ConnectDeviceRequest = 0x42
 
   val Fees = Array(
     "Normal" -> Coin.parseCoin("0.00001"),
@@ -84,6 +89,16 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
 
   override def onResume(): Unit = {
     super.onResume()
+    _txRequest foreach {(request) =>
+      request.resumeUi()
+    }
+  }
+
+  override def onPause(): Unit = {
+    super.onPause()
+    _txRequest foreach {(request) =>
+      request.pauseUi()
+    }
   }
 
   def onSendClicked(): Unit = {
@@ -97,9 +112,20 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
       } else if (!BitcoinUtils.isAddressValid(address)) {
         Toast.makeText(getActivity, "Invalid address", Toast.LENGTH_SHORT).show()
       } else {
-        Toast.makeText(getActivity, "Send it now", Toast.LENGTH_SHORT).show()
+        val value = Coin.parseCoin(amountEditText.getText.toString)
+        val fees = amount.get.subtract(value)
+        val accountIndex = accountSpinner.getSelectedItemPosition
+        _txRequest = Some(new CreateTransactionRequest(
+          _utxo.get, new JAddress(null, address), value, fees, accountIndex))
+        _txRequest.get.perform()
       }
     }
+  }
+
+  def connectDevice(): Unit = {
+    val intent = new Intent(this, classOf[DemoDiscoverDeviceActivity])
+    intent.putExtra(DemoDiscoverDeviceActivity.ExtraRequestType, DemoDiscoverDeviceActivity.ReconnectRequest)
+    startActivityForResult(intent, ConnectDeviceRequest)
   }
 
   def onScanClicked(): Unit = {
@@ -121,7 +147,7 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
           v
         } else {
           totalAmountTextView.setText(s"You don't have enough funds")
-          feesPerB multiply 1000
+          throw new Exception()
         }
       case None =>
         totalAmountTextView.setText(s"Computing total amount, please wait...")
@@ -152,6 +178,15 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
       addressEditText.setText(data.getStringExtra(Address))
       if (data.hasExtra(Amount))
         amountEditText.setText(data.getStringExtra(Amount))
+    } else if (requestCode == ConnectDeviceRequest) {
+      if (resultCode == Activity.RESULT_OK) {
+        val deviceUuid = data.getStringExtra(DemoDiscoverDeviceActivity.ExtraDeviceUuid)
+        getActivity.asInstanceOf[DeviceActivity].connectedDeviceUuid = UUID.fromString(deviceUuid)
+        val f = getActivity.asInstanceOf[DeviceActivity].connectedDevice
+        _txRequest.foreach(_.devicePromise.completeWith(f))
+      } else {
+        _txRequest.foreach(_.devicePromise.failure(new Exception("Unable to reconnect device")))
+      }
     }
   }
 
@@ -208,4 +243,85 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
 
   private var _utxo: Option[Array[Utxo]] = None
   private var _currentAccount = -1
+  private var _txRequest: Option[CreateTransactionRequest] = None
+
+  class CreateTransactionRequest(utxo: Array[Utxo],
+                                 address: JAddress,
+                                 value: Coin,
+                                 fees: Coin,
+                                 accountIndex: Int) {
+
+
+    def perform(): Unit = {
+      Toast.makeText(getActivity, "Performing...", Toast.LENGTH_LONG).show()
+      val deviceActivity = getActivity.asInstanceOf[DeviceActivity]
+      var transaction: LedgerTransactionEasyApi#TransactionBuilder = null
+      // Connect device
+      deviceActivity.connectedDevice recoverWith {
+        case all =>
+          connectDevice()
+          devicePromise.future
+      } map(LedgerApi(_)) flatMap {(api) =>
+        transaction = api.buildTransaction()
+        transaction
+          .from(utxo)
+          .to(address, value)
+          .fees(fees)
+        transaction.onProgress(onProgress)
+        wallet.account(accountIndex).flatMap(_.freshChangeAddress())
+      } flatMap {
+        case (_, path) =>
+          transaction.change(path)
+          transaction.sign()
+      } recoverWith {
+        // Time for 2FA
+        case ex: UnsupportedOperationException =>
+          transaction.sign()
+        case ex: Throwable =>
+          throw ex
+      } onComplete {
+        case Success(_) =>
+          _txRequest = None
+        case Failure(ex) =>
+          ex.printStackTrace()
+          Toast.makeText(getActivity, s"Failed to sign transaction: ${ex.getMessage}", Toast
+            .LENGTH_LONG).show()
+          _txRequest = None
+      }
+      // Get trusted inputs
+
+      //
+    }
+
+    def onProgress: (Int, Int) => Unit = {(current, total) =>
+
+    }
+
+    def resumeUi(): Unit = {
+      _isPaused = false
+      dequeueUiUpdate()
+    }
+
+    def pauseUi(): Unit = {
+      _isPaused = true
+    }
+
+    private def updateUi(handler: () => Unit): Unit = {
+      _uiUpdates.enqueue(handler)
+      dequeueUiUpdate()
+    }
+
+    private def dequeueUiUpdate(): Unit = {
+      if (!_isPaused && _uiUpdates.length > 0) {
+        val handler = _uiUpdates.dequeue()
+        handler()
+      }
+    }
+
+    private val _uiUpdates = new mutable.Queue[() => Unit]()
+    private var _isPaused = false
+    val devicePromise = Promise[Device]()
+  }
+
 }
+

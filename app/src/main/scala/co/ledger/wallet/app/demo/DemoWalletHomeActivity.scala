@@ -36,12 +36,13 @@ import android.support.v4.app.{Fragment, FragmentPagerAdapter}
 import android.support.v4.view.ViewPager
 import android.view.View
 import co.ledger.wallet.R
-import co.ledger.wallet.core.base.{BaseActivity, WalletActivity}
+import co.ledger.wallet.core.base.{DeviceActivity, BaseActivity, WalletActivity}
 import co.ledger.wallet.core.view.ViewFinder
 import co.ledger.wallet.wallet.events.WalletEvents._
 
 class DemoWalletHomeActivity extends BaseActivity
   with WalletActivity
+  with DeviceActivity
   with ViewFinder {
 
   lazy val viewPager: ViewPager = R.id.viewpager

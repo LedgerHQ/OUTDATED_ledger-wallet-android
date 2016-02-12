@@ -67,7 +67,41 @@ class BytesWriter(length: Int) {
     writeByte((int & 0xFF).toByte)
   }
 
-  def writeLeInt(int: Int): BytesWriter = ???
+  def writeLeInt(int: Int): BytesWriter = {
+    writeByte((int & 0xFF).toByte)
+    writeByte((int >> 8 & 0xFF).toByte)
+    writeByte((int >> 16 & 0xFF).toByte)
+    writeByte((int >> 24 & 0xFF).toByte)
+  }
+
+  def writeLeInt(int: Long): BytesWriter = {
+    writeByte((int & 0xFF).toByte)
+    writeByte((int >> 8 & 0xFF).toByte)
+    writeByte((int >> 16 & 0xFF).toByte)
+    writeByte((int >> 24 & 0xFF).toByte)
+  }
+
+  def writeLong(long: Long): BytesWriter = {
+    writeByte((long & 0xFF).toByte)
+    writeByte((long >> 8 & 0xFF).toByte)
+    writeByte((long >> 16 & 0xFF).toByte)
+    writeByte((long >> 24 & 0xFF).toByte)
+    writeByte((long >> 32 & 0xFF).toByte)
+    writeByte((long >> 40 & 0xFF).toByte)
+    writeByte((long >> 48 & 0xFF).toByte)
+    writeByte((long >> 56 & 0xFF).toByte)
+  }
+
+  def writeLeLong(long: Long): BytesWriter = {
+    writeByte((long >> 56 & 0xFF).toByte)
+    writeByte((long >> 48 & 0xFF).toByte)
+    writeByte((long >> 40 & 0xFF).toByte)
+    writeByte((long >> 32 & 0xFF).toByte)
+    writeByte((long >> 24 & 0xFF).toByte)
+    writeByte((long >> 16 & 0xFF).toByte)
+    writeByte((long >> 8 & 0xFF).toByte)
+    writeByte((long & 0xFF).toByte)
+  }
 
   def writeVarInt(int: Long): BytesWriter = {
     if (int < 0xfd) {

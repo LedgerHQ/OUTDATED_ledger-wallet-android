@@ -117,6 +117,47 @@ trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
     }
   }
 
+  protected def sendApduSplit(cla: Int,
+                               ins: Int,
+                               p1: Int,
+                               p2: Int,
+                               data: Array[Byte],
+                               acceptedSw: Array[Int]): Future[CommandResult] = {
+    val apdus = new ArrayBuffer[Array[Byte]]()
+    var offset = 0
+
+    while (offset < data.length) {
+      val blockLength = Math.min(255, data.length - offset)
+      val apdu = new BytesWriter(blockLength + 5)
+      apdu
+        .writeByte(cla)
+        .writeByte(ins)
+        .writeByte(p1)
+        .writeByte(p2)
+        .writeByte(blockLength)
+        .writeByteArray(data.slice(offset, offset + blockLength))
+      apdus += apdu.toByteArray
+      offset += blockLength
+    }
+
+    val promise = Promise[CommandResult]()
+    def iterate(index: Int): Unit = {
+      val apdu = apdus(index)
+      sendApdu(apdu) onComplete {
+        case Success(result) =>
+          if (acceptedSw.contains(result.sw) && (index + 1) < apdus.length) {
+            iterate(index + 1)
+          } else {
+            promise.success(result)
+          }
+        case Failure(ex) =>
+          promise.failure(ex)
+      }
+    }
+    iterate(0)
+    promise.future
+  }
+
   protected def sendApduSplit2(cla: Int,
                                ins: Int,
                                p1: Int,

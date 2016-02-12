@@ -30,7 +30,7 @@
  */
 package co.ledger.wallet.core.device.api
 
-import co.ledger.wallet.core.utils.BytesWriter
+import co.ledger.wallet.core.utils.{BytesReader, BytesWriter}
 import co.ledger.wallet.wallet.{Utxo, DerivationPath}
 import org.bitcoinj.core.{Transaction => JTransaction, Coin, Address}
 
@@ -42,25 +42,61 @@ trait LedgerTransactionApi extends LedgerCommonApiInterface {
 
   def getTrustedInput(utxo: Utxo): Future[Input] = $("GET TRUSTED INPUT") {
     import co.ledger.wallet.core.utils.FutureExtensions._
-
+    // Write the transaction of the given utxo
+    // Write header
     val writer = new BytesWriter()
     writer.writeInt(utxo.outputIndex)
-    writer.writeInt(utxo.transaction.getVersion)
+    writer.writeLeInt(utxo.transaction.getVersion)
     writer.writeVarInt(utxo.transaction.getInputs.size())
     sendApdu(0xe0, 0x42, 0x00, 0x00, writer.toByteArray, 0x00) flatMap {(result) =>
       matchErrorsAndThrow(result)
+      // Write each input
       foreach(utxo.transaction.getInputs.asScala.toArray) {(input) =>
         val promise = Promise[Null]()
         val writer = new BytesWriter()
         writer.writeByteArray(input.getOutpoint.unsafeBitcoinSerialize())
         writer.writeVarInt(input.getScriptBytes.length)
-
-        promise.future
+        sendApdu(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, 0x00) flatMap {(result) =>
+          matchErrorsAndThrow(result)
+          val writer = new BytesWriter()
+          writer.writeByteArray(input.getScriptBytes)
+          val sequence = new BytesWriter(8)
+          sequence.writeLeLong(input.getSequenceNumber)
+          sendApduSplit2(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, sequence.toByteArray, Array(0x9000))
+        } map {(result) =>
+          matchErrorsAndThrow(result)
+          null
+        }
       }
-      utxo.transaction.getInputs.asScala map {(input) =>
-
+    } flatMap {(_) =>
+      // Write number of outputs
+      val writer = new BytesWriter()
+      writer.writeVarInt(utxo.transaction.getOutputs.size())
+      sendApdu(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, 0x00)
+    } flatMap {(r) =>
+      matchErrorsAndThrow(r)
+      // Write each output
+      foreach(utxo.transaction.getOutputs.asScala.toArray) {(output) =>
+        val writer = new BytesWriter()
+        writer.writeLeLong(output.getValue.getValue)
+        writer.writeVarInt(output.getScriptBytes.length)
+        sendApdu(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, 0x00) flatMap {(r) =>
+          matchErrorsAndThrow(r)
+          val writer = new BytesWriter()
+          writer.writeByteArray(output.getScriptBytes)
+          sendApduSplit(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, Array(0x9000))
+        } map {(r) =>
+          matchErrorsAndThrow(r)
+          null
+        }
       }
-      null
+    } flatMap {(_) =>
+      val writer = new BytesWriter()
+      writer.writeLeLong(utxo.transaction.getLockTime)
+      sendApdu(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, 0x00)
+    } map {(result) =>
+      matchErrorsAndThrow(result)
+      new Input(result.data, true)
     }
     /*
     ByteArrayOutputStream data = new ByteArrayOutputStream();
@@ -117,7 +153,7 @@ trait LedgerTransactionApi extends LedgerCommonApiInterface {
 
 object LedgerTransactionApi {
 
-  class Input {
+  class Input(val value: BytesReader, val isTrusted: Boolean) {
 
   }
 

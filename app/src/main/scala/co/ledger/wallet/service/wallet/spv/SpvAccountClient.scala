@@ -66,6 +66,16 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
     key.toAddress(wallet.networkParameters)
   }
 
+  override def freshChangeAddress(): Future[(Address, DerivationPath)] = Future {
+    val reader = wallet.asInstanceOf[SpvWalletClient].databaseReader
+    val path = DerivationPath(reader.lastUsedPath(index, 1).getOrElse(s"m/$index'/1/0"))
+    val newPath = new DerivationPath(path.parent, path.childNum + 1)
+    val childNums = newPath.toBitcoinJList
+    childNums.set(0, new ChildNumber(0, true))
+    val key = xpubWatcher.getActiveKeychain.getKeyByPath(childNums, true)
+    key.toAddress(wallet.networkParameters) -> newPath
+  }
+
   override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = ???
 
   override def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit] =

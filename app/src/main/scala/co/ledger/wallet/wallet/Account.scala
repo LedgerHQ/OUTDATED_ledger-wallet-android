@@ -42,6 +42,7 @@ trait Account {
   def wallet: Wallet
 
   def freshPublicAddress(): Future[Address]
+  def freshChangeAddress(): Future[(Address, DerivationPath)]
   def xpub(): Future[DeterministicKey]
   def balance(): Future[Coin]
   def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit]

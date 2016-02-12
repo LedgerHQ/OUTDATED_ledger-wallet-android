@@ -36,6 +36,7 @@ import shapeless.Succ
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{Promise, Future}
 import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
+import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
 trait FutureExtensions {
@@ -76,7 +77,9 @@ trait FutureExtensions {
 
 object FutureExtensions {
 
-  def foreach[A, B](items: Array[A])(handler: (A) => Future[B]): Future[Array[B]] = {
+  def foreach[A, B](items: Array[A])
+                   (handler: (A) => Future[B])
+                   (implicit classTag: ClassTag[B]): Future[Array[B]] = {
     val promise = Promise[Array[B]]()
     val results = new ArrayBuffer[B]()
     def iterate(index: Int): Unit = {

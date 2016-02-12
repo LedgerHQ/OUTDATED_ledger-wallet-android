@@ -45,7 +45,8 @@ class LedgerApi(override val device: Device)
   with LedgerFirmwareApi
   with LedgerDerivationApi
   with LedgerLifecycleApi
-  with LedgerTransactionApi {
+  with LedgerTransactionApi
+  with LedgerTransactionEasyApi {
   override implicit val ec: ExecutionContext = co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
 
 
