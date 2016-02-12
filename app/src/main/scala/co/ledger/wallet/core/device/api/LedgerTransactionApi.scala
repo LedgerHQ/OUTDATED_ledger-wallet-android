@@ -139,15 +139,59 @@ trait LedgerTransactionApi extends LedgerCommonApiInterface {
                                 inputIndex: Long,
                                 usedInputList: Array[Input],
                                 redeemScript: Array[Byte]): Future[Unit] = {
+
+    null
+    /*
+    // Start building a fake transaction with the passed inputs
+		ByteArrayOutputStream data = new ByteArrayOutputStream();
+		BufferUtils.writeBuffer(data, BitcoinTransaction.DEFAULT_VERSION);
+		VarintUtils.write(data, usedInputList.length);
+		exchangeApdu(BTCHIP_CLA, BTCHIP_INS_HASH_INPUT_START, (byte)0x00, (newTransaction ? (byte)0x00 : (byte)0x80), data.toByteArray(), OK);
+		// Loop for each input
+		long currentIndex = 0;
+		for (BTChipInput input : usedInputList) {
+			byte[] script = (currentIndex == inputIndex ? redeemScript : new byte[0]);
+			data = new ByteArrayOutputStream();
+			data.write(input.isTrusted() ? (byte)0x01 : (byte)0x00);
+			if (input.isTrusted()) {
+				// untrusted inputs have constant length
+				data.write(input.getValue().length);
+			}
+			BufferUtils.writeBuffer(data, input.getValue());
+			VarintUtils.write(data, script.length);
+			exchangeApdu(BTCHIP_CLA, BTCHIP_INS_HASH_INPUT_START, (byte)0x80, (byte)0x00, data.toByteArray(), OK);
+			data = new ByteArrayOutputStream();
+			BufferUtils.writeBuffer(data, script);
+			BufferUtils.writeBuffer(data, BitcoinTransaction.DEFAULT_SEQUENCE);
+			exchangeApduSplit(BTCHIP_CLA, BTCHIP_INS_HASH_INPUT_START, (byte)0x80, (byte)0x00, data.toByteArray(), OK);
+			currentIndex++;
+		}
+     */
+  }
+
+  def finalizeInput(outputAddress: Address,
+                    amount: Coin,
+                    fees: Coin,
+                    changePath: DerivationPath): Future[Array[Byte]] = {
     null
   }
 
-  def finalizeInput(address: Address,
-                    amount: Coin,
-                    fees: Coin,
-                    changePath: DerivationPath): Future[Output] = {
-    null
-  }
+  /*
+  public BTChipOutput finalizeInput(String outputAddress, String amount, String fees, String changePath) throws BTChipException {
+		BTChipOutput result = null;
+		ByteArrayOutputStream data = new ByteArrayOutputStream();
+		byte path[] = BIP32Utils.splitPath(changePath);
+		data.write(outputAddress.length());
+		BufferUtils.writeBuffer(data, outputAddress.getBytes());
+		BufferUtils.writeUint64BE(data, CoinFormatUtils.toSatoshi(amount));
+		BufferUtils.writeUint64BE(data, CoinFormatUtils.toSatoshi(fees));
+		BufferUtils.writeBuffer(data, path);
+		byte[] response = exchangeApdu(BTCHIP_CLA, BTCHIP_INS_HASH_INPUT_FINALIZE, (byte)0x02, (byte)0x00, data.toByteArray(), OK);
+		result = convertResponseToOutput(response);
+		return result;
+	}
+   */
+
 
 }
 

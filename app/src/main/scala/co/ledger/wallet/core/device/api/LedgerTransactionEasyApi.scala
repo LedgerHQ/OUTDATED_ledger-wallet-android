@@ -84,11 +84,15 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
     def sign(): Future[Transaction] = {
       if (_changeValue.isEmpty)
         computeChangeValue()
+      else if (_trustedInputs.isEmpty)
+        fetchTrustedInputs()
+      else if (_signatures.isEmpty)
+        signInputs()
       else
-        Future.failed(new Exception("Sign not implemented"))
+        buildTransaction()
     }
 
-    def computeChangeValue(): Future[Transaction] = {
+    private def computeChangeValue(): Future[Transaction] = {
       require(_fees.isDefined, "You must set fees before signing")
       require(_change.isDefined, "You must set a change before signing")
       require(_utxo.nonEmpty, "You must use at least one UTXO")
@@ -99,6 +103,32 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
       require(changeValue.isPositive, "Not enough funds")
       _changeValue = Some(changeValue)
       sign()
+    }
+
+    private def fetchTrustedInputs(): Future[Transaction] = {
+      var trustedInputs = new ArrayBuffer[Input]()
+      def iterate(index: Int): Future[Any] = {
+        getTrustedInput(_utxo(index)) flatMap {(input) =>
+          trustedInputs += input
+          if (index + 1 < _utxo.length) {
+            iterate(index + 1)
+          } else {
+            Future.successful(null)
+          }
+        }
+      }
+      iterate(0) flatMap {(_) =>
+        _trustedInputs = Option(trustedInputs.toArray)
+        sign()
+      }
+    }
+
+    private def signInputs(): Future[Transaction] = {
+      null
+    }
+
+    private def buildTransaction(): Future[Transaction] = {
+      null
     }
 
     private def needsChangeOutput = _changeValue.exists(!_.isZero)
@@ -114,7 +144,7 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
     // Progression
     private var _changeValue: Option[Coin] = None
     private var _trustedInputs: Option[Array[Input]] = None
-
+    private var _signatures: Array[Array[Byte]] = Array()
   }
 
 

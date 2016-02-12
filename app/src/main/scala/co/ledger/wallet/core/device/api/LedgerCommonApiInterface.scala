@@ -217,8 +217,9 @@ trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
         case 0x6A82 => Failure(LedgerApiFileNotFoundException())
         case 0x6B00 => Failure(LedgerApiInvalidParameterException())
         case 0x6D00 => Failure(LedgerApiNotImplementedException())
+        case 0x6FAA => Failure(LedgerApiNeedUnplugException())
         case code: Int =>
-          if ((code | 0x6F00) == 0x6F00)
+          if ((code & 0x6F00) == 0x6F00)
             Failure(LedgerApiTechnicalProblemException(code))
           else
             Failure(LedgerApiUnknownErrorException(code))
@@ -301,6 +302,8 @@ object LedgerCommonApiInterface {
     LedgerApiException(0x6B00, "Incorrect parameter P1 or P2")
   case class LedgerApiNotImplementedException() extends
     LedgerApiException(0x6D00, "Not implemented")
+  case class LedgerApiNeedUnplugException() extends
+    LedgerApiException(0x6FAA, "You Ledger need to be unplugged")
   case class LedgerApiTechnicalProblemException(code: Int) extends
     LedgerApiException(code, "Technical problem (Internal error, please report)")
   case class LedgerApiUnknownErrorException(code: Int) extends
