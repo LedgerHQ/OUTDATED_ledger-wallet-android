@@ -44,6 +44,8 @@ class BytesWriter(length: Int) {
     this
   }
 
+  def writeReversedByteArray(array: Array[Byte]): BytesWriter = writeByteArray(array.reverse)
+
   def writeByte(byte: Int): BytesWriter = {
     writeByte(byte.toByte)
   }
@@ -93,14 +95,11 @@ class BytesWriter(length: Int) {
   }
 
   def writeLeLong(long: Long): BytesWriter = {
-    writeByte((long >> 56 & 0xFF).toByte)
-    writeByte((long >> 48 & 0xFF).toByte)
-    writeByte((long >> 40 & 0xFF).toByte)
-    writeByte((long >> 32 & 0xFF).toByte)
-    writeByte((long >> 24 & 0xFF).toByte)
-    writeByte((long >> 16 & 0xFF).toByte)
-    writeByte((long >> 8 & 0xFF).toByte)
-    writeByte((long & 0xFF).toByte)
+    val bytes = new Array[Byte](8)
+    for (i <- 0 until 8) {
+      bytes(i) = (long >> (8 - i - 1 << 3)).toByte
+    }
+    writeReversedByteArray(bytes)
   }
 
   def writeVarInt(int: Long): BytesWriter = {
