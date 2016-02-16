@@ -32,6 +32,8 @@ package co.ledger.wallet.core.utils
 
 import java.io.ByteArrayOutputStream
 
+import co.ledger.wallet.wallet.DerivationPath
+
 class BytesWriter(length: Int) {
 
   def this() {
@@ -116,6 +118,15 @@ class BytesWriter(length: Int) {
       writeByte(((int >> 16) & 0xff).toByte)
       writeByte(((int >> 24) & 0xff).toByte)
     }
+  }
+
+  def writeDerivationPath(path: DerivationPath): BytesWriter = {
+    this.writeByte(path.length)
+    for (i <- 0 to path.depth) {
+      val n = path(i).get
+      this.writeInt(n.childNum)
+    }
+    this
   }
 
   def toByteArray = _buffer.toByteArray

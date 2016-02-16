@@ -30,8 +30,10 @@
  */
 package co.ledger.wallet.core.device.api
 
+import co.ledger.wallet.core.utils.BytesWriter
 import co.ledger.wallet.wallet.{DerivationPath, Utxo}
 import org.bitcoinj.core.{Address, Coin, Transaction}
+import org.bitcoinj.script.{ScriptBuilder, Script}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
@@ -65,8 +67,8 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
       this
     }
 
-    def change(path: DerivationPath): TransactionBuilder = {
-      _change = Option(path)
+    def change(path: DerivationPath, address: Address): TransactionBuilder = {
+      _change = Option((path, address))
       this
     }
 
@@ -79,11 +81,16 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
       _progressHandler = Option(handler -> ec)
     }
 
+    private var _signatureValidationRequest: Option[SignatureValidationRequest] = None
+    def signatureValidationRequest = _signatureValidationRequest
+
     // Signature
 
     def sign(): Future[Transaction] = {
       if (_changeValue.isEmpty)
         computeChangeValue()
+      else if (_rawOutputs.isEmpty)
+        prepareOutputs()
       else if (_trustedInputs.isEmpty)
         fetchTrustedInputs()
       else if (_signatures.isEmpty)
@@ -92,7 +99,7 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
         buildTransaction()
     }
 
-    private def computeChangeValue(): Future[Transaction] = {
+    private def computeChangeValue(): Future[Transaction] = Future {
       require(_fees.isDefined, "You must set fees before signing")
       require(_change.isDefined, "You must set a change before signing")
       require(_utxo.nonEmpty, "You must use at least one UTXO")
@@ -102,6 +109,29 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
           _to.map(_._2).fold(Coin.ZERO)(_ add _) subtract _fees.get
       require(changeValue.isPositive, "Not enough funds")
       _changeValue = Some(changeValue)
+    } flatMap {(_) =>
+      sign()
+    }
+
+    private def prepareOutputs(): Future[Transaction] = {
+
+      def writeOutput(writer: BytesWriter, output: (Address, Coin)) = {
+        writer.writeLeLong(output._2.getValue)
+        val script = ScriptBuilder.createOutputScript(output._1)
+        writer.writeVarInt(script.getProgram.length)
+        writer.writeByteArray(script.getProgram)
+      }
+
+      val writer = new BytesWriter()
+      val outputsCount = _to.length + (if (needsChangeOutput) 1 else 0)
+
+      writer.writeVarInt(outputsCount)
+      _to foreach {(pair) =>
+        writeOutput(writer, pair)
+      }
+      if (needsChangeOutput)
+        writeOutput(writer, (_change.get._2, _changeValue.get))
+      _rawOutputs = Option(writer.toByteArray)
       sign()
     }
 
@@ -124,11 +154,23 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
     }
 
     private def signInputs(): Future[Transaction] = {
-      null
+      val signatures = new ArrayBuffer[Array[Byte]]()
+      def iterate(index: Int): Future[Unit] = {
+        val utxo = _utxo(index)
+        val redeemScript = utxo.transaction.getOutput(utxo.outputIndex).getScriptBytes
+        startUntrustedTransaction(index == 0, index, _trustedInputs.get, redeemScript) flatMap {(_) =>
+          finalizeInput(_rawOutputs.get, _to.head._1, _to.head._2, _fees.get, _change.get._1, needsChangeOutput)
+        }
+        null
+      }
+      iterate(0) flatMap {(_) =>
+        _signatures = signatures.toArray
+        sign()
+      }
     }
 
     private def buildTransaction(): Future[Transaction] = {
-      null
+      Future.successful(null)
     }
 
     private def needsChangeOutput = _changeValue.exists(!_.isZero)
@@ -138,11 +180,12 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
     private var _fees: Option[Coin] = None
     private var _utxo: ArrayBuffer[Utxo] = new ArrayBuffer[Utxo]()
     private var _to: ArrayBuffer[(Address, Coin)] = new ArrayBuffer[(Address, Coin)]()
-    private var _change: Option[DerivationPath] = None
+    private var _change: Option[(DerivationPath, Address)] = None
     private var _2faAnswer: Option[Array[Byte]] = None
 
     // Progression
     private var _changeValue: Option[Coin] = None
+    private var _rawOutputs: Option[Array[Byte]] = None
     private var _trustedInputs: Option[Array[Input]] = None
     private var _signatures: Array[Array[Byte]] = Array()
   }

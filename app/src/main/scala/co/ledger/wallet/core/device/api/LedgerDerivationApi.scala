@@ -50,11 +50,7 @@ trait LedgerDerivationApi extends LedgerFirmwareApi {
         throw LedgerUnsupportedFirmwareException()
       }
       val writer = new BytesWriter(path.length * 4 + 1)
-      writer.writeByte(path.length)
-      for (i <- 0 to path.depth) {
-        val n = path(i).get
-        writer.writeInt(n.childNum)
-      }
+      writer.writeDerivationPath(path)
       $$(s"GET PUBLIC ADDRESS $path") {
         sendApdu(0xe0, 0x40, 0x00, 0x00, writer.toByteArray, 0x00) map {(result) =>
           matchErrorsAndThrow(result)

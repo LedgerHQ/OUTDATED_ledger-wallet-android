@@ -50,6 +50,8 @@ trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
   implicit val ec: ExecutionContext
   def device: Device
 
+  val Ok = Array(0x9000)
+
   abstract override def writeToParcel(dest: Parcel, flags: Int): Unit = {
     super.writeToParcel(dest, flags)
     // Stackable!
