@@ -127,13 +127,15 @@ trait LedgerTransactionApi extends LedgerCommonApiInterface {
           if (input.isTrusted) {
             writer.writeByte(input.value.length)
           }
-          writer.writeByteArray(input.value.bytes)
+          writer.writeByteArray(input.bytes)
           writer.writeVarInt(script.length)
+          Logger.d(s"Write value ${HexUtils.bytesToHex(writer.toByteArray)}")("APDU")
           sendApdu(0xe0, 0x44, 0x80, 0x00, writer.toByteArray, 0x00) flatMap {(result) =>
             matchErrorsAndThrow(result)
             val writer = new BytesWriter()
             writer.writeByteArray(script)
             writer.writeLeInt(DefaultSequence)
+            Logger.d(s"Write REDEEM ${HexUtils.bytesToHex(writer.toByteArray)}")("APDU")
             sendApduSplit(0xe0, 0x44, 0x80, 0x00, writer.toByteArray, Ok)
           }
         }
@@ -171,48 +173,48 @@ trait LedgerTransactionApi extends LedgerCommonApiInterface {
   def finalizeInput(outputAddress: Address,
                     amount: Coin,
                     fees: Coin,
-                    changePath: DerivationPath): Future[Unit] = $("FINALIZE INPUT") {
+                    changePath: DerivationPath): Future[Output] = $("FINALIZE INPUT") {
     val writer = new BytesWriter()
-    writer.writeInt(outputAddress.toString.length)
+    writer.writeByte(outputAddress.toString.length)
     writer.writeByteArray(outputAddress.toString.getBytes)
     writer.writeLong(amount.getValue)
     writer.writeLong(fees.getValue)
     writer.writeDerivationPath(changePath)
     sendApdu(0xe0, 0x46, 0x02, 0x00, writer.toByteArray, 0x00).map {(result) =>
       matchErrorsAndThrow(result)
-      tryThrow2FAException(result)
-      ()
+      Output(result.data)
     }
   }
 
   def finalizeInputFull(data: Array[Byte],
                         changePath: Option[DerivationPath],
-                        skipChangeCheck: Boolean): Future[Unit] = {
-    if (!skipChangeCheck && changePath.isDefined) {
-      val path = new BytesWriter()
-      path.writeDerivationPath(changePath.get)
-      sendApdu(0xe0, 0x4a, 0xff, 0x00, path.toByteArray, 0x00) map {(result) =>
-        result.sw == 0x6B00 || result.sw == 0x6A86
+                        skipChangeCheck: Boolean): Future[Output] = {
+    {
+      if (!skipChangeCheck && changePath.isDefined) {
+        val path = new BytesWriter()
+        path.writeDerivationPath(changePath.get)
+        sendApdu(0xe0, 0x4a, 0xff, 0x00, path.toByteArray, 0x00) map {(result) =>
+          result.sw == 0x6B00 || result.sw == 0x6A86 || result.sw == 0x6985
+        }
+      } else if (!skipChangeCheck && changePath.isDefined) {
+        sendApdu(0xe0, 0x4a, 0xff, 0x00, Array(0x00.toByte), 0x00) map {(result) =>
+          result.sw == 0x6B00 || result.sw == 0x6A86 || result.sw == 0x6985
+        }
+      } else {
+        Future.successful(false)
       }
-    } else if (!skipChangeCheck && changePath.isDefined) {
-      sendApdu(0xe0, 0x4a, 0xff, 0x00, Array(0x00.toByte), 0x00) map {(result) =>
-        result.sw == 0x6B00 || result.sw == 0x6A86
-      }
-    } else {
-      Future.successful(false)
     } flatMap {(oldApi) =>
 
-      def iterate(offset: Int): Future[Unit] = {
+      def iterate(offset: Int): Future[Output] = {
         val blockLength = if (data.length - offset > 255) 255 else data.length - offset
         val p1 = if (offset + blockLength >= data.length) 0x80 else 0x00
         val p2 = 0x00
         sendApdu(0xe0, 0x4a, p1, p2, data.slice(offset, offset + blockLength), 0x00) flatMap { (result) =>
           matchErrorsAndThrow(result)
           if (offset + blockLength < data.length) {
-            tryThrow2FAException(result)
             iterate(offset + blockLength)
           } else
-            Future.successful()
+            Future.successful(Output(result.data))
         }
       }
 
@@ -270,16 +272,18 @@ trait LedgerTransactionApi extends LedgerCommonApiInterface {
                     amount: Coin,
                     fees: Coin,
                     changePath: DerivationPath,
-                    requireChange: Boolean): Future[Unit] = {
-    if (requireChange) {
-      val path = new BytesWriter()
-      path.writeDerivationPath(changePath)
-      sendApdu(0xe0, 0x4a, 0xFF, 0x00, path.toByteArray, 0x00) map {(result) =>
-        result.sw == 0x6B00 || result.sw == 0x6A86
-      }
-    } else {
-      sendApdu(0xe0, 0x4a, 0xFF, 0x00, Array(0x00.toByte), 0x00) map {(result) =>
-        result.sw == 0x6B00 || result.sw == 0x6A86
+                    requireChange: Boolean): Future[Output] = {
+    {
+      if (requireChange) {
+        val path = new BytesWriter()
+        path.writeDerivationPath(changePath)
+        sendApdu(0xe0, 0x4a, 0xFF, 0x00, path.toByteArray, 0x00) map {(result) =>
+          result.sw == 0x6B00 || result.sw == 0x6A86 || result.sw == 0x6985
+        }
+      } else {
+        sendApdu(0xe0, 0x4a, 0xFF, 0x00, Array(0x00.toByte), 0x00) map {(result) =>
+          result.sw == 0x6B00 || result.sw == 0x6A86 || result.sw == 0x6985
+        }
       }
     } flatMap {(oldApi) =>
       if (oldApi)
@@ -309,83 +313,20 @@ trait LedgerTransactionApi extends LedgerCommonApiInterface {
       }
    */
 
-  def tryThrow2FAException(result: CommandResult): Unit = {
-    val length = result.data.readNextByte().toInt
-    val answer = result.data.readNextBytes(length)
-    val userValidationMode = result.data.readNextByte().toInt
-    import ValidationMode._
-    userValidationMode match {
-      case None => // No 2FA
-      case Keyboard =>
-        val request = new SignatureValidationRequest(Keyboard, answer)
-        throw new SignatureNeeds2FAValidationException(request)
-      case DeprecatedKeycard =>
-        val request = new DeprecatedKeyCardSignatureValidationRequest(DeprecatedKeycard, answer)
-        throw new SignatureNeeds2FAValidationException(request)
-      case KeyCardScreen =>
-        val request = new KeyCardSignatureValidationRequest(KeyCardScreen, answer)
-        throw new SignatureNeeds2FAValidationException(request)
-      case KeyCard =>
-        val request = new KeyCardSignatureValidationRequest(KeyCard, answer)
-        throw new SignatureNeeds2FAValidationException(request)
-      case KeyCardNfc =>
-        val request = new KeyCardNfcSignatureValidationRequest(KeyCardNfc, answer)
-        throw new SignatureNeeds2FAValidationException(request)
-      case unsupported =>
-        throw Unsupported2FaValidationModeException(unsupported)
+  def untrustedHashSign(privateKeyPath: DerivationPath, pin: Array[Byte], lockTime: Long = 0,
+                        sigHashType: Byte = 0x01): Future[Array[Byte]] = {
+    val writer = new BytesWriter()
+    writer.writeDerivationPath(privateKeyPath)
+    writer.writeByte(pin.length)
+    writer.writeByteArray(pin)
+    writer.writeInt(lockTime)
+    writer.writeByte(sigHashType)
+    sendApdu(0xe0, 0x48, 0x00, 0x00, writer.toByteArray, 0x00).map {(result) =>
+      matchErrorsAndThrow(result)
+      val signature = result.data.readNextBytesUntilEnd()
+      signature(0) = 0x30.toByte
+      signature
     }
-  }
-  /*
-  BTChipOutput result = null;
-		byte[] value = new byte[(int)(response[0] & 0xff)];
-		System.arraycopy(response, 1, value, 0, value.length);
-		byte userConfirmationValue = response[1 + value.length];
-		if (userConfirmationValue == UserConfirmation.NONE.getValue()) {
-			result = new BTChipOutput(value, UserConfirmation.NONE);
-		}
-		else
-		if (userConfirmationValue == UserConfirmation.KEYBOARD.getValue()) {
-			result = new BTChipOutput(value, UserConfirmation.KEYBOARD);
-		}
-		else
-		if (userConfirmationValue == UserConfirmation.KEYCARD_DEPRECATED.getValue()) {
-			byte[] keycardIndexes = new byte[response.length - 2 - value.length];
-			System.arraycopy(response, 2 + value.length, keycardIndexes, 0, keycardIndexes.length);
-			result = new BTChipOutputKeycard(value, UserConfirmation.KEYCARD_DEPRECATED, keycardIndexes);
-		}
-		else
-		if (userConfirmationValue == UserConfirmation.KEYCARD.getValue()) {
-			byte keycardIndexesLength = response[2 + value.length];
-			byte[] keycardIndexes = new byte[keycardIndexesLength];
-			System.arraycopy(response, 3 + value.length, keycardIndexes, 0, keycardIndexes.length);
-			result = new BTChipOutputKeycard(value, UserConfirmation.KEYCARD, keycardIndexes);
-		}
-		else
-		if (userConfirmationValue == UserConfirmation.KEYCARD_NFC.getValue()) {
-			byte keycardIndexesLength = response[2 + value.length];
-			byte[] keycardIndexes = new byte[keycardIndexesLength];
-			System.arraycopy(response, 3 + value.length, keycardIndexes, 0, keycardIndexes.length);
-			result = new BTChipOutputKeycard(value, UserConfirmation.KEYCARD_NFC, keycardIndexes);
-		}
-		else
-		if (userConfirmationValue == UserConfirmation.KEYCARD_SCREEN.getValue()) {
-			byte keycardIndexesLength = response[2 + value.length];
-			byte[] keycardIndexes = new byte[keycardIndexesLength];
-			byte[] screenInfo = new byte[response.length - 3 - value.length - keycardIndexes.length];
-			System.arraycopy(response, 3 + value.length, keycardIndexes, 0, keycardIndexes.length);
-			System.arraycopy(response, 3 + value.length + keycardIndexes.length, screenInfo, 0, screenInfo.length);
-			result = new BTChipOutputKeycardScreen(value, UserConfirmation.KEYCARD_SCREEN, keycardIndexes, screenInfo);
-		}
-		if (result == null) {
-			throw new BTChipException("Unsupported user confirmation method");
-		}
-		return result;
-  */
-
-  def untrustedHashSign(privateKeyPath: DerivationPath, pin: Array[Byte], lockTime: Long,
-                        sigHashType: Byte): Future[Array[Byte]] = {
-
-    null
   }
 
   /*
@@ -421,10 +362,45 @@ object LedgerTransactionApi {
 
   class Input(val value: BytesReader, val isTrusted: Boolean) {
 
+    val bytes = value.readNextBytesUntilEnd()
+
   }
 
 
-  class Output {
+  class Output(val value: Array[Byte], val validation: Option[SignatureValidationRequest]) {
+
+    def needsValidation = validation.isDefined
+
+  }
+
+  object Output {
+
+    def apply(reader: BytesReader): Output = {
+      val length = reader.readNextByte().toInt
+      val value = reader.readNextBytes(length)
+      val userValidationMode = reader.readNextByte().toInt
+      import ValidationMode._
+      userValidationMode match {
+        case None => new Output(value, scala.None)// No 2FA
+        case Keyboard =>
+          val request = new SignatureValidationRequest(Keyboard, reader)
+          new Output(value, Some(request))
+        case DeprecatedKeycard =>
+          val request = new DeprecatedKeyCardSignatureValidationRequest(DeprecatedKeycard, reader)
+          new Output(value, Some(request))
+        case KeyCardScreen =>
+          val request = new KeyCardSignatureValidationRequest(KeyCardScreen, reader)
+          new Output(value, Some(request))
+        case KeyCard =>
+          val request = new KeyCardSignatureValidationRequest(KeyCard, reader)
+          new Output(value, Some(request))
+        case KeyCardNfc =>
+          val request = new KeyCardNfcSignatureValidationRequest(KeyCardNfc, reader)
+          new Output(value, Some(request))
+        case unsupported =>
+          throw Unsupported2FaValidationModeException(unsupported)
+      }
+    }
 
   }
 
@@ -437,41 +413,42 @@ object LedgerTransactionApi {
   }
 
   class SignatureValidationRequest(val mode: Int,
-                                   val value: Array[Byte]) {
+                                   reader: BytesReader) {
 
   }
 
 
   class DeprecatedKeyCardSignatureValidationRequest(mode: Int,
-                                          value: Array[Byte])
-    extends SignatureValidationRequest(mode, value) {
+                                                    reader: BytesReader)
+    extends SignatureValidationRequest(mode, reader) {
 
-    val keyCardIndexes = value
+    val keyCardIndexes = reader.readNextBytesUntilEnd()
     val keyCardChars = keyCardIndexes.map(_ + '0')
   }
 
   class KeyCardScreenSignatureValidationRequest(mode: Int,
-                                                value: Array[Byte])
-    extends KeyCardSignatureValidationRequest(mode, value) {
+                                                reader: BytesReader)
+    extends KeyCardSignatureValidationRequest(mode, reader) {
 
     val screenInfo = reader.readNextBytesUntilEnd()
 
   }
 
   class KeyCardSignatureValidationRequest(mode: Int,
-                                          value: Array[Byte])
-    extends SignatureValidationRequest(mode, value) {
+                                          reader: BytesReader)
+    extends SignatureValidationRequest(mode, reader) {
 
-    val reader = new BytesReader(value)
     val keyCardIndexesLength = reader.readNextByte().toInt
     val keyCardIndexes = reader.readNextBytes(keyCardIndexesLength)
-    val keyCardCharacters = keyCardIndexes.map(_ + '0')
+    def characters(string: String): String = {
+      keyCardIndexes.map(string(_)).mkString("")
+    }
   }
 
 
   class KeyCardNfcSignatureValidationRequest(mode: Int,
-                                          value: Array[Byte])
-    extends KeyCardSignatureValidationRequest(mode, value) {
+                                             reader: BytesReader)
+    extends KeyCardSignatureValidationRequest(mode, reader) {
 
   }
 

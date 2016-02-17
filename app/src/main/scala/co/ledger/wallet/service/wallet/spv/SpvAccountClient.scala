@@ -67,13 +67,15 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
   }
 
   override def freshChangeAddress(): Future[(Address, DerivationPath)] = Future {
+    import DerivationPath.dsl._
     val reader = wallet.asInstanceOf[SpvWalletClient].databaseReader
     val path = DerivationPath(reader.lastUsedPath(index, 1).getOrElse(s"m/$index'/1/0"))
     val newPath = new DerivationPath(path.parent, path.childNum + 1)
     val childNums = newPath.toBitcoinJList
     childNums.set(0, new ChildNumber(0, true))
     val key = xpubWatcher.getActiveKeychain.getKeyByPath(childNums, true)
-    key.toAddress(wallet.networkParameters) -> newPath
+    val bip44Path = 44.h/0.h ++ newPath
+    key.toAddress(wallet.networkParameters) -> bip44Path
   }
 
   override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = ???
@@ -102,7 +104,9 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
         val row = new OutputRow(cursor)
         val tx = xpubWatcher.getTransaction(new Sha256Hash(row.transactionHash))
         collectedValue = collectedValue add row.value
-        result += Utxo(tx, row, lastBlock.height - tx.getConfidence.getAppearedAtChainHeight)
+        val publicKey = xpubWatcher.getActiveKeychain.getKeyByPath(row.path.get.toBitcoinJList,
+          false).getPubKey
+        result += Utxo(tx, row, lastBlock.height - tx.getConfidence.getAppearedAtChainHeight, publicKey)
       } while (cursor.moveToNext() && (targetValue.isEmpty || targetValue.get.isLessThan(collectedValue)))
       cursor.close()
       result.toArray

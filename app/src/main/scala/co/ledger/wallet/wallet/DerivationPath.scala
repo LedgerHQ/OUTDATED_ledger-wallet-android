@@ -48,6 +48,14 @@ class DerivationPath(p: DerivationPath, val childNum: Long) {
     new DerivationPath(this, child.childNum)
   }
 
+  def ++(child: DerivationPath): DerivationPath = {
+    var path = this
+    for (i <- 0 to child.depth) {
+      path = new DerivationPath(path, child(i).get.childNum)
+    }
+    path
+  }
+
   def apply(depth: Int): Option[DerivationPath] = {
     var root = this
     while (root.parent != DerivationPath.Root && root.depth > depth) {

@@ -30,9 +30,12 @@
  */
 package co.ledger.wallet.core.device.api
 
-import co.ledger.wallet.core.utils.BytesWriter
+import co.ledger.wallet.core.utils.{HexUtils, BytesWriter}
+import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.wallet.{DerivationPath, Utxo}
-import org.bitcoinj.core.{Address, Coin, Transaction}
+import com.btchip.utils.SignatureUtils
+import org.bitcoinj.core._
+import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.script.{ScriptBuilder, Script}
 
 import scala.collection.mutable.ArrayBuffer
@@ -76,6 +79,8 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
       _2faAnswer = Option(answer)
       this
     }
+
+    var networkParameters: NetworkParameters = MainNetParams.get()
 
     def onProgress(handler: (Int, Int) => Unit)(implicit ec: ExecutionContext): Unit = {
       _progressHandler = Option(handler -> ec)
@@ -158,10 +163,23 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
       def iterate(index: Int): Future[Unit] = {
         val utxo = _utxo(index)
         val redeemScript = utxo.transaction.getOutput(utxo.outputIndex).getScriptBytes
-        startUntrustedTransaction(index == 0, index, _trustedInputs.get, redeemScript) flatMap {(_) =>
+        startUntrustedTransaction(index == 0 && _2faAnswer.isEmpty, index, _trustedInputs.get, redeemScript) flatMap {(_) =>
           finalizeInput(_rawOutputs.get, _to.head._1, _to.head._2, _fees.get, _change.get._1, needsChangeOutput)
+        } flatMap {(output) =>
+          if (_output.isEmpty)
+            _output = Option(output)
+          if (output.needsValidation) {
+            throw new SignatureNeeds2FAValidationException(output.validation.get)
+          }
+          untrustedHashSign(utxo.path, _2faAnswer.getOrElse("".getBytes))
+        } flatMap {(signature) =>
+          signatures += SignatureUtils.canonicalize(signature, true, 0x01)
+          if (index + 1 < _utxo.length) {
+            iterate(index + 1)
+          } else {
+            Future.successful()
+          }
         }
-        null
       }
       iterate(0) flatMap {(_) =>
         _signatures = signatures.toArray
@@ -170,7 +188,44 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
     }
 
     private def buildTransaction(): Future[Transaction] = {
-      Future.successful(null)
+      val signatures = _signatures
+      val inputs = _utxo
+      val transaction = new BytesWriter()
+
+      // Version LE Int
+      transaction.writeLeInt(TransactionVersion)
+      // Input count VI
+      transaction.writeVarInt(inputs.length)
+      // Inputs
+      for (i <- inputs.indices) {
+        val input = inputs(i)
+        // Reversed prev tx hash
+        transaction.writeReversedByteArray(input.transaction.getHash.getBytes)
+        // Previous output index (LE Int)
+        transaction.writeLeInt(input.outputIndex)
+        // Script Sig
+        val scriptSig = new BytesWriter()
+        scriptSig.writeByte(0x47)
+        scriptSig.writeByteArray(signatures(i))
+        scriptSig.writeByte(0x01)
+        scriptSig.writeByte(0x41)
+        scriptSig.writeByteArray(input.publicKey)
+        transaction.writeVarInt(scriptSig.toByteArray.length)
+        transaction.writeByteArray(scriptSig.toByteArray)
+        // Sequence (LE int)
+        transaction.writeLeInt(DefaultSequence)
+      }
+      // Outputs count VI
+        // Output value (LE long)
+        // Script length VI
+        // Script
+      for (rawOutputs <- _rawOutputs) {
+        transaction.writeByteArray(rawOutputs)
+      }
+      // Block lock time
+      transaction.writeLeInt(0x00)
+      Logger.d(s"Create ${HexUtils.bytesToHex(transaction.toByteArray)}")("TX")
+      Future.successful(new Transaction(networkParameters, transaction.toByteArray))
     }
 
     private def needsChangeOutput = _changeValue.exists(!_.isZero)
@@ -186,6 +241,7 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
     // Progression
     private var _changeValue: Option[Coin] = None
     private var _rawOutputs: Option[Array[Byte]] = None
+    private var _output: Option[Output] = None
     private var _trustedInputs: Option[Array[Input]] = None
     private var _signatures: Array[Array[Byte]] = Array()
   }

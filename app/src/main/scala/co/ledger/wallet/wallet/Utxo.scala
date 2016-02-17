@@ -31,7 +31,7 @@
 package co.ledger.wallet.wallet
 
 import co.ledger.wallet.service.wallet.database.model.OutputRow
-import org.bitcoinj.core.{Coin, Transaction}
+import org.bitcoinj.core.{ECKey, Coin, Transaction}
 
 trait Utxo {
 
@@ -39,19 +39,24 @@ trait Utxo {
   def outputIndex: Long
   def path: DerivationPath
   def value: Coin
+  def publicKey: Array[Byte]
   def confirmation: Int
 
 }
 
 object Utxo {
 
-  def apply(tx: Transaction, row: OutputRow, confirmation: Int): Utxo = new UtxoImpl(tx, row, confirmation)
+  def apply(tx: Transaction, row: OutputRow, confirmation: Int, publicKey: Array[Byte]): Utxo =
+    new UtxoImpl(tx, row, confirmation, publicKey)
 
-  private class UtxoImpl(tx: Transaction, row: OutputRow, c: Int) extends Utxo{
-
+  private class UtxoImpl(tx: Transaction,
+                         row: OutputRow,
+                         c: Int,
+                         override val publicKey: Array[Byte]) extends Utxo{
+    import DerivationPath.dsl._
     override val transaction = tx
     override val outputIndex = row.index
-    override val path = row.path.get
+    override val path = 44.h/0.h ++ row.path.get
     override val value = row.value
     override val confirmation = c
 

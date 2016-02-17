@@ -33,10 +33,12 @@ package co.ledger.wallet.app.demo
 import java.util.UUID
 
 import android.app.Activity
-import android.content.Intent
+import android.content.{DialogInterface, Intent}
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
+import android.support.v7.app.AlertDialog.Builder
 import android.support.v7.widget.{AppCompatEditText, AppCompatTextView}
-import android.text.{Editable, TextWatcher}
+import android.text.{InputType, Editable, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.AdapterView.OnItemSelectedListener
 import android.widget._
@@ -44,11 +46,15 @@ import co.ledger.wallet.common._
 import co.ledger.wallet.core.base.{BaseFragment, DeviceActivity, WalletActivity}
 import co.ledger.wallet.core.bitcoin.BitcoinUtils
 import co.ledger.wallet.core.device.Device
+import co.ledger.wallet.core.device.api.LedgerTransactionApi.{KeyCardSignatureValidationRequest, SignatureValidationRequest, SignatureNeeds2FAValidationException}
 import co.ledger.wallet.core.device.api.{LedgerApi, LedgerTransactionEasyApi}
+import co.ledger.wallet.core.utils.{BytesWriter, HexUtils}
+import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.core.view.ViewFinder
+import co.ledger.wallet.core.widget.EditText
 import co.ledger.wallet.wallet.{Account, Utxo}
 import co.ledger.wallet.{R, common}
-import org.bitcoinj.core.{Address => JAddress, Coin}
+import org.bitcoinj.core.{Address => JAddress, Transaction, Coin}
 
 import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
@@ -270,17 +276,26 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
         transaction.onProgress(onProgress)
         wallet.account(accountIndex).flatMap(_.freshChangeAddress())
       } flatMap {
-        case (_, path) =>
-          transaction.change(path)
+        case (address, path) =>
+          transaction.change(path, address)
           transaction.sign()
       } recoverWith {
         // Time for 2FA
+        case ex: SignatureNeeds2FAValidationException =>
+          handle2FaRequest(ex.validation).flatMap {(response) =>
+            transaction.complete2FA(response)
+            transaction.sign()
+          }
         case ex: UnsupportedOperationException =>
           transaction.sign()
         case ex: Throwable =>
           throw ex
       } onComplete {
-        case Success(_) =>
+        case Success(tx) =>
+          Logger.d(s"Tx : $tx")
+          Toast.makeText(getActivity, s"Transaction succeed $tx",
+            Toast
+            .LENGTH_LONG).show()
           _txRequest = None
         case Failure(ex) =>
           ex.printStackTrace()
@@ -288,9 +303,35 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
             .LENGTH_LONG).show()
           _txRequest = None
       }
-      // Get trusted inputs
+    }
 
-      //
+    def handle2FaRequest(request: SignatureValidationRequest): Future[Array[Byte]] = {
+      val promise = Promise[Array[Byte]]()
+      request match {
+        case r: KeyCardSignatureValidationRequest =>
+          val input = new EditText(getActivity)
+          input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD)
+          new Builder(getActivity)
+            .setTitle("Resolve 2FA")
+            .setMessage(s"Enter PIN for ${r.characters(addressEditText.getText.toString)}:")
+            .setView(input)
+            .setPositiveButton("Submit", new DialogInterface.OnClickListener {
+              override def onClick(dialog: DialogInterface, which: Int): Unit = {
+                val r = Integer.parseInt(input.getText.toString.split("").map("0" + _).mkString(""), 16)
+                val writer = new BytesWriter()
+                writer.writeInt(r)
+                promise.success(writer.toByteArray)
+              }
+            })
+            .setNegativeButton("Cancel", new DialogInterface.OnClickListener {
+              override def onClick(dialog: DialogInterface, which: Int): Unit = {
+                promise.failure(new Exception("Cancel"))
+              }
+            })
+            .show()
+        case others => promise.failure(new Exception("Not implemented 2FA validation"))
+      }
+      promise.future
     }
 
     def onProgress: (Int, Int) => Unit = {(current, total) =>

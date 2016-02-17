@@ -22,9 +22,17 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbRequest;
+import android.util.Log;
+
+import org.spongycastle.util.encoders.HexTranslator;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+
+import co.ledger.wallet.core.utils.HexUtils;
+import co.ledger.wallet.core.utils.HexUtils$;
+import co.ledger.wallet.core.utils.logs.Logger;
+import co.ledger.wallet.core.utils.logs.Logger$;
 
 
 public class BTChipTransportAndroidHID {
