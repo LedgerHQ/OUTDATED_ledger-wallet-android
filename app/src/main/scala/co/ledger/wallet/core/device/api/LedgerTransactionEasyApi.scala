@@ -119,7 +119,11 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
     }
 
     private def prepareOutputs(): Future[Transaction] = {
+      createRawOutputs(false)
+      sign()
+    }
 
+    private def createRawOutputs(inverse: Boolean): Unit = {
       def writeOutput(writer: BytesWriter, output: (Address, Coin)) = {
         writer.writeLeLong(output._2.getValue)
         val script = ScriptBuilder.createOutputScript(output._1)
@@ -131,13 +135,14 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
       val outputsCount = _to.length + (if (needsChangeOutput) 1 else 0)
 
       writer.writeVarInt(outputsCount)
+      if (needsChangeOutput && inverse)
+        writeOutput(writer, (_change.get._2, _changeValue.get))
       _to foreach {(pair) =>
         writeOutput(writer, pair)
       }
-      if (needsChangeOutput)
+      if (needsChangeOutput && !inverse)
         writeOutput(writer, (_change.get._2, _changeValue.get))
       _rawOutputs = Option(writer.toByteArray)
-      sign()
     }
 
     private def fetchTrustedInputs(): Future[Transaction] = {
@@ -187,7 +192,24 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
       }
     }
 
+    /**
+     * Only for old transaction api
+     */
+    private def swapOutputIfNecessary(): Unit = {
+      // Parse the output data
+      if (needsChangeOutput && _output.exists(_.value != null) &&
+        _output.exists(_.value.length > 0)) {
+        val firstOutput = new TransactionOutput(networkParameters, null, _rawOutputs.get, 1)
+        val dongleOutput = new TransactionOutput(networkParameters, null, _output.get.value, 1)
+        if (!firstOutput.getValue.equals(dongleOutput.getValue) ||
+            firstOutput.getScriptBytes.deep != dongleOutput.getScriptBytes.deep) {
+          createRawOutputs(true)
+        }
+      }
+    }
+
     private def buildTransaction(): Future[Transaction] = {
+      swapOutputIfNecessary()
       val signatures = _signatures
       val inputs = _utxo
       val transaction = new BytesWriter()
@@ -205,10 +227,9 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
         transaction.writeLeInt(input.outputIndex)
         // Script Sig
         val scriptSig = new BytesWriter()
-        scriptSig.writeByte(0x47)
+        scriptSig.writeByte(signatures(i).length)
         scriptSig.writeByteArray(signatures(i))
-        scriptSig.writeByte(0x01)
-        scriptSig.writeByte(0x41)
+        scriptSig.writeByte(input.publicKey.length)
         scriptSig.writeByteArray(input.publicKey)
         transaction.writeVarInt(scriptSig.toByteArray.length)
         transaction.writeByteArray(scriptSig.toByteArray)
