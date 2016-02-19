@@ -86,13 +86,25 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
       _progressHandler = Option(handler -> ec)
     }
 
+    def notifyProgress(): Unit = {
+      _currentProgress += 1
+      _progressHandler foreach {
+        case (handler, ec) =>
+          ec.execute(new Runnable {
+            override def run(): Unit = handler(_currentProgress, _maxProgress)
+          })
+      }
+    }
+
     private var _signatureValidationRequest: Option[SignatureValidationRequest] = None
     def signatureValidationRequest = _signatureValidationRequest
 
     // Signature
 
     def sign(): Future[Transaction] = {
-      if (_changeValue.isEmpty)
+      if (_maxProgress == -1)
+        computeMaxProgress()
+      else if (_changeValue.isEmpty)
         computeChangeValue()
       else if (_rawOutputs.isEmpty)
         prepareOutputs()
@@ -102,6 +114,16 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
         signInputs()
       else
         buildTransaction()
+    }
+
+    private def computeMaxProgress(): Future[Transaction] = {
+      _maxProgress =
+        _utxo.length + // Fetch trusted inputs
+        _utxo.length + // Start untrusted hash signature
+        _utxo.length + // Finalize
+        _utxo.length + // Sign
+        1 // Build
+      sign()
     }
 
     private def computeChangeValue(): Future[Transaction] = Future {
@@ -150,6 +172,7 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
       def iterate(index: Int): Future[Any] = {
         getTrustedInput(_utxo(index)) flatMap {(input) =>
           trustedInputs += input
+          notifyProgress()
           if (index + 1 < _utxo.length) {
             iterate(index + 1)
           } else {
@@ -169,6 +192,7 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
         val utxo = _utxo(index)
         val redeemScript = utxo.transaction.getOutput(utxo.outputIndex).getScriptBytes
         startUntrustedTransaction(index == 0 && _2faAnswer.isEmpty, index, _trustedInputs.get, redeemScript) flatMap {(_) =>
+          notifyProgress()
           finalizeInput(_rawOutputs.get, _to.head._1, _to.head._2, _fees.get, _change.get._1, needsChangeOutput)
         } flatMap {(output) =>
           if (_output.isEmpty)
@@ -176,8 +200,10 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
           if (output.needsValidation) {
             throw new SignatureNeeds2FAValidationException(output.validation.get)
           }
+          notifyProgress()
           untrustedHashSign(utxo.path, _2faAnswer.getOrElse("".getBytes))
         } flatMap {(signature) =>
+          notifyProgress()
           signatures += SignatureUtils.canonicalize(signature, true, 0x01)
           if (index + 1 < _utxo.length) {
             iterate(index + 1)
@@ -246,6 +272,7 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
       // Block lock time
       transaction.writeLeInt(0x00)
       Logger.d(s"Create ${HexUtils.bytesToHex(transaction.toByteArray)}")("TX")
+      notifyProgress()
       Future.successful(new Transaction(networkParameters, transaction.toByteArray))
     }
 
@@ -265,6 +292,10 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
     private var _output: Option[Output] = None
     private var _trustedInputs: Option[Array[Input]] = None
     private var _signatures: Array[Array[Byte]] = Array()
+
+    // Progress notifier
+    private var _maxProgress = -1
+    private var _currentProgress = 0
   }
 
 

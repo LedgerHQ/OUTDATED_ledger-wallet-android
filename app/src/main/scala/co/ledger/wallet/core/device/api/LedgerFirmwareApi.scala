@@ -67,8 +67,11 @@ trait LedgerFirmwareApi extends LedgerCommonApiInterface {
       val attestation = LedgerFirmwareApi.attestation(batchId, derivationIndex).getOrElse {
         throw UnsupportedAttestationException(batchId, derivationIndex)
       }
-      if (!attestation.check(version ++ random, signedRandom))
-        throw RogueFirmwareException(batchId, derivationIndex)
+      if (!attestation.check(version ++ random, signedRandom)) {
+        // Check if it is the dev attestation
+        if (!LedgerFirmwareApi.attestation(0, 1).get.check(version ++ random, signedRandom))
+          throw RogueFirmwareException(batchId, derivationIndex)
+      }
       attestation
     }
   }

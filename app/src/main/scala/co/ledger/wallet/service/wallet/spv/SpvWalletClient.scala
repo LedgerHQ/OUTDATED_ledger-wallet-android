@@ -338,6 +338,14 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     case throwable: Throwable => throw throwable
   }
 
+  override def pushTransaction(transaction: Transaction): Future[Unit] = init() map {(kit) =>
+    kit.peerGroup.broadcastTransaction(transaction)
+    for (account <- _accounts) {
+      account.xpubWatcher.commitTx(transaction)
+    }
+    ()
+  }
+
   def databaseReader = _database.reader
 
   private def init(): Future[SpvAppKit] = Future.successful() flatMap {(_) =>

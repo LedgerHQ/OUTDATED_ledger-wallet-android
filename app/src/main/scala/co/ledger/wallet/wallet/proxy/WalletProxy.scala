@@ -77,6 +77,9 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
 
   override def isSynchronizing(): Future[Boolean] = connect().flatMap(_.isSynchronizing())
 
+  override def pushTransaction(transaction: Transaction): Future[Unit] = connect().flatMap(_
+    .pushTransaction(transaction))
+
   override def mostRecentBlock(): Future[Block] = connect().flatMap(_.mostRecentBlock())
 
   val eventBus =  EventBus

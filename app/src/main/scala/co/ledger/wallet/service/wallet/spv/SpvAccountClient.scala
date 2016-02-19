@@ -46,6 +46,7 @@ import co.ledger.wallet.wallet.events.WalletEvents._
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
+import scala.util.Try
 
 class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
   extends Account with Loggable {
@@ -106,7 +107,8 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
         collectedValue = collectedValue add row.value
         val publicKey = xpubWatcher.getActiveKeychain.getKeyByPath(row.path.get.toBitcoinJList,
           false).getPubKey
-        result += Utxo(tx, row, lastBlock.height - tx.getConfidence.getAppearedAtChainHeight, publicKey)
+        result += Utxo(tx, row, lastBlock.height - Try(tx.getConfidence.getAppearedAtChainHeight)
+          .getOrElse(lastBlock.height), publicKey)
       } while (cursor.moveToNext() && (targetValue.isEmpty || targetValue.get.isLessThan(collectedValue)))
       cursor.close()
       result.toArray

@@ -32,29 +32,32 @@ package co.ledger.wallet.app.demo
 
 import java.util.UUID
 
-import android.app.Activity
+import android.app.{ProgressDialog, Activity}
 import android.content.{DialogInterface, Intent}
-import android.os.Bundle
-import android.support.v7.app.AlertDialog
+import android.net.Uri
+import android.os.{Handler, Bundle}
 import android.support.v7.app.AlertDialog.Builder
 import android.support.v7.widget.{AppCompatEditText, AppCompatTextView}
-import android.text.{InputType, Editable, TextWatcher}
+import android.text.{Editable, InputType, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.AdapterView.OnItemSelectedListener
 import android.widget._
+import co.ledger.wallet.R
 import co.ledger.wallet.common._
 import co.ledger.wallet.core.base.{BaseFragment, DeviceActivity, WalletActivity}
 import co.ledger.wallet.core.bitcoin.BitcoinUtils
+import co.ledger.wallet.core.bitcoin.BitcoinUtils.DefaultUtxoPickPolicy
 import co.ledger.wallet.core.device.Device
-import co.ledger.wallet.core.device.api.LedgerTransactionApi.{KeyCardSignatureValidationRequest, SignatureValidationRequest, SignatureNeeds2FAValidationException}
+import co.ledger.wallet.core.device.api.LedgerTransactionApi.{KeyCardSignatureValidationRequest, SignatureNeeds2FAValidationException, SignatureValidationRequest}
 import co.ledger.wallet.core.device.api.{LedgerApi, LedgerTransactionEasyApi}
-import co.ledger.wallet.core.utils.{BytesWriter, HexUtils}
+import co.ledger.wallet.core.net.HttpClient
+import co.ledger.wallet.core.utils.BytesWriter
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.core.view.ViewFinder
 import co.ledger.wallet.core.widget.EditText
 import co.ledger.wallet.wallet.{Account, Utxo}
-import co.ledger.wallet.{R, common}
-import org.bitcoinj.core.{Address => JAddress, Transaction, Coin}
+import org.bitcoinj.core.{Address => JAddress, Coin}
+import org.json.JSONObject
 
 import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
@@ -65,11 +68,7 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
   val ScanQrCodeRequest = 0x21
   val ConnectDeviceRequest = 0x42
 
-  val Fees = Array(
-    "Normal" -> Coin.parseCoin("0.00001"),
-    "High" -> Coin.parseCoin("0.0001"),
-    "Low" -> Coin.parseCoin("0.000001")
-  )
+  var Fees: Future[Array[(String, Coin)]] = fetchRecommendedFees()
 
   def accountSpinner: Spinner = R.id.accounts
   def feesSpinner: Spinner = R.id.fees
@@ -88,7 +87,6 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     super.onViewCreated(view, savedInstanceState)
     setupUi()
-
     sendButton onClick onSendClicked
     scanButton onClick onScanClicked
   }
@@ -122,7 +120,7 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
         val fees = amount.get.subtract(value)
         val accountIndex = accountSpinner.getSelectedItemPosition
         _txRequest = Some(new CreateTransactionRequest(
-          _utxo.get, new JAddress(null, address), value, fees, accountIndex))
+          pickUtxo(amount.get).get, new JAddress(null, address), value, fees, accountIndex))
         _txRequest.get.perform()
       }
     }
@@ -138,28 +136,47 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
     startActivityForResult(new Intent(getActivity, classOf[DemoQrCodeScannerActivity]), ScanQrCodeRequest)
   }
 
+  def pickUtxo(amount: Coin): Option[Array[Utxo]] = {
+    val picker = new DefaultUtxoPickPolicy(1)
+    picker.pick(_utxo.get, amount)
+  }
+
   def computeTotalAmount(): Coin = {
     import BitcoinUtils._
-    val amount = Coin.parseCoin(amountEditText.getText.toString)
-    val feesPerB = Fees(feesSpinner.getSelectedItemPosition)._2.divide(1000)
-    val fees: Coin = _utxo match {
-      case Some(inputs) =>
-        val picker = new DefaultUtxoPickPolicy(1)
-        val utxo = picker.pick(inputs, amount)
-        if (utxo.isDefined) {
-          val s = estimateTransactionSize(utxo.get, 2) // TODO: Do not consider that we always need change
-          val v = feesPerB multiply s.max
-          totalAmountTextView.setText(s"Total: ${(amount add v).toFriendlyString}")
-          v
-        } else {
-          totalAmountTextView.setText(s"You don't have enough funds")
-          throw new Exception()
-        }
-      case None =>
-        totalAmountTextView.setText(s"Computing total amount, please wait...")
-        feesPerB multiply 1000
+
+    if (Fees.isCompleted) {
+      val amount = Coin.parseCoin(amountEditText.getText.toString)
+      val feesPerB = Fees.value.get.get(feesSpinner.getSelectedItemPosition)._2.divide(1000)
+      val fees: Coin = _utxo match {
+        case Some(inputs) =>
+          def computeUtxoAndFees(amount: Coin): Coin = {
+            val utxo = pickUtxo(amount)
+            if (utxo.isDefined) {
+              val s = estimateTransactionSize(utxo.get, 2) // TODO: Do not consider that we always need change
+              val v = feesPerB multiply s.max
+              val utxoAmount = Coin.valueOf(utxo.get.map(_.value.getValue).sum)
+              if (utxoAmount.isLessThan(amount add v)) {
+                computeUtxoAndFees(amount add v)
+              } else {
+                totalAmountTextView.setText(s"Total: ${(amount add v).toFriendlyString} (estimated " +
+                  s"size ${s.min} - ${s.max} bytes)")
+                v
+              }
+            } else {
+              totalAmountTextView.setText(s"You don't have enough funds")
+              throw new Exception()
+            }
+          }
+          computeUtxoAndFees(amount)
+        case None =>
+          totalAmountTextView.setText(s"Computing total amount, please wait...")
+          feesPerB multiply 1000
+      }
+      amount add fees
+    } else {
+      totalAmountTextView.setText(s"Fetching transaction fees please wait...")
+      Coin.ZERO
     }
-    amount add fees
   }
 
   def refreshUtxoList(): Unit = {
@@ -174,6 +191,26 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
         case Failure(ex) =>
           ex.printStackTrace()
       }
+    }
+  }
+
+  def fetchRecommendedFees(): Future[Array[(String, Coin)]] = {
+    val client = new HttpClient(Uri.parse("http://bitcoinfees.21.co"))
+    client.get("/api/v1/fees/recommended").json recoverWith {
+      case all => // Retry
+        all.printStackTrace()
+        val promise = Promise[Array[(String, Coin)]]()
+        new Handler().postDelayed(new Runnable {
+          override def run(): Unit = promise.completeWith(fetchRecommendedFees())
+        }, 2 * 60 * 1000)
+        promise.future
+    } map {
+      case (json: JSONObject, r) =>
+        val fees = new Array[(String, Coin)](3)
+        fees(0) = "High (10 minutes)" -> Coin.valueOf(json.getLong("fastestFee")).multiply(1000)
+        fees(1) = "Normal (30 minutes)" -> Coin.valueOf(json.getLong("halfHourFee")).multiply(1000)
+        fees(2) = "Low (1 hour)" -> Coin.valueOf(json.getLong("hourFee")).multiply(1000)
+        fees
     }
   }
 
@@ -194,6 +231,12 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
         _txRequest.foreach(_.devicePromise.failure(new Exception("Unable to reconnect device")))
       }
     }
+  }
+
+  private def resetUi(): Unit = {
+    addressEditText.setText("")
+    amountEditText.setText("")
+    totalAmountTextView.setText("")
   }
 
   private def setupUi(): Unit = {
@@ -219,17 +262,20 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
         })
         refreshUtxoList()
     }
-    val fees = Fees.map({case (name, _) => name})
-    val adapter = new ArrayAdapter[String](getActivity, android.R.layout.simple_list_item_1, fees)
-    feesSpinner.setAdapter(adapter)
-    feesSpinner.setOnItemSelectedListener(new OnItemSelectedListener {
-      override def onNothingSelected(parent: AdapterView[_]): Unit = ()
+    Fees foreach {(f) =>
+      val fees = f.map({case (name, _) => name})
+      val adapter = new ArrayAdapter[String](getActivity, android.R.layout.simple_list_item_1, fees)
+      feesSpinner.setAdapter(adapter)
+      feesSpinner.setOnItemSelectedListener(new OnItemSelectedListener {
+        override def onNothingSelected(parent: AdapterView[_]): Unit = ()
 
-      override def onItemSelected(parent: AdapterView[_], view: View, position: Int, id: Long):
-      Unit = {
-        Try(computeTotalAmount())
-      }
-    })
+        override def onItemSelected(parent: AdapterView[_], view: View, position: Int, id: Long):
+        Unit = {
+          Try(computeTotalAmount())
+        }
+      })
+      computeTotalAmount()
+    }
     amountEditText.removeTextChangedListener(_textWatcher)
     amountEditText.addTextChangedListener(_textWatcher)
   }
@@ -260,8 +306,22 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
 
     def perform(): Unit = {
       Toast.makeText(getActivity, "Performing...", Toast.LENGTH_LONG).show()
+      val progressDialog = new ProgressDialog(getActivity)
+      progressDialog.setTitle("Transaction creation")
+      progressDialog.setMessage("Please wait...")
+      progressDialog.setIndeterminate(false)
+      progressDialog.setProgressNumberFormat("")
+      progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
+      progressDialog.setMax(100)
+      progressDialog.setProgress(0)
+      progressDialog.show()
       val deviceActivity = getActivity.asInstanceOf[DeviceActivity]
       var transaction: LedgerTransactionEasyApi#TransactionBuilder = null
+      def onProgress: (Int, Int) => Unit = {(current, total) =>
+        val percent = ((current.toFloat / total.toFloat) * 100f).toInt
+        progressDialog.setProgress(percent)
+      }
+      progressDialog.show()
       // Connect device
       deviceActivity.connectedDevice recoverWith {
         case all =>
@@ -290,18 +350,30 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
           transaction.sign()
         case ex: Throwable =>
           throw ex
+      } flatMap {(tx) =>
+        Logger.d(s"Tx : $tx")("TX")
+        Future.successful()
+        //wallet.pushTransaction(tx)
       } onComplete {
-        case Success(tx) =>
-          Logger.d(s"Tx : $tx")
-          Toast.makeText(getActivity, s"Transaction succeed $tx",
-            Toast
-            .LENGTH_LONG).show()
-          _txRequest = None
-        case Failure(ex) =>
-          ex.printStackTrace()
-          Toast.makeText(getActivity, s"Failed to sign transaction: ${ex.getMessage}", Toast
-            .LENGTH_LONG).show()
-          _txRequest = None
+          case Success(tx) =>
+            progressDialog.dismiss()
+            _utxo = None
+            _currentAccount = -1
+            refreshUtxoList()
+            Toast.makeText(getActivity, s"Transaction succeed",
+              Toast
+                .LENGTH_LONG).show()
+            _txRequest = None
+            resetUi()
+          case Failure(ex) =>
+            progressDialog.dismiss()
+            _currentAccount = -1
+            _utxo = None
+            refreshUtxoList()
+            ex.printStackTrace()
+            Toast.makeText(getActivity, s"Failed to sign transaction: ${ex.getMessage}", Toast
+              .LENGTH_LONG).show()
+            _txRequest = None
       }
     }
 
@@ -332,10 +404,6 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
         case others => promise.failure(new Exception("Not implemented 2FA validation"))
       }
       promise.future
-    }
-
-    def onProgress: (Int, Int) => Unit = {(current, total) =>
-
     }
 
     def resumeUi(): Unit = {

@@ -137,7 +137,8 @@ class DemoWalletHomeFragment extends BaseFragment
           else
             holder.asInstanceOf[TitleViewHolder].update("Last operations")
         case 1 => accountsAdapter.onBindViewHolder(holder, position - 1)
-        case 2 => operationsAdapter.onBindViewHolder(holder.asInstanceOf[OperationViewHolder],
+        case 2 =>
+          operationsAdapter.onBindViewHolder(holder.asInstanceOf[OperationViewHolder],
           position - 2 - accountsAdapter.getItemCount)
       }
     }

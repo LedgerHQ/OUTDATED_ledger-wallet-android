@@ -30,12 +30,15 @@
  */
 package co.ledger.wallet.core.adapter
 
+import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.RecyclerView.ViewHolder
 import android.view.{LayoutInflater, ViewGroup, View}
 import android.widget.ViewSwitcher
-import co.ledger.wallet.R
+import co.ledger.wallet.{common, R}
 import co.ledger.wallet.core.adapter.OperationRecyclerViewAdapter.OperationViewHolder
 import co.ledger.wallet.core.concurrent.AsyncCursor
 import co.ledger.wallet.core.widget.TextView
@@ -44,7 +47,7 @@ import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.ui
 
 import scala.collection.mutable
 import scala.concurrent.Future
-
+import common._
 class OperationRecyclerViewAdapter(cursor: AsyncCursor[Operation])
 extends RecyclerView.Adapter[OperationRecyclerViewAdapter.OperationViewHolder]{
 
@@ -97,11 +100,11 @@ object OperationRecyclerViewAdapter {
         case Some(op) =>
           if (op.isReception) {
             address.setText(op.senders.headOption.getOrElse("Unknown"))
-            amount.setTextColor(v.getContext.getColor(R.color.valid_green))
+            amount.setTextColor(ContextCompat.getColor(v.getContext, R.color.valid_green))
             amount.setText("+" + op.value.toFriendlyString)
           } else {
             address.setText(op.recipients.headOption.getOrElse("Unknown"))
-            amount.setTextColor(v.getContext.getColor(R.color.invalid_red))
+            amount.setTextColor(ContextCompat.getColor(v.getContext, R.color.invalid_red))
             amount.setText("-" + op.value.toFriendlyString)
           }
           if (op.blockHash == null) {
@@ -109,7 +112,11 @@ object OperationRecyclerViewAdapter {
           } else {
             v.setBackgroundColor(Color.TRANSPARENT)
           }
-
+          v.setOnClickListener({ (v: View) =>
+            val intent = new Intent(Intent.ACTION_VIEW, Uri.parse(s"https://blockchain" +
+              s".info/tx/${op.transactionHash.toString}"))
+            v.getContext.startActivity(intent)
+          })
           switcher.setDisplayedChild(0)
         case None =>
           switcher.setDisplayedChild(1)
