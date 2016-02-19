@@ -86,6 +86,18 @@ trait DeviceActivity extends Activity with MainThreadEventReceiver {
     }
   }
 
+  def disconnectDevice(): Unit = {
+    connectedDeviceUuid match {
+      case Some(uuid) =>
+        connectedDeviceUuid = null
+        deviceManagerService foreach {(manager) =>
+          manager.unregisterDevice(uuid)
+        }
+      case None => // Do nothing
+    }
+
+  }
+
   def connectedDeviceUuid: Option[UUID] = {
     val intentUuid = getIntent.getStringExtra(DeviceActivity.ConnectedDeviceUuid)
     if (intentUuid != null) {

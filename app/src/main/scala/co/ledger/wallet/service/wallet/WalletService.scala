@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import android.app.Service
 import android.content.{Context, Intent}
-import android.os.IBinder
+import android.os.{Handler, IBinder}
 import co.ledger.wallet.core.utils.Preferences
 import co.ledger.wallet.service.wallet.spv.SpvWalletClient
 import co.ledger.wallet.wallet.Wallet
@@ -44,6 +44,9 @@ import scala.collection.JavaConverters._
 
 class WalletService extends Service {
   import WalletService._
+  import scala.concurrent.duration._
+
+  val ShutdownDelay = 15 minutes
 
   def wallet(name: String, engine: Int): Wallet = {
     _wallets.lift(name) getOrElse {
@@ -84,6 +87,16 @@ class WalletService extends Service {
     this.startService(new Intent(this, this.getClass))
   }
 
+  def notifyActivityPaused(): Unit = {
+    // Start shutdown timer
+    _handler.postDelayed(_shutDownRunnable, ShutdownDelay.toNanos)
+  }
+
+  def notifyActivityResumed(): Unit = {
+    // Cancel scheduled shutdown
+    _handler.removeCallbacks(_shutDownRunnable)
+  }
+
   override def onBind(intent: Intent): IBinder = _binder
 
   class Binder extends android.os.Binder {
@@ -93,6 +106,15 @@ class WalletService extends Service {
   private[this] val _binder = new Binder
   private[this] val _wallets = new ConcurrentHashMap[String, Wallet]().asScala
   private[this] lazy val _preferences = Preferences(WalletServicePreferencesName)(this)
+  private[this] val _handler = new Handler()
+  private[this] val _shutDownRunnable = new Runnable {
+    override def run(): Unit = {
+      _wallets foreach {
+        case (name, wallet) =>
+          wallet.stop()
+      }
+    }
+  }
 }
 
 object WalletService {

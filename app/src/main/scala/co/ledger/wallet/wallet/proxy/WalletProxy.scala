@@ -80,6 +80,8 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
   override def pushTransaction(transaction: Transaction): Future[Unit] = connect().flatMap(_
     .pushTransaction(transaction))
 
+  override def stop(): Unit = connect().foreach(_.stop())
+
   override def mostRecentBlock(): Future[Block] = connect().flatMap(_.mostRecentBlock())
 
   val eventBus =  EventBus
@@ -116,6 +118,8 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
       binder.service.openWallet(name)
     })
   }
+
+  def service(): Future[WalletService] = connect().flatMap((_) => _connection.get.binder).map(_.service)
 
   private [this] var _connection: Option[BinderServiceConnection] = None
 

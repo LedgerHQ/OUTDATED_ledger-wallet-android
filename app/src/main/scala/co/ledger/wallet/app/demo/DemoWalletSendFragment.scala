@@ -360,7 +360,7 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
             _utxo = None
             _currentAccount = -1
             refreshUtxoList()
-            Toast.makeText(getActivity, s"Transaction succeed",
+            Toast.makeText(getActivity, s"Transaction pushed!",
               Toast
                 .LENGTH_LONG).show()
             _txRequest = None
@@ -369,6 +369,7 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
             progressDialog.dismiss()
             _currentAccount = -1
             _utxo = None
+            getActivity.asInstanceOf[DeviceActivity].disconnectDevice()
             refreshUtxoList()
             ex.printStackTrace()
             Toast.makeText(getActivity, s"Failed to sign transaction: ${ex.getMessage}", Toast

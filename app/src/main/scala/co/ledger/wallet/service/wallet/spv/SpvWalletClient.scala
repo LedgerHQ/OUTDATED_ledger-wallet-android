@@ -346,6 +346,14 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     ()
   }
 
+  override def stop(): Unit = Future {
+    _spvAppKit match {
+      case Some(appKit) =>
+        appKit.close()
+      case None =>
+    }
+  }
+
   def databaseReader = _database.reader
 
   private def init(): Future[SpvAppKit] = Future.successful() flatMap {(_) =>

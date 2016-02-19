@@ -46,6 +46,17 @@ trait WalletActivity extends Activity with MainThreadEventReceiver {
     register(wallet.eventBus)
   }
 
+
+  abstract override def onResume(): Unit = {
+    super.onResume()
+    wallet.asInstanceOf[WalletProxy].service().foreach(_.notifyActivityResumed())
+  }
+
+  override def onPause(): Unit = {
+    super.onPause()
+    wallet.asInstanceOf[WalletProxy].service().foreach(_.notifyActivityResumed())
+  }
+
   abstract override def onDestroy(): Unit = {
     super.onDestroy()
     wallet.asInstanceOf[WalletProxy].unbind()

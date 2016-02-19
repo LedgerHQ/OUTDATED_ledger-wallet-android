@@ -51,6 +51,7 @@ trait Wallet {
   def eventBus: EventBus
   def mostRecentBlock(): Future[Block]
   def pushTransaction(transaction: Transaction): Future[Unit]
+  def stop(): Unit
 }
 
 object Wallet {
