@@ -42,6 +42,7 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.Toast
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{BaseActivity, DeviceActivity}
+import co.ledger.wallet.core.device.DeviceManager.ConnectivityTypes
 import co.ledger.wallet.core.device.api.LedgerApi
 import co.ledger.wallet.core.device.api.LedgerCommonApiInterface.LedgerApiInvalidAccessRightException
 import co.ledger.wallet.core.device.{Device, DeviceFactory}
@@ -111,7 +112,10 @@ class DemoDiscoverDeviceActivity extends BaseActivity
   def onScanUpdate: PartialFunction[ScanUpdate, Unit] = {
     case DeviceDiscovered(device) =>
       Logger.d(s"Find device ${device.name}")
-      _adapter.addDevice(device)
+      if (device.connectivityType == ConnectivityTypes.Nfc)
+        connect(device)
+      else
+        _adapter.addDevice(device)
     case DeviceLost(device) =>
       Logger.d(s"Lost device ${device.name}")
       _adapter.removeDevice(device)

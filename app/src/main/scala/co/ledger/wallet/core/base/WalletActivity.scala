@@ -46,7 +46,6 @@ trait WalletActivity extends Activity with MainThreadEventReceiver {
 
   abstract override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-    wallet.asInstanceOf[WalletProxy].bind()
     register(wallet.eventBus)
   }
 
@@ -54,16 +53,17 @@ trait WalletActivity extends Activity with MainThreadEventReceiver {
   abstract override def onResume(): Unit = {
     super.onResume()
     wallet.asInstanceOf[WalletProxy].service().foreach(_.notifyActivityResumed())
+    wallet.asInstanceOf[WalletProxy].bind()
   }
 
   override def onPause(): Unit = {
     super.onPause()
     wallet.asInstanceOf[WalletProxy].service().foreach(_.notifyActivityResumed())
+    wallet.asInstanceOf[WalletProxy].unbind()
   }
 
   abstract override def onDestroy(): Unit = {
     super.onDestroy()
-    wallet.asInstanceOf[WalletProxy].unbind()
   }
 
   lazy val wallet: Wallet = new WalletProxy(this, activityWalletName.get)
