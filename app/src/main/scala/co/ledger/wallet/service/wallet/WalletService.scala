@@ -67,7 +67,7 @@ class WalletService extends Service {
   }
 
   def openWallet(name: String): Wallet = {
-    _preferences.writer.putString(CurrentWalletNameKey, name).commit()
+    WalletService.setCurrentWalletName(name)(this)
     wallet(name, defaultEngineFlag)
   }
 
@@ -78,7 +78,7 @@ class WalletService extends Service {
   def currentWallet: Option[Wallet] = currentWalletName map openWallet
 
   def closeCurrentWallet(): Unit = currentWallet foreach {(wallet) =>
-    _preferences.writer.remove(CurrentWalletNameKey).commit()
+    WalletService.closeCurrentWallet()(this)
     // TODO: Close
   }
 
@@ -113,6 +113,8 @@ class WalletService extends Service {
         case (name, wallet) =>
           wallet.stop()
       }
+      _wallets.clear()
+      stopSelf()
     }
   }
 }
@@ -132,12 +134,12 @@ object WalletService {
 
   def setCurrentWalletName(walletIdentifier: String)(implicit context: Context): Unit = {
     val preferences = Preferences(WalletServicePreferencesName)(context)
-    preferences.writer.putString(CurrentWalletNameKey, walletIdentifier).commit()
+    preferences.writer.putString(CurrentWalletNameKey, walletIdentifier).apply()
   }
 
   def closeCurrentWallet()(implicit context: Context): Unit = {
     val preferences = Preferences(WalletServicePreferencesName)(context)
-    preferences.writer.remove(CurrentWalletNameKey).commit()
+    preferences.writer.remove(CurrentWalletNameKey).apply()
   }
 
 }

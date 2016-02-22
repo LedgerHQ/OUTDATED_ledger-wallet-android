@@ -115,7 +115,7 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
       context.bindService(new Intent(context, classOf[WalletService]), _connection.get, Context.BIND_AUTO_CREATE)
       _connection
     }).get.binder.map({ (binder) =>
-      binder.service.openWallet(name)
+      binder.service.currentWallet.get
     })
   }
 

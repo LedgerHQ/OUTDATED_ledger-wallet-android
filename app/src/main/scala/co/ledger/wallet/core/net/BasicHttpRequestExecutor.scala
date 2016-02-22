@@ -30,12 +30,12 @@
  */
 package co.ledger.wallet.core.net
 
-import java.io.{BufferedInputStream, BufferedOutputStream}
+import java.io._
 import java.net.{HttpURLConnection, URL}
 import java.util.zip.GZIPOutputStream
 
 import co.ledger.wallet.core.utils.io.IOUtils
-import co.ledger.wallet.core.utils.logs.Logger
+import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -44,7 +44,7 @@ import scala.io.Source
 import scala.util.{Failure, Success, Try}
 import co.ledger.wallet.core.net.HttpRequestExecutor.defaultExecutionContext
 
-class BasicHttpRequestExecutor extends HttpRequestExecutor {
+class BasicHttpRequestExecutor extends HttpRequestExecutor with Loggable {
 
   val TimeoutDuration = 1000L
   val BufferSize = 10 * 1024 // ~= 10KB buffer
@@ -81,7 +81,6 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
     val url = new URL(request.url.toString)
     Logger.d(s"Perform request on ${url.toString}")
     val connection = Try(url.openConnection().asInstanceOf[HttpURLConnection])
-
     if (connection.isFailure)
       return connection
 
@@ -99,7 +98,7 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
       Logger.d("Step 4")
       responseBuilder.statusMessage = connection.get.getResponseMessage
       Logger.d("Step 5")
-      responseBuilder.body = connection.get.getInputStream
+      responseBuilder.body = readBody(connection.get)
       Logger.d("Step 6")
       val headers = mutable.Map[String, String]()
       for (pos <- 0 until connection.get.getHeaderFields.size()) {
@@ -121,7 +120,7 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
     }
     connection.setUseCaches(request.cached)
     connection.setConnectTimeout(request.connectTimeout)
-    connection.setReadTimeout(request.readTimeout)
+    connection.setReadTimeout(request.readTimeout * 5000)
     connection.setDoInput(true)
     request.method match {
       case "POST" | "PUT" =>
@@ -130,7 +129,6 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
         if (request.isBodyStreamed) {
           connection.setChunkedStreamingMode(request.chunkLength)
         } else {
-          Logger
           connection.setFixedLengthStreamingMode(request.body.available())
         }
       case "GET" | "DELETE" =>
@@ -156,6 +154,23 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor {
         // Don't close the input stream in case of error
       case nothing => // Nothing to do
     }
+  }
+
+  private def readBody(connection: HttpURLConnection): InputStream = {
+    val output = new ByteArrayOutputStream()
+    val input = {
+      if (connection.getResponseCode >= 200 && connection.getResponseCode <= 299)
+        connection.getInputStream
+      else
+        connection.getErrorStream
+    }
+    var length = 0
+    val buffer = new Array[Byte](4096)
+    while ({length = input.read(buffer); length != -1}) {
+      output.write(buffer, 0, length)
+    }
+    input.close()
+    new ByteArrayInputStream(output.toByteArray)
   }
 
   private[this] def buffer: Array[Char] = {

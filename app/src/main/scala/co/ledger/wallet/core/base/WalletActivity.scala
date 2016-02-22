@@ -38,7 +38,11 @@ import co.ledger.wallet.wallet.Wallet
 import co.ledger.wallet.wallet.proxy.WalletProxy
 import WalletActivity._
 
+import scala.concurrent.ExecutionContext
+
 trait WalletActivity extends Activity with MainThreadEventReceiver {
+
+  implicit val ec: ExecutionContext
 
   abstract override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)

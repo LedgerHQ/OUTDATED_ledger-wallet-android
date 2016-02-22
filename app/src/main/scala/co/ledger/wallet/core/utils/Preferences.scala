@@ -43,6 +43,6 @@ class Preferences(name: String, c: Context) extends Preferenceable {
 object Preferences {
 
   def apply(preferencesName: String)(implicit context: Context): Preferences =
-    new Preferences(preferencesName, context)
+    new Preferences(preferencesName, context.getApplicationContext)
 
 }

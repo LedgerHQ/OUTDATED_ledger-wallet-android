@@ -34,8 +34,10 @@ import java.util
 import java.util.{Date, NoSuchElementException}
 
 import android.content.Context
+import android.net.Uri
 import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.{AbstractAsyncCursor, AsyncCursor, SerialQueueTask}
+import co.ledger.wallet.core.net.HttpClient
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.core.utils.{BitcoinjUtils, Preferences}
 import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns
@@ -53,7 +55,8 @@ import org.bitcoinj.core.AbstractBlockChain.NewBlockType
 import org.bitcoinj.core.TransactionConfidence.Listener
 import org.bitcoinj.core.TransactionConfidence.Listener.ChangeReason
 import org.bitcoinj.core.{Block => JBlock, Context => JContext, Wallet => JWallet, _}
-import org.bitcoinj.crypto.DeterministicKey
+import org.bitcoinj.crypto.{ChildNumber, DeterministicHierarchy, DeterministicKey}
+import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
@@ -350,6 +353,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     _spvAppKit match {
       case Some(appKit) =>
         appKit.close()
+        _database.close()
       case None =>
     }
   }
@@ -477,12 +481,38 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       _database
     )
 
-  private[this] val _preferences = Preferences("SpvWalletClient")(context)
+  private[this] val _preferences = Preferences(s"SpvWalletClient_${name}")(context)
   private[this] var _syncFuture: Option[Future[Unit]] = None
   private[this] lazy val _earliestCreationTimeProvider = new EarliestTransactionTimeProvider {
     override def getEarliestTransactionTime(deterministicKey: DeterministicKey): Future[Date] = {
       // Derive the first 20 addresses from both public and change chain
-      Future.successful(new Date(1434979887000L))
+      import DerivationPath.dsl._
+      val addresses = new ArrayBuffer[String]()
+      val h = new DeterministicHierarchy(deterministicKey)
+      addresses ++= (0 to 20).map({(i) =>
+        h.deriveChild(0.toBitcoinJList, true, true, new ChildNumber(i, false)).toAddress(networkParameters).toString
+      })
+      addresses ++= (0 to 20).map({(i) =>
+        h.deriveChild(1.toBitcoinJList, true, true, new ChildNumber(i, false)).toAddress(networkParameters).toString
+      })
+      val client = new HttpClient(Uri.parse("https://api.ledgerwallet.com/"))
+      client.get(s"blockchain/btc/addresses/${addresses.mkString(",")}/transactions")
+      .jsonArray.map {
+        case (json, _) =>
+          (0 until json.length()) map {(i) =>
+            val obj = json.getJSONObject(i)
+            if (obj.has("block_time")) {
+              DateTime.parse(obj.getString("block_time")).toDate.getTime
+            } else {
+              Long.MaxValue
+            }
+          }
+      } map {(times) =>
+        new Date(times.min)
+      } recover {case all =>
+        all.printStackTrace()
+        new Date(0)
+      }
     }
   }
 
