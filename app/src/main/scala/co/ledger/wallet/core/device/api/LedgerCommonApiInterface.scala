@@ -84,7 +84,6 @@ trait LedgerCommonApiInterface extends ParcelableObject with Loggable {
       .writeByte(p2)
       .writeByte(lc)
       .writeByteArray(data)
-      .writeByte(le)
       .toByteArray
     sendApdu(raw)
   }

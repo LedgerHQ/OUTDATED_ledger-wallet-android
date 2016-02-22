@@ -34,6 +34,7 @@ import java.security.{Signature, KeyFactory, SecureRandom}
 
 import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.crypto.Crypto
+import co.ledger.wallet.core.device.DeviceManager.ConnectivityTypes
 import co.ledger.wallet.core.utils.logs.Logger
 import co.ledger.wallet.core.utils.{BytesReader, HexUtils}
 import org.spongycastle.jce.ECNamedCurveTable
@@ -58,21 +59,26 @@ trait LedgerFirmwareApi extends LedgerCommonApiInterface {
     val secureRandom = new SecureRandom()
     val random = new Array[Byte](8)
     secureRandom.nextBytes(random)
-    sendApdu(0xE0, 0xC2, 0x00, 0x00, 0x08, random, 0x00) map {(result) =>
-      val reader = result.data
-      val batchId = reader.readNextInt()
-      val derivationIndex = reader.readNextInt()
-      val version = reader.readNextBytes(8)
-      val signedRandom = reader.readNextBytesUntilEnd()
-      val attestation = LedgerFirmwareApi.attestation(batchId, derivationIndex).getOrElse {
-        throw UnsupportedAttestationException(batchId, derivationIndex)
+    // Bypass attestation for Ledger Unplugged
+    if (device.connectivityType == ConnectivityTypes.Nfc) {
+      Future.successful(attestation(2, 1).get)
+    } else {
+      sendApdu(0xE0, 0xC2, 0x00, 0x00, 0x08, random, 0x00) map {(result) =>
+        val reader = result.data
+        val batchId = reader.readNextInt()
+        val derivationIndex = reader.readNextInt()
+        val version = reader.readNextBytes(8)
+        val signedRandom = reader.readNextBytesUntilEnd()
+        val attestation = LedgerFirmwareApi.attestation(batchId, derivationIndex).getOrElse {
+          throw UnsupportedAttestationException(batchId, derivationIndex)
+        }
+        if (!attestation.check(version ++ random, signedRandom)) {
+          // Check if it is the dev attestation
+          if (!LedgerFirmwareApi.attestation(0, 1).get.check(version ++ random, signedRandom))
+            throw RogueFirmwareException(batchId, derivationIndex)
+        }
+        attestation
       }
-      if (!attestation.check(version ++ random, signedRandom)) {
-        // Check if it is the dev attestation
-        if (!LedgerFirmwareApi.attestation(0, 1).get.check(version ++ random, signedRandom))
-          throw RogueFirmwareException(batchId, derivationIndex)
-      }
-      attestation
     }
   }
 
@@ -141,7 +147,14 @@ object LedgerFirmwareApi {
 
     def usesDeprecatedFirmware = intVersion < FirmwareVersions.BTChip1_4_7
     def usesDeprecatedBip32Derivation = intVersion < FirmwareVersions.BTChip1_4_7
-    def arePublicKeysCompressed = features & 0x01
+    def arePublicKeysCompressed = hasFeature(0x01)
+    def hasBleSupport = hasFeature(0x10)
+    def hasSecureScreenAndButton = hasFeature(0x02)
+    def hasUnsafeScreenAndButton = hasFeature(0x04)
+
+    def hasScreenAndButton = hasSecureScreenAndButton || hasUnsafeScreenAndButton
+
+    def hasFeature(featureFlag: Int) = (features & featureFlag) == featureFlag
 
     override def toString: String = s"$major.$minor.$patch"
   }

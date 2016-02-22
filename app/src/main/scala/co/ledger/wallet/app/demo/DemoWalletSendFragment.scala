@@ -352,8 +352,7 @@ class DemoWalletSendFragment extends BaseFragment with ViewFinder {
           throw ex
       } flatMap {(tx) =>
         Logger.d(s"Tx : $tx")("TX")
-        Future.successful()
-        //wallet.pushTransaction(tx)
+        wallet.pushTransaction(tx)
       } onComplete {
           case Success(tx) =>
             progressDialog.dismiss()

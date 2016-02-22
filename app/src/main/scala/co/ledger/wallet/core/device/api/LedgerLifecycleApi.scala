@@ -40,6 +40,8 @@ import scala.util.{Failure, Success}
 trait LedgerLifecycleApi extends LedgerCommonApiInterface {
   import LedgerCommonApiInterface._
 
+  def promptPinScreen(): Future[Null] = verifyPin("0")
+
   def verifyPin(pin: String): Future[Null] = $("VERIFY PIN") {
     val bytes: Array[Byte] = AsciiUtils.toByteArray(pin)
     sendApdu(0xE0, 0x22, 0x00, 0x00, bytes, 0x00).map {(result) =>

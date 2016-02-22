@@ -39,7 +39,8 @@ import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{WalletActivity, BaseActivity}
 import co.ledger.wallet.core.view.ViewFinder
 
-class DemoWalletActivity extends BaseActivity with WalletActivity with ViewFinder {
+class DemoWalletActivity extends BaseActivity with WalletActivity with ViewFinder with
+DemoMenuActivity {
 
   lazy val viewPager: ViewPager = R.id.viewpager
   lazy val tabLayout: TabLayout = R.id.tabs

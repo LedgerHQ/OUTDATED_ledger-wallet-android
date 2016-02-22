@@ -57,7 +57,8 @@ import scala.util.{Failure, Success}
 class DemoDiscoverDeviceActivity extends BaseActivity
   with DeviceActivity
   with Loggable
-  with ViewFinder {
+  with ViewFinder
+  with DemoMenuActivity {
   import DemoDiscoverDeviceActivity._
   import co.ledger.wallet.core.device.DeviceFactory._
 
@@ -164,34 +165,46 @@ class DemoDiscoverDeviceActivity extends BaseActivity
   def retrieveWalletName(api: LedgerApi, dialog: ProgressDialog): Future[String] = {
     api.walletIdentifier(MainNetParams.get()) recoverWith {
       case ex: LedgerApiInvalidAccessRightException =>
-        dialog.dismiss()
-        unlockDevice(api) flatMap {(_) =>
-          dialog.show()
+        unlockDevice(api, dialog) flatMap {(_) =>
+          dialog.setMessage(s"Finalizing")
           retrieveWalletName(api, dialog)
         }
       case all => throw all
     }
   }
 
-  private def unlockDevice(api: LedgerApi): Future[Null] = {
+  private def unlockDevice(api: LedgerApi, dialog: ProgressDialog): Future[Null] = {
     val promise = Promise[Null]()
-    val input = new EditText(this)
-    input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
-    new Builder(this)
-      .setTitle("Unlock device")
-      .setMessage("Enter PIN:")
-      .setView(input)
-      .setPositiveButton("Submit", new DialogInterface.OnClickListener {
-        override def onClick(dialog: DialogInterface, which: Int): Unit = {
-          promise.completeWith(api.verifyPin(input.getText.toString))
+    api.firmwareVersion() onComplete {
+      case Success(firmware) =>
+        if (firmware.hasScreenAndButton) {
+          dialog.setMessage("Please unlock your device")
+          promise.completeWith(api.promptPinScreen())
+        } else {
+          dialog.dismiss()
+          val input = new EditText(this)
+          input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
+          new Builder(this)
+            .setTitle("Unlock device")
+            .setMessage("Enter PIN:")
+            .setView(input)
+            .setPositiveButton("Submit", new DialogInterface.OnClickListener {
+              override def onClick(d: DialogInterface, which: Int): Unit = {
+                promise.completeWith(api.verifyPin(input.getText.toString).andThen({
+                  case all => dialog.show()
+                }))
+              }
+            })
+            .setNegativeButton("Cancel", new DialogInterface.OnClickListener {
+              override def onClick(dialog: DialogInterface, which: Int): Unit = {
+                promise.failure(new Exception("Cancel"))
+              }
+            })
+            .show()
         }
-      })
-      .setNegativeButton("Cancel", new DialogInterface.OnClickListener {
-        override def onClick(dialog: DialogInterface, which: Int): Unit = {
-          promise.failure(new Exception("Cancel"))
-        }
-      })
-      .show()
+      case Failure(ex) =>
+        promise.failure(ex)
+    }
     promise.future
   }
 

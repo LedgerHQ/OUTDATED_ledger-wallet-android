@@ -42,7 +42,7 @@ trait LedgerUnpluggedApi extends LedgerCommonApiInterface {
       super.sendApdu(command)
     else {
       super.sendApdu(HexUtils.decodeHex("00a404000ca0000006170054bf6aa94901")) flatMap {(_) =>
-        //_initialized = true
+        _initialized = true
         super.sendApdu(command)
       }
     }

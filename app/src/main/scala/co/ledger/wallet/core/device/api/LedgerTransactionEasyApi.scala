@@ -197,7 +197,7 @@ trait LedgerTransactionEasyApi extends LedgerTransactionApi {
         } flatMap {(output) =>
           if (_output.isEmpty)
             _output = Option(output)
-          if (output.needsValidation) {
+          if (output.needsValidation && _2faAnswer.isEmpty) {
             throw new SignatureNeeds2FAValidationException(output.validation.get)
           }
           notifyProgress()
