@@ -99,8 +99,6 @@ class DemoWalletHomeFragment extends BaseFragment
   def recyclerView = getView.asInstanceOf[RecyclerView]
 
   override def receive: Receive = {
-    case CoinSent(_, coin) => setupAdapter()
-    case CoinReceived(_, coin) => setupAdapter()
     case NewOperation(_, _) => setupAdapter()
     case OperationChanged(_, _) => setupAdapter()
     case ignore =>
