@@ -35,7 +35,7 @@ import java.util.UUID
 import android.bluetooth._
 import android.bluetooth.le.ScanResult
 import android.content.Context
-import co.ledger.wallet.core.concurrent.ThreadPoolTask
+import co.ledger.wallet.core.concurrent.{SequentialExecutionContext, ThreadPoolTask}
 import co.ledger.wallet.core.device.Device
 import co.ledger.wallet.core.device.Device.{Connect, Disconnect}
 import co.ledger.wallet.core.device.DeviceManager.{ConnectivityTypes, ConnectivityType}
@@ -267,18 +267,12 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
     def onRead(gatt: BluetoothGatt,
                characteristic: BluetoothGattCharacteristic,
                status: Int): Unit = {
-      writeFuture onComplete {
-        case Success(_) =>
-          Logger.d("On read")
-          if (!_promise.isCompleted) {
-            append(characteristic.getValue)
-          } else {
-            Logger.wtf("Unexpected read")
-          }
-        case Failure(ex) =>
-          ex.printStackTrace()
-          _promise.failure(ex)
-      }
+        Logger.d("On read")
+        if (!_promise.isCompleted) {
+          append(characteristic.getValue)
+        } else {
+          Logger.wtf("Unexpected read")
+        }
     }
 
     def onWrite(gatt: BluetoothGatt,
@@ -310,7 +304,12 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
 
     def success(response: Array[Byte]): Unit = {
       if (!_promise.isCompleted) {
-        _promise.success(response)
+        writeFuture onComplete {
+          case Success(_) =>
+            _promise.success(response)
+          case Failure(ex) =>
+            _promise.failure(ex)
+        }
       }
     }
 
@@ -334,14 +333,13 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
     }
 
     def future: Future[Array[Byte]] = _promise.future
-    def writeFuture: Future[Unit] =
+    def writeFuture: Future[Unit] = _writePromise.future
 
     private[this] val _promise = Promise[Array[Byte]]()
     private[this] var _currentChunkOffset = 0
     private[this] val _responseBuffer = new java.util.Vector[Array[Byte]]()
 
     private[this] val _writePromise = Promise[Unit]()
-
     // Start writing
     writeNextChunk()
   }
