@@ -91,9 +91,11 @@
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/scala" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/jni" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/rs" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/build/.DS_Store" />
       <excludeFolder url="file://$MODULE_DIR$/build/android-scala" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/assets" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/classes" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/classes-proguard" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/dependency-cache" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/devDebug" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/dex" />
@@ -115,7 +117,10 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/me.dm7.barcodescanner/zbar/1.6/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/manifests" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/multi-dex" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/pre-dexed" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/productionRelease" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/proguard-rules" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/res" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/rs" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/symbols" />
@@ -135,15 +140,15 @@
     <orderEntry type="library" exported="" name="pkix-1.51.0.0" level="project" />
     <orderEntry type="library" exported="" name="design-23.0.1" level="project" />
     <orderEntry type="library" exported="" name="preference-v14-23.1.0" level="project" />
-    <orderEntry type="library" exported="" name="core-3.2.0" level="project" />
     <orderEntry type="library" exported="" name="androidasync-2.1.6" level="project" />
+    <orderEntry type="library" exported="" name="core-3.2.0" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-23.1.0" level="project" />
     <orderEntry type="library" exported="" name="bitcoinj-core-0.13.4" level="project" />
     <orderEntry type="library" exported="" name="protobuf-java-2.5.0" level="project" />
     <orderEntry type="library" exported="" name="jsr305-2.0.1" level="project" />
     <orderEntry type="library" exported="" name="core-1.51.0.0" level="project" />
-    <orderEntry type="library" exported="" name="prov-1.51.0.0" level="project" />
     <orderEntry type="library" exported="" name="library-2.4.0" level="project" />
+    <orderEntry type="library" exported="" name="prov-1.51.0.0" level="project" />
     <orderEntry type="library" exported="" name="zbar-1.6" level="project" />
     <orderEntry type="library" exported="" name="joda-time-2.9.2" level="project" />
     <orderEntry type="library" exported="" name="library-1.0.1" level="project" />
@@ -161,9 +166,9 @@
     <orderEntry type="library" exported="" name="parboiled_2.11-2.0.1" level="project" />
     <orderEntry type="library" exported="" name="core-1.6" level="project" />
     <orderEntry type="library" exported="" name="pg-1.51.0.0" level="project" />
-    <orderEntry type="library" exported="" name="scrypt-1.4.0" level="project" />
     <orderEntry type="library" exported="" name="orchid-1.1.1" level="project" />
     <orderEntry type="library" exported="" name="guava-19.0-rc1" level="project" />
+    <orderEntry type="library" exported="" name="scrypt-1.4.0" level="project" />
     <orderEntry type="library" exported="" name="commons-cli-1.2" level="project" />
     <orderEntry type="library" exported="" name="support-v4-23.1.0" level="project" />
     <orderEntry type="library" exported="" name="btchip-java-1.0-SNAPSHOT" level="project" />

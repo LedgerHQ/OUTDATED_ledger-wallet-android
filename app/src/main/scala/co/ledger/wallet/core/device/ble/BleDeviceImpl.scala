@@ -45,6 +45,7 @@ import de.greenrobot.event.EventBus
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{Promise, Future}
+import scala.util.{Failure, Success}
 
 class BleDeviceImpl(context: Context, scanResult: ScanResult)
   extends Device
@@ -266,11 +267,17 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
     def onRead(gatt: BluetoothGatt,
                characteristic: BluetoothGattCharacteristic,
                status: Int): Unit = {
-      Logger.d("On read")
-      if (!_promise.isCompleted) {
-        append(characteristic.getValue)
-      } else {
-        Logger.wtf("Unexpected read")
+      writeFuture onComplete {
+        case Success(_) =>
+          Logger.d("On read")
+          if (!_promise.isCompleted) {
+            append(characteristic.getValue)
+          } else {
+            Logger.wtf("Unexpected read")
+          }
+        case Failure(ex) =>
+          ex.printStackTrace()
+          _promise.failure(ex)
       }
     }
 
@@ -278,11 +285,15 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
                 characteristic: BluetoothGattCharacteristic,
                 status: Int): Unit = {
       Logger.d("On write")
-      if (!_promise.isCompleted && isWriting) {
+      if (!_promise.isCompleted && isWriting && status == BluetoothGatt.GATT_SUCCESS) {
         _currentChunkOffset += 1
         if (isWriting) {
           writeNextChunk()
+        } else {
+          _writePromise.success()
         }
+      } else if (status != BluetoothGatt.GATT_FAILURE) {
+        _writePromise.failure(new Exception(s"Unexpected gatt status $status"))
       } else {
         Logger.wtf("Unexpected write")
       }
@@ -323,10 +334,13 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
     }
 
     def future: Future[Array[Byte]] = _promise.future
+    def writeFuture: Future[Unit] =
 
     private[this] val _promise = Promise[Array[Byte]]()
     private[this] var _currentChunkOffset = 0
     private[this] val _responseBuffer = new java.util.Vector[Array[Byte]]()
+
+    private[this] val _writePromise = Promise[Unit]()
 
     // Start writing
     writeNextChunk()

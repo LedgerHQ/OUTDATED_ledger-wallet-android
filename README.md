@@ -1,4 +1,4 @@
-ledger-wallet-android
-=====================
+Alpha channel
+=============
 
-Ledger Wallet Android application
+The Ledger Wallet application can now be tested in alpha.
