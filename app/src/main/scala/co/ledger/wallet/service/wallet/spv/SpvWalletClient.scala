@@ -58,6 +58,7 @@ import org.bitcoinj.core.{Block => JBlock, Context => JContext, Wallet => JWalle
 import org.bitcoinj.crypto.{ChildNumber, DeterministicHierarchy, DeterministicKey}
 import org.joda.time.DateTime
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{Future, Promise}
@@ -613,7 +614,23 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     class WalletTransactionInput(val input: TransactionInput, path: Option[DerivationPath])
       extends PathInterpreter(path) {
 
-      def value = input.getValue
+      def value = {
+        Option(input.getValue) getOrElse {
+          @tailrec
+          def iterate(watchers: Array[JWallet], index: Int): Coin = {
+            val watcher = watchers(index)
+            val tx = watcher.getTransaction(input.getParentTransaction.getHash)
+            if (tx != null && tx.getOutput(input.getOutpoint.getIndex) != null) {
+              tx.getOutput(input.getOutpoint.getIndex).getValue
+            } else if (index + 1 >= watchers.length) {
+              Coin.ZERO
+            } else {
+              iterate(watchers, index + 1)
+            }
+          }
+          iterate(_accounts.map(_.xpubWatcher), 0)
+        }
+      }
 
     }
 
