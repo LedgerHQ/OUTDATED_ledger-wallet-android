@@ -51,3 +51,13 @@
 -keep class org.spongycastle.**
 -dontwarn org.spongycastle.jce.provider.X509LDAPCertStoreSpi
 -dontwarn org.spongycastle.x509.util.LDAPStoreHelper
+
+## Event bus
+-keepclassmembers,includedescriptorclasses class ** { public void onEvent*(**); }
+
+## Preference Fragment
+-keep public class * extends android.preference.Preference
+-keep public class * extends android.preference.PreferenceFragment
+-keep public class * extends android.preference.PreferenceActivity
+-keep class android.support.v4.** { *; }
+-keep class android.support.v7.** { *; }

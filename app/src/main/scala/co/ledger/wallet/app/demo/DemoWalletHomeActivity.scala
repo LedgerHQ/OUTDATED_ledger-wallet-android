@@ -43,7 +43,8 @@ import co.ledger.wallet.wallet.events.WalletEvents._
 class DemoWalletHomeActivity extends BaseActivity
   with WalletActivity
   with DeviceActivity
-  with ViewFinder {
+  with ViewFinder
+  with DemoMenuActivity {
 
   lazy val viewPager: ViewPager = R.id.viewpager
   lazy val tabLayout: TabLayout = R.id.tabs
