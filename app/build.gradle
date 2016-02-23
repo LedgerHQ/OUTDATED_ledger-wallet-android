@@ -9,7 +9,7 @@ android {
     defaultConfig {
         applicationId "co.ledger.wallet"
         targetSdkVersion 23
-        versionCode 200
+        versionCode 201
         versionName "2.0.0"
         testInstrumentationRunner "com.android.test.runner.MultiDexTestRunner"
 
