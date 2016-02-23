@@ -174,7 +174,7 @@ class DemoWalletHomeFragment extends BaseFragment
       val futureCoin = balanceCache.lift(name)
       val coin = futureCoin.flatMap(_.value.flatMap(_.toOption))
       holder.asInstanceOf[AccountViewHolder].update(name, coin)
-      if (futureCoin.isEmpty || futureCoin.get.value.get.isFailure) {
+      if (futureCoin.isEmpty || futureCoin.get.value.isEmpty || futureCoin.get.value.get.isFailure) {
         val future = account.balance()
         balanceCache += name -> future
         future onComplete {

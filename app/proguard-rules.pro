@@ -46,3 +46,8 @@
 -keep class scala.collection.SeqLike {
     public protected *;
 }
+
+## Keep spongy castle
+-keep class org.spongycastle.**
+-dontwarn org.spongycastle.jce.provider.X509LDAPCertStoreSpi
+-dontwarn org.spongycastle.x509.util.LDAPStoreHelper
