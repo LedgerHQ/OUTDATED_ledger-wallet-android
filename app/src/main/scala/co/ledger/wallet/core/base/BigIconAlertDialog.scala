@@ -46,9 +46,9 @@ class BigIconAlertDialog extends BaseDialogFragment {
   private var _content: CharSequence = _
   private var _icon: Drawable = _
 
-  private lazy val titleView = TR(R.id.title).as[TextView]
-  private lazy val contentView = TR(R.id.content).as[TextView]
-  private lazy val iconView = TR(R.id.icon).as[ImageView]
+  private lazy val titleView = getView.findViewById(R.id.title).asInstanceOf[TextView]
+  private lazy val contentView = getView.findViewById(R.id.content).asInstanceOf[TextView]
+  private lazy val iconView = getView.findViewById(R.id.icon).asInstanceOf[ImageView]
   private lazy val actionBar = DialogActionBarController(R.id.dialog_action_bar).noPositiveButton.noNeutralButton
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {

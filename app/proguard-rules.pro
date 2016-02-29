@@ -61,3 +61,12 @@
 -keep public class * extends android.preference.PreferenceActivity
 -keep class android.support.v4.** { *; }
 -keep class android.support.v7.** { *; }
+
+## Design library
+-dontwarn android.support.design.**
+-keep class android.support.design.** { *; }
+-keep interface android.support.design.** { *; }
+-keep public class android.support.design.R$* { *; }
+-keep public class * extends android.support.design.widget.CoordinatorLayout$Behavior {
+    public <init>(android.content.Context, android.util.AttributeSet);
+}

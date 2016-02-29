@@ -43,10 +43,10 @@ import co.ledger.wallet.core.widget.TextView
 class IncomingTransactionDialogFragment extends BaseDialogFragment {
 
   lazy val actions = DialogActionBarController(R.id.dialog_action_bar).noNeutralButton
-  lazy val amount = TR(R.id.amount).as[TextView]
-  lazy val address = TR(R.id.address).as[TextView]
-  lazy val date = TR(R.id.date).as[TextView]
-  lazy val name = TR(R.id.dongle_name).as[TextView]
+  lazy val amount = getView.findViewById(R.id.amount).asInstanceOf[TextView]
+  lazy val address = getView.findViewById(R.id.address).asInstanceOf[TextView]
+  lazy val date = getView.findViewById(R.id.date).asInstanceOf[TextView]
+  lazy val name = getView.findViewById(R.id.dongle_name).asInstanceOf[TextView]
 
   private[this] var _transaction: Option[IncomingTransactionAPI#IncomingTransaction] = None
 
