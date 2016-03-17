@@ -45,7 +45,12 @@ import scala.util.Try
 class WalletDatabaseWriter(database: SQLiteDatabase) {
 
   def deleteAllAccounts(): Int = {
-    database.delete(AccountTableName, "1", null)
+    database.delete(AccountTableName, "", null)
+  }
+
+  def deleteTransaction(hash: String): Int = {
+    import TransactionTableColumns._
+    database.delete(TransactionTableName, s"$Hash = ?", Array(hash))
   }
 
   def createAccountRow(index: Option[Int] = None,

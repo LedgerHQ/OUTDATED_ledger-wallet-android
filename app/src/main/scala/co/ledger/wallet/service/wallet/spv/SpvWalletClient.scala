@@ -40,6 +40,7 @@ import co.ledger.wallet.core.concurrent.{AbstractAsyncCursor, AsyncCursor, Seria
 import co.ledger.wallet.core.net.HttpClient
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.core.utils.{BitcoinjUtils, Preferences}
+import co.ledger.wallet.service.wallet.AbstractDatabaseStoredWallet
 import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns
 import co.ledger.wallet.service.wallet.database.cursor.{BlockCursor, OperationCursor}
 import co.ledger.wallet.service.wallet.database.model.BlockRow
@@ -63,8 +64,8 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{Future, Promise}
 
-class SpvWalletClient(val context: Context, val name: String, val networkParameters: NetworkParameters)
-  extends Wallet with SerialQueueTask with Loggable {
+class SpvWalletClient(context: Context, name: String, networkParameters: NetworkParameters)
+  extends AbstractDatabaseStoredWallet(context, name, networkParameters) with SerialQueueTask with Loggable {
 
   val NeededAccountIndexKey = "n_index"
   val NeededAccountCreationTimeKey = "n_time"
@@ -74,24 +75,6 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   implicit val DisableLogging = false
 
   override def account(index: Int): Future[Account] = init() map {(_) => _accounts(index)}
-
-  override def operations(limit: Int, batchSize: Int): Future[AsyncCursor[Operation]] = Future {
-    new AbstractAsyncCursor[Operation](ec, batchSize) {
-      override protected def performQuery(from: Int, to: Int): Array[Operation] = {
-        OperationCursor.toArray(_database.reader.allFullOperations(from, to - from))
-          .asInstanceOf[Array[Operation]]
-      }
-
-      override def count: Int = {
-        if (limit == -1)
-          _database.reader.operationCount()
-        else
-          Math.min(limit, _database.reader.operationCount())
-      }
-
-      override def requery(): Future[AsyncCursor[Operation]] = operations(batchSize)
-    }
-  }
 
   override def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
   Future.successful() flatMap {(_) =>
@@ -152,7 +135,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       case AccountHasNoXpubException(index) =>
         Logger.d(s"Need $index account")
         extendedPublicKeyProvider.generateXpub(rootPath/index.h).flatMap {(xpub) =>
-          _database.writer.createAccountRow(
+          database.writer.createAccountRow(
             index = Some(index),
             xpub58 = Some(xpub.serializePubB58(networkParameters)),
             creationTime = _neededAccountCreationTime
@@ -165,6 +148,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
 
   def notifyDeadTransaction(tx: Transaction): Unit = Future {
     // TODO: Implement
+    database.writer.deleteTransaction(tx.getHashAsString)
   }
 
   def notifyAccountTransaction(account: SpvAccountClient, tx: Transaction): Unit = Future {
@@ -181,7 +165,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   }
 
   private def pushTransaction(account: SpvAccountClient, tx: Transaction): Unit = {
-    val writer = _database.writer
+    val writer = database.writer
     writer.beginTransaction()
     val bag = new DerivationPathBag
     try {
@@ -270,22 +254,6 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     }
   }
 
-  private def querySingleOperation(accountId: Int, transactionHash: String, opType: Int): AsyncCursor[Operation] =
-    querySingleOperation(_database.writer.computeOperationUid(accountId, transactionHash, opType))
-
-  private def querySingleOperation(opUid: String): AsyncCursor[Operation] = {
-    new AbstractAsyncCursor[Operation](ec, 1) {
-      override protected def performQuery(from: Int, to: Int): Array[Operation] = {
-        OperationCursor.toArray(_database.reader.querySingleFullOperation(opUid))
-        .asInstanceOf[Array[Operation]]
-      }
-
-      override def count: Int = 1
-
-      override def requery(): Future[AsyncCursor[Operation]] = Future {querySingleOperation(opUid)}
-    }
-  }
-
   override def accounts(): Future[Array[Account]] = init() map {(_) =>
     _accounts.asInstanceOf[Array[Account]]
   }
@@ -326,17 +294,6 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       eventBus.post(AccountCreated(0))
       ()}
 
-
-  override def mostRecentBlock(): Future[Block] = {
-    init() map {(_) =>
-      val cursor = new BlockCursor(_database.reader.lastBlock())
-      if (cursor.moveToFirst() && cursor.getCount > 0)
-        new BlockRow(cursor)
-      else
-        throw new NoSuchElementException
-    }
-  }
-
   override def needsSetup(): Future[Boolean] = init().map((_) => true).recover {
     case WalletNotSetupException() => false
     case throwable: Throwable => throw throwable
@@ -354,12 +311,14 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     _spvAppKit match {
       case Some(appKit) =>
         appKit.close()
-        _database.close()
+        super.stop()
       case None =>
     }
   }
 
-  def databaseReader = _database.reader
+  override def mostRecentBlock(): Future[Block] = {
+    init().flatMap((_) => super.mostRecentBlock())
+  }
 
   private def init(): Future[SpvAppKit] = Future.successful() flatMap {(_) =>
     _spvAppKitFuture getOrElse {
@@ -392,10 +351,11 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
       override def reorganize(splitPoint: StoredBlock, oldBlocks: util.List[StoredBlock],
                               newBlocks: util.List[StoredBlock]): Unit = {
         // TODO: Handle block reorgs
+
       }
 
       override def notifyNewBestBlock(block: StoredBlock): Unit = Future {
-        _database.writer.updateOrCreateBlock(block)
+        database.writer.updateOrCreateBlock(block)
       }
 
       override def notifyTransactionIsInBlock(txHash: Sha256Hash, block: StoredBlock, blockType: NewBlockType, relativityOffset: Int): Boolean = false
@@ -407,7 +367,7 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
     })
     _accounts = appKit.accounts.map((d) => new SpvAccountClient(this, d))
     Logger.d(s"Accounts init ${appKit.accounts.length} ${_accounts.length}")
-    val operations = OperationCursor.toArray(_database.reader.allPendingFullOperations(0, Int.MaxValue))
+    val operations = OperationCursor.toArray(database.reader.allPendingFullOperations(0, Int.MaxValue))
     for (operation <- operations) {
       val account = _accounts(operation.accountIndex)
       val tx = account.xpubWatcher.getTransaction(Sha256Hash.wrap(operation.transactionHash))
@@ -472,14 +432,13 @@ class SpvWalletClient(val context: Context, val name: String, val networkParamet
   private[this] var _accounts = Array[SpvAccountClient]()
   private[this] var _spvAppKitFuture: Option[Future[SpvAppKit]] = None
   private[this] var _spvAppKit: Option[SpvAppKit] = None
-  private[this] lazy val _database = new WalletDatabaseOpenHelper(context, name)
   private[this] val _internalEventBus = new EventBus()
   private[this] lazy val _spvAppKitFactory =
     new SpvAppKitFactory(
       ec,
       networkParameters,
       context.getDir(s"spv_$name", Context.MODE_PRIVATE),
-      _database
+      database
     )
 
   private[this] val _preferences = Preferences(s"SpvWalletClient_${name}")(context)
