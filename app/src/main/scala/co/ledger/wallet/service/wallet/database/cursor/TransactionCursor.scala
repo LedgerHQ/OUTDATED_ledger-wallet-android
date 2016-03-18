@@ -1,9 +1,9 @@
 /**
  *
- * Utxo
+ * BlockCursor
  * Ledger wallet
  *
- * Created by Pierre Pollastri on 11/02/16.
+ * Created by Pierre Pollastri on 29/01/16.
  *
  * The MIT License (MIT)
  *
@@ -28,39 +28,34 @@
  * SOFTWARE.
  *
  */
-package co.ledger.wallet.wallet
+package co.ledger.wallet.service.wallet.database.cursor
 
-import co.ledger.wallet.service.wallet.database.model.OutputRow
-import org.bitcoinj.core.{ECKey, Coin, Transaction}
+import android.database.Cursor
+import co.ledger.wallet.service.wallet.database.DatabaseStructure.TransactionTableColumns
+.TransactionWithBlockProject.ProjectionIndex._
 
-import scala.concurrent.Future
+class TransactionCursor(override val self: Cursor) extends CursorExtension(self) {
 
-trait Utxo {
-
-  def transaction: Future[Transaction]
-  def outputIndex: Long
-  def path: DerivationPath
-  def value: Coin
-  def publicKey: Array[Byte]
-  def confirmation: Int
-
-}
-
-object Utxo {
-
-  def apply(tx: Future[Transaction], row: OutputRow, confirmation: Int, publicKey: Array[Byte]): Utxo =
-    new UtxoImpl(tx, row, confirmation, publicKey)
-
-  private class UtxoImpl(tx: Future[Transaction],
-                         row: OutputRow,
-                         c: Int,
-                         override val publicKey: Array[Byte]) extends Utxo{
-    import DerivationPath.dsl._
-    override val transaction = tx
-    override val outputIndex = row.index
-    override val path = 44.h/0.h ++ row.path.get
-    override val value = row.value
-    override val confirmation = c
-
+  def hash = self.getLong(Hash)
+  def fees = self.getLong(Fees)
+  def time = self.getLong(Time)
+  def lockTime = self.getLong(LockTime)
+  def blockHash = {
+    if (self.isNull(BlockHash))
+      None
+    else
+      Some(self.getString(BlockHash))
+  }
+  def blockHeight = {
+    if (self.isNull(BlockHeight))
+      None
+    else
+      Some(self.getLong(BlockHeight))
+  }
+  def blockTime = {
+    if (self.isNull(BlockTime))
+      None
+    else
+      Some(self.getLong(BlockTime))
   }
 }

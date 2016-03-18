@@ -51,59 +51,61 @@ trait LedgerTransactionApi extends LedgerCommonApiInterface {
     import co.ledger.wallet.core.utils.FutureExtensions._
 
     val writer = new BytesWriter()
-    writer.writeInt(utxo.outputIndex)
-    writer.writeLeInt(utxo.transaction.getVersion)
-    writer.writeVarInt(utxo.transaction.getInputs.size())
-    sendApdu(0xe0, 0x42, 0x00, 0x00, writer.toByteArray, 0x00) flatMap {(result) =>
-      matchErrorsAndThrow(result)
-      // Write each input
-      foreach(utxo.transaction.getInputs.asScala.toArray) {(input) =>
-        val promise = Promise[Null]()
-        val writer = new BytesWriter()
-        writer.writeReversedByteArray(input.getOutpoint.getHash.getBytes)
-        writer.writeLeInt(input.getOutpoint.getIndex)
-        writer.writeVarInt(input.getScriptBytes.length)
-        sendApdu(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, 0x00) flatMap {(result) =>
-          matchErrorsAndThrow(result)
+    utxo.transaction.flatMap {(transaction) =>
+      writer.writeInt(utxo.outputIndex)
+      writer.writeLeInt(transaction.getVersion)
+      writer.writeVarInt(transaction.getInputs.size())
+      sendApdu(0xe0, 0x42, 0x00, 0x00, writer.toByteArray, 0x00) flatMap { (result) =>
+        matchErrorsAndThrow(result)
+        // Write each input
+        foreach(transaction.getInputs.asScala.toArray) { (input) =>
+          val promise = Promise[Null]()
           val writer = new BytesWriter()
-          writer.writeByteArray(input.getScriptBytes)
-          val sequence = new BytesWriter(8)
-          sequence.writeLeInt(input.getSequenceNumber)
-          sendApduSplit2(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, sequence.toByteArray, Array(0x9000))
-        } map {(result) =>
-          matchErrorsAndThrow(result)
-          null
+          writer.writeReversedByteArray(input.getOutpoint.getHash.getBytes)
+          writer.writeLeInt(input.getOutpoint.getIndex)
+          writer.writeVarInt(input.getScriptBytes.length)
+          sendApdu(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, 0x00) flatMap { (result) =>
+            matchErrorsAndThrow(result)
+            val writer = new BytesWriter()
+            writer.writeByteArray(input.getScriptBytes)
+            val sequence = new BytesWriter(8)
+            sequence.writeLeInt(input.getSequenceNumber)
+            sendApduSplit2(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, sequence.toByteArray, Array(0x9000))
+          } map { (result) =>
+            matchErrorsAndThrow(result)
+            null
+          }
         }
-      }
-    } flatMap {(_) =>
-      // Write number of outputs
-      val writer = new BytesWriter()
-      writer.writeVarInt(utxo.transaction.getOutputs.size())
-      sendApdu(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, 0x00)
-    } flatMap {(r) =>
-      matchErrorsAndThrow(r)
-      // Write each output
-      foreach(utxo.transaction.getOutputs.asScala.toArray) {(output) =>
+      } flatMap { (_) =>
+        // Write number of outputs
         val writer = new BytesWriter()
-        writer.writeLeLong(output.getValue.getValue)
-        writer.writeVarInt(output.getScriptBytes.length)
-        sendApdu(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, 0x00) flatMap {(r) =>
-          matchErrorsAndThrow(r)
+        writer.writeVarInt(transaction.getOutputs.size())
+        sendApdu(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, 0x00)
+      } flatMap { (r) =>
+        matchErrorsAndThrow(r)
+        // Write each output
+        foreach(transaction.getOutputs.asScala.toArray) { (output) =>
           val writer = new BytesWriter()
-          writer.writeByteArray(output.getScriptBytes)
-          sendApduSplit(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, Array(0x9000))
-        } map {(r) =>
-          matchErrorsAndThrow(r)
-          null
+          writer.writeLeLong(output.getValue.getValue)
+          writer.writeVarInt(output.getScriptBytes.length)
+          sendApdu(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, 0x00) flatMap { (r) =>
+            matchErrorsAndThrow(r)
+            val writer = new BytesWriter()
+            writer.writeByteArray(output.getScriptBytes)
+            sendApduSplit(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, Array(0x9000))
+          } map { (r) =>
+            matchErrorsAndThrow(r)
+            null
+          }
         }
+      } flatMap { (_) =>
+        val writer = new BytesWriter()
+        writer.writeLeLong(transaction.getLockTime)
+        sendApdu(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, 0x00)
+      } map { (result) =>
+        matchErrorsAndThrow(result)
+        new Input(result.data, true)
       }
-    } flatMap {(_) =>
-      val writer = new BytesWriter()
-      writer.writeLeLong(utxo.transaction.getLockTime)
-      sendApdu(0xe0, 0x42, 0x80, 0x00, writer.toByteArray, 0x00)
-    } map {(result) =>
-      matchErrorsAndThrow(result)
-      new Input(result.data, true)
     }
   }
 

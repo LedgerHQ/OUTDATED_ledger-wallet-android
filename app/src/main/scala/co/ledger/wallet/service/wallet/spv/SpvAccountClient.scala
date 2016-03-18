@@ -35,6 +35,7 @@ import java.util.concurrent.Executor
 
 import co.ledger.wallet.core.concurrent.AsyncCursor
 import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
+import co.ledger.wallet.service.wallet.AbstractDatabaseStoredAccount
 import co.ledger.wallet.service.wallet.database.cursor.{BlockCursor, OutputCursor}
 import co.ledger.wallet.service.wallet.database.model.{BlockRow, OutputRow, AccountRow}
 import co.ledger.wallet.wallet._
@@ -42,6 +43,7 @@ import org.bitcoinj.core.Wallet
 import org.bitcoinj.core._
 import org.bitcoinj.crypto.{ChildNumber, DeterministicKey}
 import co.ledger.wallet.wallet.events.WalletEvents._
+import org.bitcoinj.wallet.DeterministicKeyChain
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
@@ -49,71 +51,16 @@ import scala.concurrent.Future
 import scala.util.Try
 
 class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
-  extends Account with Loggable {
-
-  implicit val ec = wallet.ec // Work on the wallet queue
+  extends AbstractDatabaseStoredAccount(wallet) with Loggable {
 
   val row = data._1
   val xpubWatcher = data._2
   val index = row.index
 
-  override def freshPublicAddress(): Future[Address] = Future {
-    val reader = wallet.asInstanceOf[SpvWalletClient].databaseReader
-    val path = DerivationPath(reader.lastUsedPath(index, 0).getOrElse(s"m/$index'/0/0"))
-    val newPath = new DerivationPath(path.parent, path.childNum + 1)
-    val childNums = newPath.toBitcoinJList
-    childNums.set(0, new ChildNumber(0, true))
-    val key = xpubWatcher.getActiveKeychain.getKeyByPath(childNums, true)
-    key.toAddress(wallet.networkParameters)
-  }
-
-  override def freshChangeAddress(): Future[(Address, DerivationPath)] = Future {
-    import DerivationPath.dsl._
-    val reader = wallet.asInstanceOf[SpvWalletClient].databaseReader
-    val path = DerivationPath(reader.lastUsedPath(index, 1).getOrElse(s"m/$index'/1/0"))
-    val newPath = new DerivationPath(path.parent, path.childNum + 1)
-    val childNums = newPath.toBitcoinJList
-    childNums.set(0, new ChildNumber(0, true))
-    val key = xpubWatcher.getActiveKeychain.getKeyByPath(childNums, true)
-    val bip44Path = 44.h/0.h ++ newPath
-    key.toAddress(wallet.networkParameters) -> bip44Path
-  }
-
-  override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = ???
-
   override def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit] =
     wallet.synchronize(provider)
 
   override def xpub(): Future[DeterministicKey] = Future.successful(xpubWatcher.getWatchingKey)
-
-  override def balance(): Future[Coin] = Future.successful(xpubWatcher.getBalance)
-
-  override def utxo(targetValue: Option[Coin]): Future[Array[Utxo]] = Future {
-    val database = wallet.databaseReader
-    val cursor = new OutputCursor(database.utxo(index))
-    val lastBlockCursor = new BlockCursor(database.lastBlock())
-    lastBlockCursor.moveToFirst()
-    val lastBlock = new BlockRow(lastBlockCursor)
-    lastBlockCursor.close()
-    if (cursor.getCount == 0 || !cursor.moveToFirst()) {
-      cursor.close()
-      Array.empty[Utxo]
-    } else {
-      val result = new ArrayBuffer[Utxo]()
-      var collectedValue = Coin.ZERO
-      do {
-        val row = new OutputRow(cursor)
-        val tx = xpubWatcher.getTransaction(new Sha256Hash(row.transactionHash))
-        collectedValue = collectedValue add row.value
-        val publicKey = xpubWatcher.getActiveKeychain.getKeyByPath(row.path.get.toBitcoinJList,
-          false).getPubKey
-        result += Utxo(tx, row, lastBlock.height - Try(tx.getConfidence.getAppearedAtChainHeight)
-          .getOrElse(lastBlock.height), publicKey)
-      } while (cursor.moveToNext() && (targetValue.isEmpty || targetValue.get.isLessThan(collectedValue)))
-      cursor.close()
-      result.toArray
-    }
-  }
 
   def release(): Unit = {
     xpubWatcher.removeEventListener(_eventListener)
@@ -122,6 +69,8 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
   xpubWatcher.addEventListener(_eventListener, new Executor {
     override def execute(command: Runnable): Unit = ec.execute(command)
   })
+
+  override def balance(): Future[Coin] = Future.successful(xpubWatcher.getBalance)
 
   private[this] lazy val _eventListener = new WalletEventListener
 
@@ -158,4 +107,9 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
       super.onWalletChanged(w)
     }
   }
+
+  override def rawTransaction(hash: String): Future[Transaction] = Future.successful(xpubWatcher
+    .getTransaction(Sha256Hash.wrap(hash)))
+
+  override def keyChain: DeterministicKeyChain = xpubWatcher.getActiveKeychain
 }

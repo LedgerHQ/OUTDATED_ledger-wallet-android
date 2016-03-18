@@ -33,7 +33,8 @@ package co.ledger.wallet.service.wallet.database
 import android.database.Cursor
 import android.database.sqlite.{SQLiteQueryBuilder, SQLiteDatabase}
 import DatabaseStructure._
-import co.ledger.wallet.service.wallet.database.cursor.AccountCursor
+import co.ledger.wallet.service.wallet.database.cursor.{TransactionCursor, AccountCursor}
+import co.ledger.wallet.service.wallet.database.model.TransactionRow
 
 class WalletDatabaseReader(database: SQLiteDatabase) {
 
@@ -159,6 +160,26 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
         |   $OutputPath LIKE 'm/$account''/%'
       """.stripMargin
     SelectUtxo.execute()
+  }
+
+  def transaction(hash: String): Option[TransactionRow] = {
+    import DatabaseStructure.TransactionTableColumns.TransactionWithBlockProject._
+    val SelectTransaction =
+      s"""
+        | SELECT ${projection.mkString(",")} FROM $TransactionTableName
+        | LEFT OUTER JOIN $BlockTableName ON
+        |   $BlockHash = $BlockJoinKey
+        | WHERE
+        |   $Hash = ?
+      """.stripMargin
+    val cursor = new TransactionCursor(SelectTransaction.execute(Array(hash)))
+    if (cursor.getCount == 0 || !cursor.moveToFirst())
+      None
+    else {
+      val row = new TransactionRow(cursor)
+      cursor.close()
+      Some(row)
+    }
   }
 
   private implicit class SqlString(val sql: String) {

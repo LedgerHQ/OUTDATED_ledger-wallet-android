@@ -88,7 +88,33 @@ object DatabaseStructure {
       val Time = 3
       val LockTime = 4
       val BlockHash = 5
+      val BlockHeight = 6
     }
+
+    object TransactionWithBlockProject {
+
+      val Hash = s"$TransactionTableName.${TransactionTableColumns.Hash}"
+      val Fees = s"$TransactionTableName.${TransactionTableColumns.Fees}"
+      val Time = s"$TransactionTableName.${TransactionTableColumns.Time}"
+      val LockTime = s"$TransactionTableName.${TransactionTableColumns.LockTime}"
+      val BlockHash = s"$TransactionTableName.${TransactionTableColumns.BlockHash}"
+      val BlockHeight = s"$BlockTableName.${BlockTableColumns.Height}"
+      val BlockTime = s"$BlockTableName.${BlockTableColumns.Time}"
+
+      val BlockJoinKey = s"$BlockTableName.${BlockTableColumns.Hash}"
+
+      val projection = Array(Hash, Fees, Time, LockTime, BlockHash, BlockHeight, BlockTime)
+      object ProjectionIndex {
+        val Hash = 0
+        val Fees = 1
+        val Time = 2
+        val LockTime = 3
+        val BlockHash = 4
+        val BlockHeight = 5
+        val BlockTime = 6
+      }
+    }
+
   }
 
   object OperationTableColumns extends BaseColumns {
