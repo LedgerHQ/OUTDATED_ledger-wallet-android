@@ -30,8 +30,8 @@
   */
 package co.ledger.wallet.service.wallet
 
-import co.ledger.wallet.core.concurrent.AsyncCursor
-import co.ledger.wallet.service.wallet.database.cursor.{BlockCursor, OutputCursor}
+import co.ledger.wallet.core.concurrent.{AbstractAsyncCursor, AsyncCursor}
+import co.ledger.wallet.service.wallet.database.cursor.{OperationCursor, BlockCursor, OutputCursor}
 import co.ledger.wallet.service.wallet.database.model.{OutputRow, BlockRow}
 import co.ledger.wallet.service.wallet.spv.SpvWalletClient
 import co.ledger.wallet.wallet.{Utxo, Operation, DerivationPath, Account}
@@ -71,36 +71,65 @@ abstract class AbstractDatabaseStoredAccount(val databaseWallet: AbstractDatabas
     key.toAddress(databaseWallet.networkParameters) -> bip44Path
   }
 
-  override def operations(batchSize: Int): Future[AsyncCursor[Operation]] = ???
+  override def operations(limit: Int, batchSize: Int): Future[AsyncCursor[Operation]] = Future {
+    new AbstractAsyncCursor[Operation](ec, batchSize) {
+      override protected def performQuery(from: Int, to: Int): Array[Operation] = {
+        OperationCursor.toArray(databaseWallet.databaseReader.accountOperations(index, from, to - from))
+          .asInstanceOf[Array[Operation]]
+      }
 
-  override def balance(): Future[Coin] = ???
+      override def count: Int = {
+        if (limit == -1)
+          databaseWallet.databaseReader.operationCount()
+        else
+          Math.min(limit, databaseWallet.databaseReader.operationCount())
+      }
 
-  override def utxo(targetValue: Option[Coin]): Future[Array[Utxo]] = Future {
-    val database = databaseWallet.databaseReader
-    val cursor = new OutputCursor(database.utxo(index))
-    val lastBlockCursor = new BlockCursor(database.lastBlock())
-    lastBlockCursor.moveToFirst()
-    val lastBlock = new BlockRow(lastBlockCursor)
-    lastBlockCursor.close()
-    if (cursor.getCount == 0 || !cursor.moveToFirst()) {
-      cursor.close()
-      Array.empty[Utxo]
-    } else {
+      override def requery(): Future[AsyncCursor[Operation]] = operations(batchSize)
+    }
+  }
+
+  override def balance(): Future[Coin] = utxoRows().map(_.map(_.value).foldLeft(Coin.ZERO)(_ add _))
+
+  override def utxo(targetValue: Option[Coin]): Future[Array[Utxo]] =
+    utxoRows(targetValue) map {(outputs) =>
+      val database = databaseWallet.databaseReader
+      val lastBlockCursor = new BlockCursor(database.lastBlock())
+      lastBlockCursor.moveToFirst()
+      val lastBlock = new BlockRow(lastBlockCursor)
+      lastBlockCursor.close()
       val result = new ArrayBuffer[Utxo]()
-      var collectedValue = Coin.ZERO
-      do {
-        val row = new OutputRow(cursor)
-        database.transaction(row.transactionHash) match {
+      outputs.foreach {(output) =>
+        database.transaction(output.transactionHash) match {
           case Some(tx) =>
-            collectedValue = collectedValue add row.value
-            val publicKey = keyChain.getKeyByPath(row.path.get.toBitcoinJList,
+            val childNums = output.path.get.toBitcoinJList
+            childNums.set(0, new ChildNumber(0, true))
+            val publicKey = keyChain.getKeyByPath(childNums,
               false).getPubKey
-            result += Utxo(rawTransaction(row.transactionHash), row, lastBlock.height - tx.blockHeight.map(_
+            result += Utxo(rawTransaction(output.transactionHash), output, lastBlock.height - tx
+              .blockHeight.map(_
               .toInt).getOrElse
             (lastBlock
               .height), publicKey)
           case None => // Do nothing
         }
+      }
+      result.toArray
+  }
+
+  private def utxoRows(targetValue: Option[Coin] = None): Future[Array[OutputRow]] = Future {
+    val database = databaseWallet.databaseReader
+    val cursor = new OutputCursor(database.utxo(index))
+    var collectedValue = Coin.ZERO
+    if (cursor.getCount == 0 || !cursor.moveToFirst()) {
+      cursor.close()
+      Array.empty[OutputRow]
+    } else {
+      val result = new ArrayBuffer[OutputRow]()
+      do {
+        val row = new OutputRow(cursor)
+        collectedValue = collectedValue add row.value
+        result += row
       } while (cursor.moveToNext() && (targetValue.isEmpty || targetValue.get.isLessThan(collectedValue)))
       cursor.close()
       result.toArray

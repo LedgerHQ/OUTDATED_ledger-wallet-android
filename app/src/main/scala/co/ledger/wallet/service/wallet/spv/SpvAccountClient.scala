@@ -70,8 +70,6 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
     override def execute(command: Runnable): Unit = ec.execute(command)
   })
 
-  override def balance(): Future[Coin] = Future.successful(xpubWatcher.getBalance)
-
   private[this] lazy val _eventListener = new WalletEventListener
 
   private class WalletEventListener extends AbstractWalletEventListener {

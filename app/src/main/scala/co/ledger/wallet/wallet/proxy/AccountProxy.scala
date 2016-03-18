@@ -51,8 +51,8 @@ class AccountProxy(val wallet: WalletProxy, account: Account) extends Account {
 
   override def xpub(): Future[DeterministicKey] = connect().flatMap(_.xpub())
 
-  override def operations(batchSize: Int): Future[AsyncCursor[Operation]] =
-    connect().flatMap(_.operations(batchSize))
+  override def operations(limit: Int, batchSize: Int): Future[AsyncCursor[Operation]] =
+    connect().flatMap(_.operations(limit, batchSize))
 
   override def balance(): Future[Coin] = connect().flatMap(_.balance())
 

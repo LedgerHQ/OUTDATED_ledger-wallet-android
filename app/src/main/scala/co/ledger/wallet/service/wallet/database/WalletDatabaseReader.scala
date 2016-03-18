@@ -57,7 +57,20 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
 
   def allOperations(offset: Int = 0, limit: Int = -1): Cursor = null
 
-  def accountOperations(accountIndex: Int, offset: Int = 0, limit: Int = -1): Cursor = null
+  def accountOperations(accountIndex: Int, offset: Int = 0, limit: Int = -1): Cursor = {
+    import DatabaseStructure.OperationTableColumns.FullOperationProjection._
+    val SelectFullOperation =
+      s"""
+         | SELECT ${allFieldProjectionKeys.mkString(",")} FROM $OperationTableName
+         | JOIN $TransactionTableName ON ${Keys.TransactionHash} = ${Keys.TransactionJoinKey}
+         | JOIN $AccountTableName ON ${Keys.AccountIndex} = ${Keys.AccountJoinKey}
+         | LEFT OUTER JOIN $BlockTableName ON ${Keys.BlockHash} = ${Keys.BlockJoinKey}
+         | WHERE ${Keys.AccountIndex} = $accountIndex
+         | ORDER BY ${Keys.TransactionTime} DESC
+         | LIMIT $limit OFFSET $offset
+     """.stripMargin
+    SelectFullOperation.execute()
+  }
 
   def operationInputs(operationUid: String): Cursor = null
 
