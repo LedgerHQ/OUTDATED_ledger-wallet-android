@@ -36,6 +36,7 @@ import android.app.Service
 import android.content.{Context, Intent}
 import android.os.{Handler, IBinder}
 import co.ledger.wallet.core.utils.Preferences
+import co.ledger.wallet.service.wallet.api.ApiWalletClient
 import co.ledger.wallet.service.wallet.spv.SpvWalletClient
 import co.ledger.wallet.wallet.Wallet
 import org.bitcoinj.params.MainNetParams
@@ -54,7 +55,7 @@ class WalletService extends Service {
         case WalletService.WalletSpvEngine =>
           new SpvWalletClient(this, s"wallet_$name", networkParams)
         case WalletService.WalletApiEngine =>
-          null
+          new ApiWalletClient(this, s"wallet_$name", networkParams)
       }
       _wallets(name) = wallet
       wallet
@@ -71,7 +72,7 @@ class WalletService extends Service {
     wallet(name, defaultEngineFlag)
   }
 
-  def defaultEngineFlag = WalletService.WalletSpvEngine
+  def defaultEngineFlag = WalletService.WalletApiEngine
   def currentWalletName: Option[String] =
     Option(_preferences.reader.getString(CurrentWalletNameKey, null))
 

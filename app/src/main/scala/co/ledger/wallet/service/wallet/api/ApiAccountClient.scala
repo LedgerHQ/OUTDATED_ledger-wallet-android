@@ -30,8 +30,79 @@
   */
 package co.ledger.wallet.service.wallet.api
 
-class ApiAccountClient(val wallet: ApiWalletClient) {
+import java.io.{BufferedInputStream, FileInputStream, FileReader, File}
 
+import co.ledger.wallet.core.utils.Preferences
+import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
+import co.ledger.wallet.service.wallet.AbstractDatabaseStoredAccount
+import co.ledger.wallet.service.wallet.database.model.AccountRow
+import co.ledger.wallet.wallet.ExtendedPublicKeyProvider
+import org.bitcoinj.core.Transaction
+import org.bitcoinj.crypto.DeterministicKey
+import org.bitcoinj.wallet.{Protos, DeterministicKeyChain}
+import scala.collection.JavaConversions._
 
+import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.Future
+
+class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
+  extends AbstractDatabaseStoredAccount(wallet) with Loggable {
+
+  override def keyChain: DeterministicKeyChain = _keychain
+
+  override def rawTransaction(hash: String): Future[Transaction] = ???
+
+  override def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit] = Future {
+    Logger.d(s"Oh boy, account $index is synchronizing")
+  }
+
+  override def xpub(): Future[DeterministicKey] = Future.successful(_xpub)
+
+  override def index: Int = row.index
+
+  def save(): Future[Unit] = Future {
+
+  }
+
+  private val _preferences = Preferences("ApiAccountClient")(wallet.context)
+  private val _xpub = {
+    val accountKey = DeterministicKey.deserializeB58(row.xpub58, wallet.networkParameters)
+    new DeterministicKey(
+      DeterministicKeyChain.ACCOUNT_ZERO_PATH,
+      accountKey.getChainCode,
+      accountKey.getPubKeyPoint,
+      null, null)
+  }
+
+  val directory = new File(wallet.directory, s"account_$index/")
+  directory.mkdirs()
+
+  private val _keychain = {
+    val keychainFile = new File(directory, "keychain")
+    if (!keychainFile.exists()) {
+      DeterministicKeyChain.watch(_xpub)
+    } else {
+      try {
+        val reader = new BufferedInputStream(new FileInputStream(keychainFile))
+        var size = 0
+        val keys = new ArrayBuffer[Protos.Key]()
+        def readSize(): Int = {
+          val b1 = reader.read()
+          val b2 = reader.read()
+          if (b1 == -1 || b2 == -1) -1 else b1 << 8 | b2
+        }
+        while ({size = readSize(); size} != -1) {
+          val bytes = new Array[Byte](size)
+          reader.read(bytes, 0, bytes.length)
+          keys += Protos.Key.parseFrom(bytes)
+        }
+        DeterministicKeyChain.fromProtobuf(keys.toList, null, null).get(0)
+      } catch {
+        case anything: Throwable =>
+          anything.printStackTrace()
+          DeterministicKeyChain.watch(_xpub)
+      }
+    }
+  }
 
 }

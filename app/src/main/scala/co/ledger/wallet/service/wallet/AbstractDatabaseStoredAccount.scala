@@ -50,9 +50,10 @@ abstract class AbstractDatabaseStoredAccount(val databaseWallet: AbstractDatabas
   def keyChain: DeterministicKeyChain
 
   override def freshPublicAddress(): Future[Address] = Future {
-    val reader = wallet.asInstanceOf[SpvWalletClient].databaseReader
-    val path = DerivationPath(reader.lastUsedPath(index, 0).getOrElse(s"m/$index'/0/0"))
-    val newPath = new DerivationPath(path.parent, path.childNum + 1)
+    val reader = wallet.asInstanceOf[AbstractDatabaseStoredWallet].databaseReader
+    val path = reader.lastUsedPath(index, 0).map(DerivationPath(_))
+    val newPath = path.map((path) => new DerivationPath(path.parent, path.childNum + 1))
+      .getOrElse(DerivationPath(s"m/$index'/0/0"))
     val childNums = newPath.toBitcoinJList
     childNums.set(0, new ChildNumber(0, true))
     val key = keyChain.getKeyByPath(childNums, true)

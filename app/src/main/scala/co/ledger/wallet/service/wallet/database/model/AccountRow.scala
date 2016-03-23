@@ -41,3 +41,18 @@ class AccountRow(cursor: AccountCursor) {
   val creationTime = cursor.creationTime
 
 }
+
+object AccountRow {
+
+  def apply(cursor: AccountCursor): Array[AccountRow] = {
+    val accounts = new Array[AccountRow](cursor.getCount)
+    cursor.moveToFirst()
+    for (i <- accounts.indices) {
+      accounts(i) = new AccountRow(cursor)
+      cursor.moveToNext()
+    }
+    cursor.close()
+    accounts
+  }
+
+}
