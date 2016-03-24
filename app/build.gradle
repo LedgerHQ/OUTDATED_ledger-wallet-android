@@ -1,4 +1,5 @@
 apply plugin: "com.android.application"
+apply plugin: 'com.google.protobuf'
 apply plugin: "jp.leafytree.android-scala"
 
 android {
@@ -97,6 +98,8 @@ dependencies {
     compile 'com.android.support:preference-v7:23.1.1'
     compile group: 'com.fidesmo', name: 'nordpol-android', version: '0.1.4', ext: 'aar', transitive: true
     compile 'com.google.guava:guava:19.0-rc1'
+    compile 'com.google.protobuf:protobuf-java:3.0.0-alpha-3'
+    compile 'com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-3'
     androidTestCompile 'com.android.support:multidex-instrumentation:1.0.1'
     testCompile 'junit:junit:4.12'
     debugCompile 'com.facebook.stetho:stetho:1.2.0'
@@ -128,5 +131,12 @@ afterEvaluate {
         }
         dx.additionalParameters += "--multi-dex"
         dx.additionalParameters += "--main-dex-list=$rootDir/main-dex-list.txt".toString()
+    }
+}
+
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.0.0-alpha-3'
     }
 }

@@ -32,16 +32,41 @@ package co.ledger.wallet.service.wallet.api.rest
 
 import android.content.Context
 import co.ledger.wallet.core.net.HttpClient
-import org.json.JSONObject
+import co.ledger.wallet.service.wallet.api.rest.ApiObjects.TransactionsAnswer
+import org.bitcoinj.core.NetworkParameters
+import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
 
 import scala.concurrent.Future
 
-class TransactionRestClient(c: Context, client: HttpClient = HttpClient.defaultInstance)
+class TransactionRestClient(c: Context,
+                            networkParameters: NetworkParameters,
+                            client: HttpClient = HttpClient.defaultInstance)
   extends RestClient(c, client) {
 
-  def requestSyncToken(): Future[String] = ???
-  def deleteSyncToken(token: String): Future[Unit] = ???
-  def transactions(token: String, blockHash: Option[String]): Future[Array[JSONObject]] = ???
+  def requestSyncToken(): Future[String] = {
+    http.get(s"blockchain/v2/$network/syncToken").json map {
+      case (json, _) =>
+        json.getString("token")
+    }
+  }
 
+  def deleteSyncToken(token: String): Future[Unit] = {
+    http
+      .delete(s"blockchain/v2/$network/syncToken")
+      .header("X-LedgerWallet-SyncToken" -> token)
+      .noResponseBody.map((_) => ())
+  }
 
+  def transactions(token: String, addresses: Iterable[String], blockHash: Option[String]):
+  Future[TransactionsAnswer] = {
+    http
+      .get(s"blockchain/v2/$network/addresses/${addresses.mkString(",")}/transactions")
+      .header("X-LedgerWallet-SyncToken" -> token)
+      .json map {
+        case (json, _) =>
+          new TransactionsAnswer(json)
+      }
+  }
+
+  private def network = "btc"
 }

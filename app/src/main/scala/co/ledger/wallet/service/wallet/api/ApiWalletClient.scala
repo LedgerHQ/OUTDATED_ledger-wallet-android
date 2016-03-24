@@ -35,6 +35,7 @@ import java.io.File
 import android.content.Context
 import co.ledger.wallet.core.utils.logs.Loggable
 import co.ledger.wallet.service.wallet.AbstractDatabaseStoredWallet
+import co.ledger.wallet.service.wallet.api.rest.TransactionRestClient
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import co.ledger.wallet.wallet.exceptions.WalletNotSetupException
 import co.ledger.wallet.wallet.{Block, DerivationPath, Account, ExtendedPublicKeyProvider}
@@ -51,24 +52,29 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
   }
 
   override def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] = {
-    def synchronizeUntilEmptyAccount(from: Int): Future[Unit] = {
+
+    def synchronizeUntilEmptyAccount(syncToken: String, from: Int): Future[Unit] = {
       init().flatMap { (_) =>
-        val accounts = _accounts.slice(from, _accounts.length - 1)
-        Future.sequence(accounts.map(_.synchronize(publicKeyProvider)).toList)
+        val accounts = _accounts.slice(from, _accounts.length)
+        Future.sequence(accounts.map(_.synchronize(syncToken)).toList)
       } flatMap { (_) =>
         if (_accounts.last.keyChain.getIssuedExternalKeys != 0 ||
           _accounts.last.keyChain.getIssuedInternalKeys != 0) {
           // Create a new account
           createAccount(_accounts.length, publicKeyProvider).flatMap { (_) =>
             _accounts = Array[ApiAccountClient]()
-            synchronizeUntilEmptyAccount(_accounts.length)
+            synchronizeUntilEmptyAccount(syncToken, _accounts.length)
           }
         } else {
           Future.successful()
         }
       }
     }
-    synchronizeUntilEmptyAccount(0)
+    transactionRestClient.requestSyncToken().flatMap {(token) =>
+      synchronizeUntilEmptyAccount(token, 0).flatMap {unit =>
+        transactionRestClient.deleteSyncToken(token)
+      }
+    }
   }
 
   override def accounts(): Future[Array[Account]] = init() map {(_) => _accounts
@@ -96,7 +102,13 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
 
   override def isSynchronizing(): Future[Boolean] = Future {false}
 
-  override def balance(): Future[Coin] = ???
+  override def balance(): Future[Coin] = {
+    init() flatMap {unit =>
+      Future.sequence((for (a <- _accounts) yield a.balance()).toSeq).map { (balances) =>
+        balances.reduce(_ add _)
+      }
+    }
+  }
 
   override def accountsCount(): Future[Int] = init() map {(_) => _accounts.length}
 
@@ -123,5 +135,8 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
   val directory = context.getDir(s"api_$name", Context.MODE_PRIVATE)
 
   private var _accounts = Array[ApiAccountClient]()
+
+  // Rest clients
+  val transactionRestClient = new TransactionRestClient(context, networkParameters)
 
 }

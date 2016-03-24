@@ -46,7 +46,6 @@ object ResponseHelper {
 
     def json: Future[(JSONObject, HttpClient#Response)] = {
       f.string.map { case (body, response) =>
-        Logger.d("Converting to json")
         (new JSONObject(body), response)
       }
     }
@@ -59,7 +58,6 @@ object ResponseHelper {
 
     def string: Future[(String, HttpClient#Response)] = {
       f.map { response =>
-        Logger.d("Converting to string")
         (Source.fromInputStream(response.body).mkString, response)
       }
     }

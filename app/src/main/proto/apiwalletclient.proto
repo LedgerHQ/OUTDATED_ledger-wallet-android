@@ -1,0 +1,28 @@
+syntax = "proto3";
+package wallet;
+
+option java_package = "co.ledger.wallet.wallet.api";
+option java_outer_classname = "ApiWalletClientProtos";
+
+message ApiWalletClient {
+
+}
+
+message ApiAccountClient {
+    int32 index = 1;
+    int32 batch_size = 2;
+    int32 last_synchronization_time = 3;
+    SynchronizationStatus last_synchronization_status = 4;
+    repeated Batch batches = 5;
+
+    message Batch {
+        int32 index = 1;
+        string block_hash = 2;
+        int32 block_height = 3;
+    }
+
+    enum SynchronizationStatus {
+        SUCCESS = 0;
+        FAILURE = 1;
+    }
+}

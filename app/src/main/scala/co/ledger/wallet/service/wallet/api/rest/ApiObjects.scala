@@ -36,6 +36,8 @@ import java.util.Date
 import org.bitcoinj.core.Coin
 import org.json.{JSONArray, JSONObject}
 
+import scala.reflect.ClassTag
+
 object ApiObjects {
   /*
       {
@@ -110,7 +112,7 @@ object ApiObjects {
       if (!json.has("block"))
         None
       else
-       Some(new Block(json.getJSONObject(block)))
+       Some(new Block(json.getJSONObject("block")))
     }
   }
 
@@ -135,7 +137,8 @@ object ApiObjects {
     val script = json.getString("script_hex")
   }
 
-  private def inflate[T](json: JSONArray)(map: (JSONObject) => T): Array[T] = {
+  private def inflate[T](json: JSONArray)(map: (JSONObject) => T)(implicit classTag: ClassTag[T]):
+  Array[T] = {
     var index = 0
     val result = new Array[T](json.length())
     while (index < result.length) {

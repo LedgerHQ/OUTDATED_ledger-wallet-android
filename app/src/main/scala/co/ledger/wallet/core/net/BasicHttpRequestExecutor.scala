@@ -51,18 +51,14 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor with Loggable {
   val Buffers: mutable.Map[Long, Array[Char]] = mutable.Map[Long, Array[Char]]()
 
   override def execute(responseBuilder: HttpClient#ResponseBuilder): Unit = Future {
-    Logger.d(s"Begin request ${responseBuilder.request.url.toString}")
     @tailrec
     def iterate(tryNumber: Int): Unit = {
-      Logger.d(s"Attempt $tryNumber")
       var continue = false
       attemptPerform(responseBuilder) match {
         case Success(_) =>
-          Logger.d("Success")
           Try(responseBuilder.request.body.close())
           responseBuilder.build()
         case Failure(cause) =>
-          Logger.d("Failure")
           cause.printStackTrace()
           if (tryNumber + 1 < responseBuilder.request.retryNumber && responseBuilder.request.body.markSupported()) {
             Thread.sleep(tryNumber * TimeoutDuration)
@@ -79,27 +75,18 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor with Loggable {
   private[this] def attemptPerform(responseBuilder: HttpClient#ResponseBuilder): Try[_] = {
     val request = responseBuilder.request
     val url = new URL(request.url.toString)
-    Logger.d(s"Perform request on ${url.toString}")
     val connection = Try(url.openConnection().asInstanceOf[HttpURLConnection])
     if (connection.isFailure)
       return connection
 
-    Logger.d("Step -1")
     implicit val buffer = this.buffer
-    Logger.d("Step 0")
     val result: Try[_] = Try {
-      Logger.d("Step 1")
       configureConnection(connection.get, request)
-      Logger.d("Step 2")
       writeBody(connection.get, request)
-      Logger.d("Step 3")
 
       responseBuilder.statusCode = connection.get.getResponseCode
-      Logger.d("Step 4")
       responseBuilder.statusMessage = connection.get.getResponseMessage
-      Logger.d("Step 5")
       responseBuilder.body = readBody(connection.get)
-      Logger.d("Step 6")
       val headers = mutable.Map[String, String]()
       for (pos <- 0 until connection.get.getHeaderFields.size()) {
         headers(connection.get.getHeaderFieldKey(pos)) = connection.get.getHeaderField(pos)
@@ -144,7 +131,6 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor with Loggable {
                              (implicit buffer: Array[Char]): Unit = {
     request.method match {
       case "POST" | "PUT" =>
-        Logger.d(s"Write body")
         if (request.body.markSupported())
           request.body.mark(Int.MaxValue)
         val out = new BufferedOutputStream(connection.getOutputStream)
@@ -174,19 +160,12 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor with Loggable {
   }
 
   private[this] def buffer: Array[Char] = {
-    Logger.d("Buffer begin")
     synchronized {
-      Logger.d("Buffer sync")
       var buffer = Buffers.get(Thread.currentThread().getId)
-      Logger.d("Buffer sync 1")
       if (buffer.isEmpty) {
-        Logger.d("Buffer sync 2")
         buffer = Option(new Array[Char](BufferSize))
-        Logger.d("Buffer sync 3")
         Buffers(Thread.currentThread().getId) = buffer.get
-        Logger.d("Buffer sync 4")
       }
-      Logger.d("Buffer sync 5")
       buffer.get
     }
   }

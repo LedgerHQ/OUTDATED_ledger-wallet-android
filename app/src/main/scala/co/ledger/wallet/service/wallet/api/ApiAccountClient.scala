@@ -37,6 +37,8 @@ import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
 import co.ledger.wallet.service.wallet.AbstractDatabaseStoredAccount
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import co.ledger.wallet.wallet.ExtendedPublicKeyProvider
+import co.ledger.wallet.wallet.api.ApiWalletClientProtos
+import com.google.protobuf.nano.CodedInputByteBufferNano
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.wallet.{Protos, DeterministicKeyChain}
@@ -52,19 +54,29 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
 
   override def rawTransaction(hash: String): Future[Transaction] = ???
 
-  override def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit] = Future {
-    Logger.d(s"Oh boy, account $index is synchronizing")
+  override def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit] = wallet
+    .synchronize(provider)
+
+  def synchronize(syncToken: String): Future[Unit] = Future {
+    Logger.d(s"Oh boy, account $index is synchronizing")("Toto", false)
+
   }
 
   override def xpub(): Future[DeterministicKey] = Future.successful(_xpub)
 
   override def index: Int = row.index
 
+  def load(): Future[ApiWalletClientProtos.ApiAccountClient] = Future {
+    val input = CodedInputByteBufferNano.newInstance()
+    ApiWalletClientProtos.ApiAccountClient.parseFrom(input)
+    null
+  }
+
   def save(): Future[Unit] = Future {
 
   }
 
-  private val _preferences = Preferences("ApiAccountClient")(wallet.context)
+  private val _preferences = Preferences(s"ApiAccountClient_$index")(wallet.context)
   private val _xpub = {
     val accountKey = DeterministicKey.deserializeB58(row.xpub58, wallet.networkParameters)
     new DeterministicKey(
@@ -104,5 +116,7 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
       }
     }
   }
+
+  private val savedStateFile = new File(directory, "saved_state")
 
 }

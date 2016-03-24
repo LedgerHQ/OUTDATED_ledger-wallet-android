@@ -30,6 +30,11 @@
   */
 package co.ledger.wallet.service.wallet.api.rest
 
-class BlockRestClient extends RestClient {
+import android.content.Context
+import co.ledger.wallet.core.net.HttpClient
+
+class BlockRestClient(c: Context,
+                      client: HttpClient = HttpClient.defaultInstance)
+  extends RestClient(c, client) {
 
 }

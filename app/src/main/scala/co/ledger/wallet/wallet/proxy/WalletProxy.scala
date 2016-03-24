@@ -54,9 +54,7 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
   override def accounts(): Future[Array[Account]] = connect().flatMap(_.accounts()) map {
     (accounts) =>
       val proxies = new Array[Account](accounts.length)
-      Log.d("Toto", s"RECEIVED ${proxies.length} account to proxify")
       for (account <- accounts) {
-        Log.d("Toto", s"Proxification of ${account.index}")
         proxies(account.index) = AccountProxy(this, account)
       }
       proxies

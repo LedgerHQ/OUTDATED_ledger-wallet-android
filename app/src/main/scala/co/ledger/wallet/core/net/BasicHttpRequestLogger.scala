@@ -37,7 +37,8 @@ class BasicHttpRequestLogger extends HttpRequestLogger {
   implicit val LogTag = "HTTP"
   implicit val DisableLogging = false
 
-  override def onSendRequest(request: HttpClient#Request): Unit = {}
+  override def onSendRequest(request: HttpClient#Request): Unit =
+    Logger.d(s"[${request.method}] ${request.url.toString}")
 
   override def onRequestFailed(response: HttpClient#Response, cause: Throwable): Unit = {}
 
