@@ -31,7 +31,7 @@
 package co.ledger.wallet.service.wallet.api.rest
 
 import android.content.Context
-import co.ledger.wallet.core.net.HttpClient
+import co.ledger.wallet.core.net.{HttpException, HttpClient}
 import co.ledger.wallet.service.wallet.api.rest.ApiObjects.TransactionsAnswer
 import org.bitcoinj.core.NetworkParameters
 import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
@@ -65,8 +65,20 @@ class TransactionRestClient(c: Context,
       .json map {
         case (json, _) =>
           new TransactionsAnswer(json)
-      }
+      } recover {
+      case ex: HttpException =>
+        if (ex.response.statusCode == 404 && blockHash.isDefined) {
+          throw BlockNotFoundException(blockHash.get)
+        } else {
+          throw ex
+        }
+      case other: Throwable => throw other
+    }
   }
 
   private def network = "btc"
+
 }
+
+case class BlockNotFoundException(blockHash: String) extends Exception(s"Block $blockHash not " +
+  s"found (blocks reorg)")

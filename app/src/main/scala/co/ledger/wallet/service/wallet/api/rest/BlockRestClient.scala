@@ -31,10 +31,24 @@
 package co.ledger.wallet.service.wallet.api.rest
 
 import android.content.Context
-import co.ledger.wallet.core.net.HttpClient
+import co.ledger.wallet.core.net.{HttpException, HttpClient}
+import co.ledger.wallet.service.wallet.api.rest.ApiObjects.{Block, TransactionsAnswer}
+import org.bitcoinj.core.NetworkParameters
+
+import scala.concurrent.Future
 
 class BlockRestClient(c: Context,
+                      networkParameters: NetworkParameters,
                       client: HttpClient = HttpClient.defaultInstance)
   extends RestClient(c, client) {
+
+  def mostRecentBlock(): Future[ApiObjects.Block] = {
+    http.get(s"blockchain/v2/$network/blocks/current").json map {
+      case (json, _) =>
+        new Block(json)
+    }
+  }
+
+  private def network = "btc"
 
 }

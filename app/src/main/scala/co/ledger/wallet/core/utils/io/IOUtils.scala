@@ -33,6 +33,8 @@ package co.ledger.wallet.core.utils.io
 import java.io._
 
 import co.ledger.wallet.core.utils.logs.Logger
+import com.google.protobuf.CodedInputStream
+import com.google.protobuf.nano.{CodedOutputByteBufferNano, CodedInputByteBufferNano}
 
 import scala.annotation.tailrec
 
@@ -96,6 +98,22 @@ object IOUtils {
     input.close()
   }
 
+  def copy(source: File): CodedInputByteBufferNano = {
+    require(source != null)
+    val input = new BufferedInputStream(new FileInputStream(source))
+    val output = new ByteArrayOutputStream()
+    copy(input, output)
+    input.close()
+    CodedInputByteBufferNano.newInstance(output.toByteArray)
+  }
 
+  def copy(source: Array[Byte], destination: File): Unit = {
+    require(source != null)
+    require(destination != null)
+    val input = new ByteArrayInputStream(source)
+    val output = new BufferedOutputStream(new FileOutputStream(destination))
+    copy(input, output)
+    output.close()
+  }
 
 }

@@ -33,12 +33,14 @@ package co.ledger.wallet.service.wallet.api
 import java.io.{BufferedInputStream, FileInputStream, FileReader, File}
 
 import co.ledger.wallet.core.utils.Preferences
+import co.ledger.wallet.core.utils.io.IOUtils
 import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
 import co.ledger.wallet.service.wallet.AbstractDatabaseStoredAccount
+import co.ledger.wallet.service.wallet.api.rest.ApiObjects
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import co.ledger.wallet.wallet.ExtendedPublicKeyProvider
 import co.ledger.wallet.wallet.api.ApiWalletClientProtos
-import com.google.protobuf.nano.CodedInputByteBufferNano
+import com.google.protobuf.nano.{CodedOutputByteBufferNano, CodedInputByteBufferNano}
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.wallet.{Protos, DeterministicKeyChain}
@@ -50,6 +52,8 @@ import scala.concurrent.Future
 class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
   extends AbstractDatabaseStoredAccount(wallet) with Loggable {
 
+  private val BatchSize = 40
+
   override def keyChain: DeterministicKeyChain = _keychain
 
   override def rawTransaction(hash: String): Future[Transaction] = ???
@@ -57,8 +61,16 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
   override def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit] = wallet
     .synchronize(provider)
 
-  def synchronize(syncToken: String): Future[Unit] = Future {
-    Logger.d(s"Oh boy, account $index is synchronizing")("Toto", false)
+  def synchronize(syncToken: String, block: ApiObjects.Block): Future[Unit] = {
+    load() flatMap {(savedState) =>
+
+      save(savedState)
+    } map {(_) =>
+      ()
+    }
+  }
+
+  def synchronizeBatches(from: Int, to: Int): Future[Unit] = {
 
   }
 
@@ -67,13 +79,24 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
   override def index: Int = row.index
 
   def load(): Future[ApiWalletClientProtos.ApiAccountClient] = Future {
-    val input = CodedInputByteBufferNano.newInstance()
-    ApiWalletClientProtos.ApiAccountClient.parseFrom(input)
-    null
+    if (savedStateFile.exists()) {
+      val input = IOUtils.copy(savedStateFile)
+      ApiWalletClientProtos.ApiAccountClient.parseFrom(input)
+    } else {
+      val state = new ApiWalletClientProtos.ApiAccountClient()
+      state.index = index
+      state.batches = ApiWalletClientProtos.ApiAccountClient.Batch.emptyArray()
+      state.batchSize = BatchSize
+      state
+    }
   }
 
-  def save(): Future[Unit] = Future {
-
+  def save(savedState: ApiWalletClientProtos.ApiAccountClient): Future[Unit] = Future {
+    val raw = new Array[Byte](savedState.getSerializedSize)
+    val output = CodedOutputByteBufferNano.newInstance(raw)
+    val tmpFile = new File(directory, "tmp_saved_state")
+    IOUtils.copy(raw, tmpFile)
+    tmpFile.renameTo(savedStateFile)
   }
 
   private val _preferences = Preferences(s"ApiAccountClient_$index")(wallet.context)

@@ -35,7 +35,7 @@ import java.io.File
 import android.content.Context
 import co.ledger.wallet.core.utils.logs.Loggable
 import co.ledger.wallet.service.wallet.AbstractDatabaseStoredWallet
-import co.ledger.wallet.service.wallet.api.rest.TransactionRestClient
+import co.ledger.wallet.service.wallet.api.rest.{ApiObjects, TransactionRestClient}
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import co.ledger.wallet.wallet.exceptions.WalletNotSetupException
 import co.ledger.wallet.wallet.{Block, DerivationPath, Account, ExtendedPublicKeyProvider}
@@ -53,17 +53,18 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
 
   override def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] = {
 
-    def synchronizeUntilEmptyAccount(syncToken: String, from: Int): Future[Unit] = {
+    def synchronizeUntilEmptyAccount(syncToken: String, from: Int, block: ApiObjects.Block): Future[Unit]
+    = {
       init().flatMap { (_) =>
         val accounts = _accounts.slice(from, _accounts.length)
-        Future.sequence(accounts.map(_.synchronize(syncToken)).toList)
+        Future.sequence(accounts.map(_.synchronize(syncToken, block)).toList)
       } flatMap { (_) =>
         if (_accounts.last.keyChain.getIssuedExternalKeys != 0 ||
           _accounts.last.keyChain.getIssuedInternalKeys != 0) {
           // Create a new account
           createAccount(_accounts.length, publicKeyProvider).flatMap { (_) =>
             _accounts = Array[ApiAccountClient]()
-            synchronizeUntilEmptyAccount(syncToken, _accounts.length)
+            synchronizeUntilEmptyAccount(syncToken, _accounts.length, block)
           }
         } else {
           Future.successful()
