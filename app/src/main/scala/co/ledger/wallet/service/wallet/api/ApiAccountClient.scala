@@ -37,8 +37,8 @@ import co.ledger.wallet.core.utils.io.IOUtils
 import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
 import co.ledger.wallet.service.wallet.AbstractDatabaseStoredAccount
 import co.ledger.wallet.service.wallet.api.rest.ApiObjects
-import co.ledger.wallet.service.wallet.database.model.AccountRow
-import co.ledger.wallet.wallet.ExtendedPublicKeyProvider
+import co.ledger.wallet.service.wallet.database.model.{OperationRow, TransactionRow, AccountRow}
+import co.ledger.wallet.wallet.{DerivationPath, ExtendedPublicKeyProvider}
 import co.ledger.wallet.wallet.api.ApiWalletClientProtos
 import com.google.protobuf.nano.{CodedOutputByteBufferNano, CodedInputByteBufferNano}
 import org.bitcoinj.core.Transaction
@@ -58,21 +58,91 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
 
   override def rawTransaction(hash: String): Future[Transaction] = ???
 
+  //
+  // Synchronization methods
+  //
+
   override def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit] = wallet
     .synchronize(provider)
 
   def synchronize(syncToken: String, block: ApiObjects.Block): Future[Unit] = {
-    load() flatMap {(savedState) =>
+    // Load previously saved state
+    // Fetch all unconfirmed transactions
+    // Synchronize all previous batches
+      // If batches.length == 0 or last batches is not empty synchronize another batch
+        // If batches not empty redo the last step
+    // Remove not found unconfirmed transactions
+    // Everything went ok. Save the state and normalize batches block with the block in parameter
+    // Save the state
 
-      save(savedState)
+    load() flatMap {(savedState) =>
+      var unconfirmedTransaction = OperationRow(databaseWallet.databaseReader
+        .unconfirmedAccountOperations(index)).map(_.transactionHash)
+      def synchronizeBatchUntilEmpty(from: Int = 0): Future[Unit] = {
+        synchronizeBatches(syncToken, savedState, 0, savedState.batches.length - 1).flatMap {
+          (fetchedTxs) =>
+          unconfirmedTransaction = unconfirmedTransaction.filter(!fetchedTxs.contains(_))
+          if (savedState.batches.isEmpty || savedState.batches.last.blockHash == null) {
+            synchronizeBatchUntilEmpty(savedState.batches.length + 1)
+          } else {
+            Future.successful()
+          }
+        }
+      }
+      synchronizeBatchUntilEmpty().flatMap(_ => save(savedState))
     } map {(_) =>
       ()
     }
   }
 
-  def synchronizeBatches(from: Int, to: Int): Future[Unit] = {
+  def synchronizeBatches(syncToken: String,
+                         savedState: ApiWalletClientProtos.ApiAccountClient,
+                         from: Int, to: Int):
+  Future[Array[String]] = {
+
+    def synchronizeBatch(batchIndex: Int): Future[Array[String]] = {
+      val fromAddress = batchIndex * BatchSize
+      val toAddress = fromAddress + (BatchSize - 1)
+      def synchronizeBatchUntilEmpty(results: Array[String]): Future[Array[String]] = {
+        val batch = savedState.batches(index)
+        val addresses = new ArrayBuffer[String]()
+        for (addressIndex <- fromAddress to toAddress) {
+          import DerivationPath.dsl._
+          val externalPath = 0.h / 0 / addressIndex
+          val internalPath = 0.h / 1 / addressIndex
+          addresses += keyChain.getKeyByPath(externalPath.toBitcoinJList, true)
+            .toAddress(wallet.networkParameters).toString
+          addresses += keyChain.getKeyByPath(internalPath.toBitcoinJList, true)
+            .toAddress(wallet.networkParameters).toString
+        }
+
+        wallet.transactionRestClient.transactions(syncToken, addresses.toArray, Option(batch
+          .blockHash)) map {(result) =>
+          result.isTruncated
+          Array.empty[String]
+        }
+      }
+      while (batchIndex >= savedState.batches.length) {
+        val newBatch = new ApiWalletClientProtos.ApiAccountClient.Batch()
+        newBatch.index = savedState.batches.length
+        savedState.batches = savedState.batches :+ newBatch
+      }
+      synchronizeBatchUntilEmpty(Array[String]())
+    }
+
+    Future.sequence((from to Math.max(from, to)).map(synchronizeBatch)).map {(result) =>
+      result.flatten.toArray
+    }
+  }
+
+  private def pushTransaction(transactions: Array[ApiObjects.Transaction],
+                              hashes: ArrayBuffer[String]): Unit = {
 
   }
+
+  //
+  // \Synchronization methods
+  //
 
   override def xpub(): Future[DeterministicKey] = Future.successful(_xpub)
 

@@ -35,6 +35,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import co.ledger.wallet.core.utils.{BitcoinjUtils, HexUtils}
 import co.ledger.wallet.service.wallet.database.DatabaseStructure._
+import co.ledger.wallet.service.wallet.database.proxy.{TransactionInputProxy, TransactionOutputProxy, TransactionProxy}
 import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
 import org.bitcoinj.core._
 import org.bitcoinj.params.MainNetParams
@@ -102,61 +103,56 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
   def computeOperationUid(accountId: Int, transactionHash: String, operationType: Int) =
     Array(transactionHash, operationType, accountId).mkString("_")
 
-  def updateOrCreateTransaction(tx: Transaction, bag: DerivationPathBag): Boolean
+  def updateOrCreateTransaction(tx: TransactionProxy, bag: DerivationPathBag): Boolean
     = {
     import DatabaseStructure.TransactionTableColumns._
     val value = new ContentValues()
 
-    value.put(Hash, tx.getHashAsString)
-    value.put(Fees, JLong(tx.getFee))
-    value.put(Time, JLong(tx.getUpdateTime.getTime / 1000L))
-    value.put(LockTime, JLong(tx.getLockTime))
+    value.put(Hash, tx.hash)
+    value.put(Fees, JLong(tx.fees))
+    value.put(Time, JLong(tx.time.getTime / 1000L))
+    value.put(LockTime, JLong(tx.lockTime))
 
-    val block: Option[(Sha256Hash, Integer)] = Option(tx.getAppearsInHashes) flatMap {(hashes) =>
-      hashes.asScala.toList.sortBy(_._2).headOption
-    }
-
-    value.put(BlockHash, block.map(_._1.toString).orNull)
+    value.put(BlockHash, tx.block.orNull)
 
     val inserted = updateOrCreate(
       TransactionTableName,
       value, s"$Hash = ?",
-      Array(tx.getHashAsString)
+      Array(tx.hash)
     )
 
-    for (input <- tx.getInputs.asScala) {
+    for (input <- tx.inputs) {
       updateOrCreateTransactionInput(input, Some(tx), Some(bag))
     }
 
-    val outputs = tx.getOutputs
-    for (index <- 0 until outputs.size()) {
-      updateOrCreateTransactionOutput(outputs.get(index), tx, index, Some(bag))
+    val outputs = tx.outputs
+    for (index <- outputs.indices) {
+      updateOrCreateTransactionOutput(outputs(index), tx, index, Some(bag))
     }
 
     inserted
   }
 
-  def updateOrCreateTransactionInput(input: TransactionInput,
-                                     tx: Option[Transaction],
+  def updateOrCreateTransactionInput(input: TransactionInputProxy,
+                                     tx: Option[TransactionProxy],
                                      bag: Option[DerivationPathBag]): Boolean = {
     import DatabaseStructure.InputTableColumns._
     var uid: String = null
     val values = new ContentValues()
 
-    if (input.isCoinBase) {
-      uid = HexUtils.bytesToHex(input.getScriptBytes)
+    if (input.isCoinbase) {
+      uid = input.coinbase
       values.put(Coinbase, true)
     } else {
-      uid = s"${input.getOutpoint.getHash.toString}_${input.getOutpoint.getIndex}"
-      values.put(Index, JLong(input.getOutpoint.getIndex))
+      uid = s"${input.previousTxHash}_${input.index}"
+      values.put(Index, JLong(input.index))
       val path = bag.flatMap(_.findPath(input))
       if (path.isDefined)
         values.put(Path, path.get.toString)
-      values.put(Value, JLong(input.getValue))
-      values.put(PreviousTx, input.getOutpoint.getHash.toString)
-      values.put(ScriptSig, HexUtils.bytesToHex(input.getScriptBytes))
-      val address = BitcoinjUtils.toAddress(input, tx.map(_.getParams).getOrElse(MainNetParams.get()))
-      values.put(Address, address.map(_.toString).orNull)
+      values.put(Value, JLong(input.value))
+      values.put(PreviousTx, input.previousTxHash)
+      values.put(ScriptSig, input.scriptSigHex)
+      values.put(Address, input.address.orNull)
     }
     values.put(Uid, uid)
     val inserted = updateOrCreate(InputTableName, values, s"$Uid = ?", Array(uid))
@@ -165,36 +161,36 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     if (tx.isDefined) {
       import DatabaseStructure.TransactionsInputsTableColumns._
       val linkValues = new ContentValues()
-      linkValues.put(TransactionHash, tx.get.getHashAsString)
+      linkValues.put(TransactionHash, tx.get.hash)
       linkValues.put(InputUid, uid)
       updateOrCreate(
         TransactionsInputsTableName,
         linkValues,
         s"$TransactionHash = ? AND $InputUid = ?",
-        Array(tx.get.getHashAsString, uid)
+        Array(tx.get.hash, uid)
       )
     }
     inserted
   }
 
-  def updateOrCreateTransactionOutput(output: TransactionOutput,
-                                      tx: Transaction,
+  def updateOrCreateTransactionOutput(output: TransactionOutputProxy,
+                                      tx: TransactionProxy,
                                       index: Int,
                                       bag: Option[DerivationPathBag]):
   Boolean = {
     import DatabaseStructure.OutputTableColumns._
-    val uid = s"${tx.getHashAsString}_${output.getIndex}"
+    val uid = s"${tx.hash}_${output.index}"
     val values = new ContentValues()
 
     values.put(Uid, uid)
-    values.put(TransactionHash, tx.getHashAsString)
+    values.put(TransactionHash, tx.hash)
     values.put(Index, JLong(index))
     val path = bag.flatMap(_.findPath(output))
     if (path.isDefined)
       values.put(Path, path.get.toString)
-    values.put(Value, JLong(output.getValue))
-    values.put(PubKeyScript, HexUtils.bytesToHex(output.getScriptBytes))
-    values.put(Address, BitcoinjUtils.toAddress(output, tx.getParams).map(_.toString).orNull)
+    values.put(Value, JLong(output.value))
+    values.put(PubKeyScript, output.pubKeyScriptHex)
+    values.put(Address, output.address.orNull)
     updateOrCreate(OutputTableName, values, s"$Uid = ?", Array(uid))
   }
 
@@ -234,6 +230,10 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     } else {
       JLong(coin.getValue)
     }
+  }
+
+  private def JLong(coin: Option[Coin]): java.lang.Long = {
+    JLong(coin.orNull)
   }
 
 }

@@ -44,6 +44,7 @@ import co.ledger.wallet.service.wallet.AbstractDatabaseStoredWallet
 import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns
 import co.ledger.wallet.service.wallet.database.cursor.{BlockCursor, OperationCursor}
 import co.ledger.wallet.service.wallet.database.model.BlockRow
+import co.ledger.wallet.service.wallet.database.proxy.TransactionProxy
 import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
 import co.ledger.wallet.service.wallet.database.{WalletDatabaseOpenHelper, WalletDatabaseWriter}
 import co.ledger.wallet.wallet.DerivationPath.dsl._
@@ -169,8 +170,9 @@ class SpvWalletClient(context: Context, name: String, networkParameters: Network
     writer.beginTransaction()
     val bag = new DerivationPathBag
     try {
-      bag.inflate(tx, account.xpubWatcher, account.index)
-      writer.updateOrCreateTransaction(tx, bag)
+      val proxy = TransactionProxy(tx)
+      bag.inflate(proxy, account.xpubWatcher.getActiveKeychain, account.index)
+      writer.updateOrCreateTransaction(proxy, bag)
       // Create operation now
       // Create receive send operation
       val walletTransaction = new WalletTransaction(account.xpubWatcher, tx, bag)

@@ -35,7 +35,7 @@ import java.io.File
 import android.content.Context
 import co.ledger.wallet.core.utils.logs.Loggable
 import co.ledger.wallet.service.wallet.AbstractDatabaseStoredWallet
-import co.ledger.wallet.service.wallet.api.rest.{ApiObjects, TransactionRestClient}
+import co.ledger.wallet.service.wallet.api.rest.{BlockRestClient, ApiObjects, TransactionRestClient}
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import co.ledger.wallet.wallet.exceptions.WalletNotSetupException
 import co.ledger.wallet.wallet.{Block, DerivationPath, Account, ExtendedPublicKeyProvider}
@@ -72,8 +72,10 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
       }
     }
     transactionRestClient.requestSyncToken().flatMap {(token) =>
-      synchronizeUntilEmptyAccount(token, 0).flatMap {unit =>
-        transactionRestClient.deleteSyncToken(token)
+      blockRestClient.mostRecentBlock().flatMap {(block) =>
+        synchronizeUntilEmptyAccount(token, 0, block).flatMap { unit =>
+          transactionRestClient.deleteSyncToken(token)
+        }
       }
     }
   }
@@ -139,5 +141,5 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
 
   // Rest clients
   val transactionRestClient = new TransactionRestClient(context, networkParameters)
-
+  val blockRestClient = new BlockRestClient(context, networkParameters)
 }

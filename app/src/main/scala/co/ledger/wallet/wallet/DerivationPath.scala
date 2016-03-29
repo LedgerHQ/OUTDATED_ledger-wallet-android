@@ -33,6 +33,7 @@ package co.ledger.wallet.wallet
 import java.security.InvalidParameterException
 import java.util
 
+import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.crypto.ChildNumber
 import shapeless.ops.nat.LT.<
 
@@ -122,6 +123,11 @@ object DerivationPath {
 
     implicit def Int2DerivationPath(num: Int): DerivationPath = new DerivationPath(Root, num)
 
+  }
+
+  def bip44Account(accountIndex: Int, networkParameters: NetworkParameters): DerivationPath = {
+    // TODO: Adapt for altcoins
+    this(s"44'/0'/$accountIndex'")
   }
 
 }

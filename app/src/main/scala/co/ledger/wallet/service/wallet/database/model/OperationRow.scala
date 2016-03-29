@@ -32,6 +32,7 @@ package co.ledger.wallet.service.wallet.database.model
 
 import java.util.Date
 
+import android.database.Cursor
 import co.ledger.wallet.service.wallet.database.cursor.OperationCursor
 import co.ledger.wallet.wallet.Operation
 import org.bitcoinj.core.{Sha256Hash, Address, Coin}
@@ -51,5 +52,24 @@ class OperationRow(cursor: OperationCursor) extends Operation {
   override val lockTime = cursor.lockTime
   override val blockHash = cursor.blockHash
   override val blockHeight = cursor.blockHeight
+
+}
+
+object OperationRow {
+
+  def apply(cursor: Cursor): Array[OperationRow] = {
+    apply(OperationCursor(cursor))
+  }
+
+  def apply(cursor: OperationCursor): Array[OperationRow] = {
+    val result = new Array[OperationRow](cursor.getCount)
+    cursor.moveToFirst()
+    for (index <- result.indices) {
+      result(index) = new OperationRow(cursor)
+      cursor.moveToNext()
+    }
+    cursor.close()
+    result
+  }
 
 }

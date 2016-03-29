@@ -72,6 +72,22 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
     SelectFullOperation.execute()
   }
 
+  def unconfirmedAccountOperations(accountIndex: Int, offset: Int = 0, limit: Int = -1): Cursor = {
+    import DatabaseStructure.OperationTableColumns.FullOperationProjection._
+    var SelectFullOperation =
+      s"""
+         | SELECT ${allFieldProjectionKeys.mkString(",")} FROM $OperationTableName
+         | JOIN $TransactionTableName ON ${Keys.TransactionHash} = ${Keys.TransactionJoinKey}
+         | JOIN $AccountTableName ON ${Keys.AccountIndex} = ${Keys.AccountJoinKey}
+         | LEFT OUTER JOIN $BlockTableName ON ${Keys.BlockHash} = ${Keys.BlockJoinKey}
+         | WHERE ${Keys.AccountIndex} = $accountIndex AND ${Keys.BlockHash} IS NULL
+         | ORDER BY ${Keys.TransactionTime} DESC
+     """.stripMargin
+    if (limit != -1)
+      SelectFullOperation += s"LIMIT $limit OFFSET $offset"
+    SelectFullOperation.execute()
+  }
+
   def operationInputs(operationUid: String): Cursor = null
 
   def operationOutputs(operationUid: String): Cursor = null

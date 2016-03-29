@@ -30,26 +30,27 @@
  */
 package co.ledger.wallet.service.wallet.database.utils
 
+import co.ledger.wallet.service.wallet.database.proxy.{TransactionInputProxy, TransactionOutputProxy, TransactionProxy}
 import co.ledger.wallet.wallet.DerivationPath
-import org.bitcoinj.core.{Transaction, TransactionInput, TransactionOutput, Wallet => JWallet}
+import org.bitcoinj.core.{Wallet => JWallet, TransactionOutput, TransactionInput, Address}
 import org.bitcoinj.crypto.DeterministicKey
+import org.bitcoinj.wallet.DeterministicKeyChain
 
 import scala.collection.JavaConverters._
-import scala.util.Try
 
 class DerivationPathBag {
 
-  def inflate(tx: Transaction, wallet: JWallet, accountIndex: Int): Unit = {
-    for (input <- tx.getInputs.asScala if Try(input.getConnectedOutput.getScriptPubKey.getPubKeyHash).isSuccess) {
-      val hash = input.getConnectedOutput.getScriptPubKey.getPubKeyHash
-      val key = wallet.getActiveKeychain.findKeyFromPubHash(hash)
+  def inflate(tx: TransactionProxy, keyChain: DeterministicKeyChain, accountIndex: Int): Unit = {
+    for (input <- tx.inputs if input.address.isDefined) {
+      val hash = new Address(null, input.address.get).getHash160
+      val key = keyChain.findKeyFromPubHash(hash)
       if (key != null)
         _bag(hash) = (key, accountIndex)
     }
 
-    for (output <- tx.getOutputs.asScala if output.getScriptPubKey.getPubKeyHash != null) {
-      val hash = output.getScriptPubKey.getPubKeyHash
-      val key = wallet.getActiveKeychain.findKeyFromPubHash(hash)
+    for (output <- tx.outputs if output.address.isDefined) {
+      val hash = new Address(null, output.address.get).getHash160
+      val key = keyChain.findKeyFromPubHash(hash)
       if (key != null)
         _bag(hash) = (key, accountIndex)
     }
@@ -67,12 +68,44 @@ class DerivationPathBag {
     _bag.lift(output.getScriptPubKey.getPubKeyHash)
   }
 
+
+  def findEntry(input: TransactionInputProxy): Option[(DeterministicKey, Int)] = {
+    try
+      Option(_bag(new Address(null, input.address.get).getHash160))
+    catch {
+      case throwable: Throwable => None
+    }
+  }
+
+  def findEntry(output: TransactionOutputProxy): Option[(DeterministicKey, Int)] = {
+    if (output.address.isDefined)
+      _bag.lift(new Address(null, output.address.get).getHash160)
+    else
+      None
+  }
+
+  def findKey(input: TransactionInputProxy): Option[DeterministicKey] = {
+    findEntry(input).map(_._1)
+  }
+
+  def findKey(output: TransactionOutputProxy): Option[DeterministicKey] = {
+    findEntry(output).map(_._1)
+  }
+
   def findKey(input: TransactionInput): Option[DeterministicKey] = {
     findEntry(input).map(_._1)
   }
 
   def findKey(output: TransactionOutput): Option[DeterministicKey] = {
     findEntry(output).map(_._1)
+  }
+
+  def findPath(intput: TransactionInputProxy): Option[DerivationPath] = {
+    findEntry(intput).map(entryToDerivationPath)
+  }
+
+  def findPath(output: TransactionOutputProxy): Option[DerivationPath] = {
+    findEntry(output).map(entryToDerivationPath)
   }
 
   def findPath(intput: TransactionInput): Option[DerivationPath] = {

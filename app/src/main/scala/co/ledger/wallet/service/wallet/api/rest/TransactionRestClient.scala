@@ -57,7 +57,7 @@ class TransactionRestClient(c: Context,
       .noResponseBody.map((_) => ())
   }
 
-  def transactions(token: String, addresses: Iterable[String], blockHash: Option[String]):
+  def transactions(token: String, addresses: Array[String], blockHash: Option[String]):
   Future[TransactionsAnswer] = {
     http
       .get(s"blockchain/v2/$network/addresses/${addresses.mkString(",")}/transactions")

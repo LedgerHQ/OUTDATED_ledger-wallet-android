@@ -84,7 +84,7 @@ object ApiObjects {
    */
   class TransactionsAnswer(json: JSONObject) {
 
-    def transactions: Array[Transaction] = {
+    val transactions: Array[Transaction] = {
       inflate(json.getJSONArray("txs")) {
         new Transaction(_)
       }
@@ -123,11 +123,17 @@ object ApiObjects {
   }
 
   class Input(json: JSONObject) {
-    val previousTxHash = json.getString("output_hash")
-    val outputIndex = json.getLong("output_index")
-    val value = Coin.valueOf(json.getLong("value"))
+    val previousTxHash = Option(json.optString("output_hash"))
+    val outputIndex = json.optLong("output_index")
+    val value = {
+      if (!json.has("value"))
+        None
+      else
+        Some(Coin.valueOf(json.getLong("value")))
+    }
     val address = Option(json.optString("address", null))
-    val scriptSig = json.getString("script_signature")
+    val scriptSig = Option(json.optString("script_signature"))
+    val coinbase = Option(json.optString("coinbase"))
   }
 
   class Output(json: JSONObject) {
@@ -148,6 +154,11 @@ object ApiObjects {
     result
   }
 
-  private def parseJavascriptDate(jsDate: String): Date = _dateFormatter.parse(jsDate)
-  private val _dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ")
+  private def parseJavascriptDate(jsDate: String): Date = {
+    if (jsDate.forall(Character.isDigit))
+      new Date(jsDate.toLong * 1000L)
+    else
+      _dateFormatter.parse(jsDate)
+  }
+  private val _dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
 }

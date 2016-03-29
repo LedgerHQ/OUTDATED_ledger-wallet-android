@@ -34,6 +34,7 @@ import android.content.Context
 import co.ledger.wallet.core.net.{HttpException, HttpClient}
 import co.ledger.wallet.service.wallet.api.rest.ApiObjects.{Block, TransactionsAnswer}
 import org.bitcoinj.core.NetworkParameters
+import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
 
 import scala.concurrent.Future
 
