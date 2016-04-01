@@ -109,7 +109,7 @@ object ApiObjects {
       }
     }
     val block = {
-      if (!json.has("block"))
+      if (!json.has("block") || json.isNull("block"))
         None
       else
        Some(new Block(json.getJSONObject("block")))

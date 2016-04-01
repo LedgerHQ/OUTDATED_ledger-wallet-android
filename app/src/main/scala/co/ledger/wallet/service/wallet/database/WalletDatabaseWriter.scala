@@ -103,6 +103,14 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
   def computeOperationUid(accountId: Int, transactionHash: String, operationType: Int) =
     Array(transactionHash, operationType, accountId).mkString("_")
 
+  def updateTransactionBlock(txHash: String, blockHash: String): Boolean
+  = {
+    import DatabaseStructure.TransactionTableColumns._
+    val values = new ContentValues()
+    values.put(BlockHash, blockHash)
+    database.update(TransactionTableName, values, s"$Hash = ?", Array(txHash)) > 0
+  }
+
   def updateOrCreateTransaction(tx: TransactionProxy, bag: DerivationPathBag): Boolean
     = {
     import DatabaseStructure.TransactionTableColumns._

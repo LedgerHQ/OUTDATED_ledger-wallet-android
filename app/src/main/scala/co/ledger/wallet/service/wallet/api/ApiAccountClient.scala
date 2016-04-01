@@ -172,6 +172,16 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
     lastBlock
   }
 
+  def notifyNewTransaction(tx: ApiObjects.Transaction): Future[Boolean] = Future {
+    val transaction = new TransactionHelper(tx)
+    if (transaction.hasOwnInputs || transaction.hasOwnOutputs) {
+      pushTransaction(tx, new ArrayBuffer[String]())
+      true
+    } else {
+      false
+    }
+  }
+
   private def pushTransaction(tx: ApiObjects.Transaction, hashes: ArrayBuffer[String]): Unit = {
     val writer = wallet.databaseWriter
     val transaction = new TransactionHelper(tx)

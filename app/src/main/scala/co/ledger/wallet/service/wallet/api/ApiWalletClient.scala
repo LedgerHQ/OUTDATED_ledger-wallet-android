@@ -34,16 +34,22 @@ import java.io.File
 
 import android.content.Context
 import android.provider.ContactsContract.Directory
+import co.ledger.wallet.app.Config
+import co.ledger.wallet.core.concurrent.delay
+import co.ledger.wallet.core.net.{WebSocket, HttpClient}
 import co.ledger.wallet.core.utils.HexUtils
-import co.ledger.wallet.core.utils.logs.Loggable
+import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
 import co.ledger.wallet.service.wallet.AbstractDatabaseStoredWallet
-import co.ledger.wallet.service.wallet.api.rest.{BlockRestClient, ApiObjects, TransactionRestClient}
+import co.ledger.wallet.service.wallet.api.rest.{ApiObjects, BlockRestClient, TransactionRestClient}
 import co.ledger.wallet.service.wallet.database.model.AccountRow
+import co.ledger.wallet.service.wallet.database.proxy.BlockProxy
+import co.ledger.wallet.wallet.events.WalletEvents.MissingAccount
 import co.ledger.wallet.wallet.exceptions.WalletNotSetupException
 import co.ledger.wallet.wallet.{Block, DerivationPath, Account, ExtendedPublicKeyProvider}
 import com.squareup.okhttp.internal.DiskLruCache
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Context => JContext, Coin, Transaction, NetworkParameters}
+import org.json.JSONObject
 
 import scala.concurrent.Future
 
@@ -141,8 +147,14 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
       val accounts = AccountRow(database.reader.allAccounts())
       if (accounts.isEmpty)
         throw WalletNotSetupException()
+      observeNetwork()
       _accounts = accounts.map(new ApiAccountClient(this, _))
     }
+  }
+
+  override def stop(): Unit = {
+    super.stop()
+    stopObserveNetwork()
   }
 
   val directory = context.getDir(s"api_$name", Context.MODE_PRIVATE)
@@ -174,7 +186,106 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
   private val RawTxCacheMaxSize = 24 * 1024
   private val _rawTxCache = DiskLruCache.open(new File(directory, "raw_txs_cache"), 0,
     1, RawTxCacheMaxSize)
+
   //
   // \Raw tx management
+  //
+
+  //
+  // Real time network observer
+  //
+
+  private def observeNetwork(): Unit = _networkObsever.start()
+
+  private def stopObserveNetwork(): Unit = _networkObsever.stop()
+
+  private class NetworkObserver {
+
+    def start(): Unit = Future {
+      if (!_running) {
+        _running = true
+        observeNetwork()
+      }
+    }
+
+    def stop(): Unit = Future {
+      if (_running) {
+        _running = false
+        _socket.foreach(_.close())
+      }
+    }
+
+    private def observeNetwork(): Unit = {
+      connect() map {(ws) =>
+        ws.onJsonMessage {message =>
+          try {
+            val payload = message.getJSONObject("payload")
+            payload.getString("type") match {
+              case "new-transaction" => notifyNewTransaction(payload.getJSONObject("transaction"))
+              case "new-block" => notifyNewBlock(payload.getJSONObject("block"))
+            }
+          } catch {
+            case throwable: Throwable =>
+              throwable.printStackTrace()
+          }
+        }
+        ws.onClose {reason =>
+          if (_running) {
+            Logger.e("Websocket closed")
+            reason.printStackTrace()
+            observeNetwork()
+          }
+        }
+      }
+    }
+
+    private def notifyNewTransaction(json: JSONObject): Unit = {
+      val tx = new ApiObjects.Transaction(json)
+      for (index <- _accounts.indices) {
+        if (index == _accounts.length - 1) {
+          _accounts(index).notifyNewTransaction(tx) foreach {fromThisAccount =>
+            if (fromThisAccount) {
+              eventBus.post(MissingAccount(index + 1))
+            }
+          }
+        } else {
+          _accounts(index).notifyNewTransaction(tx)
+        }
+      }
+    }
+
+    private def notifyNewBlock(json: JSONObject): Unit = Future {
+      // TODO: Save the block
+      // Select all transactions in block
+      // Emit an event in order to bump confirmation number
+      val block = new ApiObjects.Block(json)
+      database.writer.updateOrCreateBlock(BlockProxy(block))
+    }
+
+    private def connect(): Future[WebSocket] = {
+      import scala.concurrent.duration._
+      val uri = Config.WebSocketBaseUri.buildUpon().appendEncodedPath(s"blockchain/v2/$network/ws")
+        .build()
+      WebSocket.connect(uri) map {ws =>
+        _socket = Some(ws)
+        ws
+      } recoverWith {
+        case all =>
+          if (_running)
+            Future.failed(new Exception)
+          else
+            delay(15 seconds).flatMap(unit => connect())
+      }
+    }
+
+    private def network = "btc"
+
+    private var _running = false
+    private var _socket: Option[WebSocket] = None
+  }
+
+  private val _networkObsever = new NetworkObserver
+  //
+  // \Real time network observer
   //
 }
