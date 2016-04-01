@@ -33,14 +33,17 @@ package co.ledger.wallet.service.wallet.api
 import java.io.File
 
 import android.content.Context
+import android.provider.ContactsContract.Directory
+import co.ledger.wallet.core.utils.HexUtils
 import co.ledger.wallet.core.utils.logs.Loggable
 import co.ledger.wallet.service.wallet.AbstractDatabaseStoredWallet
 import co.ledger.wallet.service.wallet.api.rest.{BlockRestClient, ApiObjects, TransactionRestClient}
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import co.ledger.wallet.wallet.exceptions.WalletNotSetupException
 import co.ledger.wallet.wallet.{Block, DerivationPath, Account, ExtendedPublicKeyProvider}
+import com.squareup.okhttp.internal.DiskLruCache
 import de.greenrobot.event.EventBus
-import org.bitcoinj.core.{Coin, Transaction, NetworkParameters}
+import org.bitcoinj.core.{Context => JContext, Coin, Transaction, NetworkParameters}
 
 import scala.concurrent.Future
 
@@ -62,9 +65,10 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
         if (_accounts.last.keyChain.getIssuedExternalKeys != 0 ||
           _accounts.last.keyChain.getIssuedInternalKeys != 0) {
           // Create a new account
+          val newAccountIndex = _accounts.length
           createAccount(_accounts.length, publicKeyProvider).flatMap { (_) =>
             _accounts = Array[ApiAccountClient]()
-            synchronizeUntilEmptyAccount(syncToken, _accounts.length, block)
+            synchronizeUntilEmptyAccount(syncToken, newAccountIndex, block)
           }
         } else {
           Future.successful()
@@ -117,7 +121,10 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
 
   override val eventBus: EventBus = new EventBus()
 
-  override def pushTransaction(transaction: Transaction): Future[Unit] = ???
+  override def pushTransaction(transaction: Transaction): Future[Unit] =
+    init() flatMap {unit =>
+    transactionRestClient.pushTransaction(HexUtils.bytesToHex(transaction.bitcoinSerialize()))
+  }
 
   override def needsSetup(): Future[Boolean] = init() map {(_) =>
     false
@@ -130,6 +137,7 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
 
   private def init(): Future[Unit] = Future {
     if (_accounts.isEmpty) {
+      JContext.propagate(JContext.getOrCreate(networkParameters))
       val accounts = AccountRow(database.reader.allAccounts())
       if (accounts.isEmpty)
         throw WalletNotSetupException()
@@ -144,4 +152,29 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
   // Rest clients
   val transactionRestClient = new TransactionRestClient(context, networkParameters)
   val blockRestClient = new BlockRestClient(context, networkParameters)
+
+  //
+  // Raw tx management
+  //
+
+  def rawTransaction(hash: String): Future[Transaction] = Future {
+    Option(_rawTxCache.get(hash))
+  } flatMap {
+    case Some(entry) =>
+      Future.successful(new Transaction(networkParameters, HexUtils.decodeHex(entry.getString(0))))
+    case None =>
+      transactionRestClient.rawTransaction(hash).map {(hexTx) =>
+        val editor = _rawTxCache.edit(hash)
+        editor.set(0, hexTx)
+        editor.commit()
+        new Transaction(networkParameters, HexUtils.decodeHex(hexTx))
+      }
+  }
+
+  private val RawTxCacheMaxSize = 24 * 1024
+  private val _rawTxCache = DiskLruCache.open(new File(directory, "raw_txs_cache"), 0,
+    1, RawTxCacheMaxSize)
+  //
+  // \Raw tx management
+  //
 }

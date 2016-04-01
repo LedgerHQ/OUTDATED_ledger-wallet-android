@@ -62,7 +62,7 @@ abstract class AbstractDatabaseStoredAccount(val databaseWallet: AbstractDatabas
 
   override def freshChangeAddress(): Future[(Address, DerivationPath)] = Future {
     import DerivationPath.dsl._
-    val reader = wallet.asInstanceOf[SpvWalletClient].databaseReader
+    val reader = wallet.asInstanceOf[AbstractDatabaseStoredWallet].databaseReader
     val path = DerivationPath(reader.lastUsedPath(index, 1).getOrElse(s"m/$index'/1/0"))
     val newPath = new DerivationPath(path.parent, path.childNum + 1)
     val childNums = newPath.toBitcoinJList
@@ -106,7 +106,7 @@ abstract class AbstractDatabaseStoredAccount(val databaseWallet: AbstractDatabas
             val childNums = output.path.get.toBitcoinJList
             childNums.set(0, new ChildNumber(0, true))
             val publicKey = keyChain.getKeyByPath(childNums,
-              false).getPubKey
+              true).getPubKey
             result += Utxo(rawTransaction(output.transactionHash), output, lastBlock.height - tx
               .blockHeight.map(_
               .toInt).getOrElse

@@ -86,7 +86,23 @@ package object proxy {
   object BlockProxy {
 
     def apply(block: StoredBlock): BlockProxy = {
-      null
+      new BlockProxy {
+        override def hash: String = block.getHeader.getHashAsString
+
+        override def height: Int = block.getHeight
+
+        override def time: Date = new Date(block.getHeader.getTimeSeconds * 1000L)
+      }
+    }
+
+    def apply(block: ApiObjects.Block): BlockProxy = {
+      new BlockProxy {
+        override def hash: String = block.hash
+
+        override def height: Int = block.height.toInt
+
+        override def time: Date = block.time
+      }
     }
   }
 

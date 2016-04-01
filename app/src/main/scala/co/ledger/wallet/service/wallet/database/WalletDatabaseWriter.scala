@@ -35,7 +35,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import co.ledger.wallet.core.utils.{BitcoinjUtils, HexUtils}
 import co.ledger.wallet.service.wallet.database.DatabaseStructure._
-import co.ledger.wallet.service.wallet.database.proxy.{TransactionInputProxy, TransactionOutputProxy, TransactionProxy}
+import co.ledger.wallet.service.wallet.database.proxy.{BlockProxy, TransactionInputProxy, TransactionOutputProxy, TransactionProxy}
 import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
 import org.bitcoinj.core._
 import org.bitcoinj.params.MainNetParams
@@ -72,13 +72,13 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     database.insertOrThrow(AccountTableName, null, values) != -1
   }
 
-  def updateOrCreateBlock(block: StoredBlock): Boolean = {
+  def updateOrCreateBlock(block: BlockProxy): Boolean = {
     import DatabaseStructure.BlockTableColumns._
     val values = new ContentValues()
-    values.put(Hash, block.getHeader.getHashAsString)
-    values.put(Height, java.lang.Integer.valueOf(block.getHeight))
-    values.put(Time, JLong(block.getHeader.getTimeSeconds))
-    updateOrCreate(BlockTableName, values, s"$Hash = ?", Array(block.getHeader.getHashAsString))
+    values.put(Hash, block.hash)
+    values.put(Height, java.lang.Integer.valueOf(block.height))
+    values.put(Time, JLong(block.time.getTime / 1000L))
+    updateOrCreate(BlockTableName, values, s"$Hash = ?", Array(block.hash))
   }
 
   def updateOrCreateOperation(accountId: Int,

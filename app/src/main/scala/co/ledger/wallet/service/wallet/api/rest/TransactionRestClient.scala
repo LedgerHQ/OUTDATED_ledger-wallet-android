@@ -35,6 +35,7 @@ import co.ledger.wallet.core.net.{HttpException, HttpClient}
 import co.ledger.wallet.service.wallet.api.rest.ApiObjects.TransactionsAnswer
 import org.bitcoinj.core.NetworkParameters
 import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.main
+import org.json.JSONObject
 
 import scala.concurrent.Future
 
@@ -75,6 +76,24 @@ class TransactionRestClient(c: Context,
         }
       case other: Throwable => throw other
     }
+  }
+
+  def rawTransaction(hash: String): Future[String] = {
+    http
+      .get(s"blockchain/v2/$network/transactions/$hash/hex")
+      .jsonArray map {
+      case (array, _) =>
+        array.getJSONObject(0).getString("hex")
+    }
+  }
+
+  def pushTransaction(rawTx: String): Future[Unit] = {
+    val body = new JSONObject()
+    body.put("tx", rawTx)
+    http
+      .post(s"blockchain/$network/pushtx")
+      .body(body)
+      .noResponseBody.map(unit => ())
   }
 
   private def network = "btc"

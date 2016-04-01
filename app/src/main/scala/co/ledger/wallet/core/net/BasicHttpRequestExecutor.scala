@@ -32,17 +32,15 @@ package co.ledger.wallet.core.net
 
 import java.io._
 import java.net.{HttpURLConnection, URL}
-import java.util.zip.GZIPOutputStream
 
-import co.ledger.wallet.core.utils.io.IOUtils
-import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
+import co.ledger.wallet.core.net.HttpRequestExecutor.defaultExecutionContext
+import co.ledger.wallet.core.utils.logs.Loggable
+import org.apache.commons.io.IOUtils
 
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.concurrent.{Future, ExecutionContext}
-import scala.io.Source
+import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
-import co.ledger.wallet.core.net.HttpRequestExecutor.defaultExecutionContext
 
 class BasicHttpRequestExecutor extends HttpRequestExecutor with Loggable {
 
@@ -135,7 +133,7 @@ class BasicHttpRequestExecutor extends HttpRequestExecutor with Loggable {
           request.body.mark(Int.MaxValue)
         val out = new BufferedOutputStream(connection.getOutputStream)
         val in = new BufferedInputStream(request.body)
-        IOUtils.copy(in, out, buffer)
+        IOUtils.copy(in, out)
         out.close()
         // Don't close the input stream in case of error
       case nothing => // Nothing to do

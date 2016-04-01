@@ -30,7 +30,8 @@
   */
 package co.ledger.wallet.service.wallet.api
 
-import java.io.{BufferedInputStream, FileInputStream, FileReader, File}
+import java.io._
+import java.util
 
 import co.ledger.wallet.core.utils.Preferences
 import co.ledger.wallet.core.utils.io.IOUtils
@@ -41,14 +42,14 @@ import co.ledger.wallet.service.wallet.api.rest.ApiObjects.Block
 import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns
 import co.ledger.wallet.service.wallet.database.{DatabaseStructure, WalletDatabaseWriter}
 import co.ledger.wallet.service.wallet.database.model.{OperationRow, TransactionRow, AccountRow}
-import co.ledger.wallet.service.wallet.database.proxy.{TransactionOutputProxy, TransactionInputProxy, TransactionProxy}
+import co.ledger.wallet.service.wallet.database.proxy.{BlockProxy, TransactionOutputProxy, TransactionInputProxy, TransactionProxy}
 import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
 import co.ledger.wallet.wallet.{DerivationPath, ExtendedPublicKeyProvider}
 import co.ledger.wallet.wallet.api.ApiWalletClientProtos
 import com.google.protobuf.nano.{CodedOutputByteBufferNano, CodedInputByteBufferNano}
-import org.bitcoinj.core.{Coin, Transaction}
+import org.bitcoinj.core.{ECKey, Coin, Transaction}
 import org.bitcoinj.crypto.DeterministicKey
-import org.bitcoinj.wallet.{Protos, DeterministicKeyChain}
+import org.bitcoinj.wallet.{DefaultKeyChainFactory, KeyChainEventListener, Protos, DeterministicKeyChain}
 import scala.collection.JavaConversions._
 import co.ledger.wallet.wallet._
 import co.ledger.wallet.wallet.events.PeerGroupEvents._
@@ -62,8 +63,6 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
   private val BatchSize = 40
 
   override def keyChain: DeterministicKeyChain = _keychain
-
-  override def rawTransaction(hash: String): Future[Transaction] = ???
 
   //
   // Synchronization methods
@@ -85,12 +84,13 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
     load() flatMap {(savedState) =>
       var unconfirmedTransaction = OperationRow(databaseWallet.databaseReader
         .unconfirmedAccountOperations(index)).map(_.transactionHash)
-      def synchronizeBatchUntilEmpty(from: Int = 0): Future[Unit] = {
-        synchronizeBatches(syncToken, savedState, 0, savedState.batches.length - 1).flatMap {
+      def synchronizeBatchUntilEmpty(from: Int = 0, to: Int = savedState.batches.length - 1): Future[Unit] = {
+        synchronizeBatches(syncToken, savedState, from, to).flatMap {
           (fetchedTxs) =>
           unconfirmedTransaction = unconfirmedTransaction.filter(!fetchedTxs.contains(_))
-          if (savedState.batches.isEmpty || savedState.batches.last.blockHash == null) {
-            synchronizeBatchUntilEmpty(savedState.batches.length + 1)
+          if (savedState.batches.isEmpty || savedState.batches.last.blockHash.nonEmpty) {
+            Logger.d(s"Account $index has no empty batch continue")
+            synchronizeBatchUntilEmpty(savedState.batches.length, savedState.batches.length)
           } else {
             Future.successful()
           }
@@ -108,6 +108,7 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
   Future[Array[String]] = {
 
     def synchronizeBatch(batchIndex: Int): Future[Array[String]] = {
+      Logger.d(s"Synchronize account $index batch $batchIndex")
       val fromAddress = batchIndex * BatchSize
       val toAddress = fromAddress + (BatchSize - 1)
       val hashes =  new ArrayBuffer[String]()
@@ -128,17 +129,19 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
           .blockHash) else None
         wallet.transactionRestClient.transactions(syncToken, addresses.toArray, blockHash) flatMap {
           (result) =>
-          val lastBlock = pushTransactions(result.transactions, hashes)
-          if (lastBlock.isDefined) {
-            batch.blockHash = lastBlock.get.hash
-            batch.blockHeight = lastBlock.get.height.toInt
-          }
-          save(savedState) flatMap {unit =>
-            if (result.isTruncated)
-              synchronizeBatchUntilEmpty()
-            else
-              Future.successful(hashes.toArray)
-          }
+            val lastBlock = pushTransactions(result.transactions, hashes)
+            Logger.d(s"Account $index batch $batchIndex received ${result.transactions.length} txs")
+            Logger.d(s"Account $index batch $batchIndex is truncated: ${result.isTruncated}")
+            if (lastBlock.isDefined) {
+              batch.blockHash = lastBlock.get.hash
+              batch.blockHeight = lastBlock.get.height.toInt
+            }
+            save(savedState) flatMap {unit =>
+              if (result.isTruncated)
+                synchronizeBatchUntilEmpty()
+              else
+                Future.successful(hashes.toArray)
+            }
         }
       }
       while (batchIndex >= savedState.batches.length) {
@@ -164,6 +167,7 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
         lastBlock = transaction.block
       pushTransaction(transaction, hashes)
     }
+    writer.commitTransaction()
     writer.endTransaction()
     lastBlock
   }
@@ -171,6 +175,7 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
   private def pushTransaction(tx: ApiObjects.Transaction, hashes: ArrayBuffer[String]): Unit = {
     val writer = wallet.databaseWriter
     val transaction = new TransactionHelper(tx)
+    tx.block.foreach(block => writer.updateOrCreateBlock(BlockProxy(block)))
     writer.updateOrCreateTransaction(transaction.proxy, transaction.bag)
     hashes += transaction.proxy.hash
     val isSend = computeSendOperation(transaction, writer)
@@ -244,6 +249,8 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
   // \Synchronization methods
   //
 
+  override def rawTransaction(hash: String): Future[Transaction] = wallet.rawTransaction(hash)
+
   override def xpub(): Future[DeterministicKey] = Future.successful(_xpub)
 
   override def index: Int = row.index
@@ -268,6 +275,22 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
     val tmpFile = new File(directory, "tmp_saved_state")
     IOUtils.copy(raw, tmpFile)
     tmpFile.renameTo(savedStateFile)
+  }
+
+  def saveKeyChain(): Future[Unit] = Future {
+    val tmpFile = new File(directory, "tmp_keychain")
+    val os = new BufferedOutputStream(new FileOutputStream(tmpFile))
+    val keys = _keychain.serializeToProtobuf()
+    for (key <- keys) {
+      val size = key.getSerializedSize
+      os.write(size >> 24 & 0xFF)
+      os.write(size >> 16 & 0xFF)
+      os.write(size >> 8 & 0xFF)
+      os.write(size & 0xFF)
+      key.writeTo(os)
+    }
+    os.close()
+    tmpFile.renameTo(new File(directory, "keychain"))
   }
 
   private val _preferences = Preferences(s"ApiAccountClient_$index")(wallet.context)
@@ -295,14 +318,19 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
         def readSize(): Int = {
           val b1 = reader.read()
           val b2 = reader.read()
-          if (b1 == -1 || b2 == -1) -1 else b1 << 8 | b2
+          val b3 = reader.read()
+          val b4 = reader.read()
+          if (b1 == -1 || b2 == -1 || b3 == -1 || b4 == -1)
+            -1
+          else
+            b1 << 24 | b2 << 16 | b3 << 8 | b4
         }
         while ({size = readSize(); size} != -1) {
           val bytes = new Array[Byte](size)
           reader.read(bytes, 0, bytes.length)
           keys += Protos.Key.parseFrom(bytes)
         }
-        DeterministicKeyChain.fromProtobuf(keys.toList, null, null).get(0)
+        DeterministicKeyChain.fromProtobuf(keys.toList, null, new DefaultKeyChainFactory).get(0)
       } catch {
         case anything: Throwable =>
           anything.printStackTrace()
@@ -310,6 +338,10 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
       }
     }
   }
+
+  _keychain.addEventListener(new KeyChainEventListener {
+    override def onKeysAdded(keys: util.List[ECKey]): Unit = saveKeyChain()
+  })
 
   private val savedStateFile = new File(directory, "saved_state")
 
@@ -333,16 +365,10 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
       for (input <- ownInputs) {
         total = total add input.value.get
       }
-      var hasChange = false
-      for (output <- ownOutputs) {
-        if (isInternal(output)) {
-          if (!hasChange)
-            hasChange = true
-          else
-            total = total add output.value
-        }
+      if (tx.outputs.length > 1) {
+        ownOutputs.find(isInternal).foreach(change => total = total subtract change.value)
       }
-      total
+      total add tx.fees
     }
 
     def receivedValue: Coin = {
