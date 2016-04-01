@@ -37,15 +37,22 @@ import co.ledger.wallet.core.utils.io.IOUtils
 import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
 import co.ledger.wallet.service.wallet.AbstractDatabaseStoredAccount
 import co.ledger.wallet.service.wallet.api.rest.ApiObjects
+import co.ledger.wallet.service.wallet.api.rest.ApiObjects.Block
+import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns
+import co.ledger.wallet.service.wallet.database.{DatabaseStructure, WalletDatabaseWriter}
 import co.ledger.wallet.service.wallet.database.model.{OperationRow, TransactionRow, AccountRow}
+import co.ledger.wallet.service.wallet.database.proxy.{TransactionOutputProxy, TransactionInputProxy, TransactionProxy}
+import co.ledger.wallet.service.wallet.database.utils.DerivationPathBag
 import co.ledger.wallet.wallet.{DerivationPath, ExtendedPublicKeyProvider}
 import co.ledger.wallet.wallet.api.ApiWalletClientProtos
 import com.google.protobuf.nano.{CodedOutputByteBufferNano, CodedInputByteBufferNano}
-import org.bitcoinj.core.Transaction
+import org.bitcoinj.core.{Coin, Transaction}
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.wallet.{Protos, DeterministicKeyChain}
 import scala.collection.JavaConversions._
-
+import co.ledger.wallet.wallet._
+import co.ledger.wallet.wallet.events.PeerGroupEvents._
+import co.ledger.wallet.wallet.events.WalletEvents._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 
@@ -103,23 +110,35 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
     def synchronizeBatch(batchIndex: Int): Future[Array[String]] = {
       val fromAddress = batchIndex * BatchSize
       val toAddress = fromAddress + (BatchSize - 1)
-      def synchronizeBatchUntilEmpty(results: Array[String]): Future[Array[String]] = {
-        val batch = savedState.batches(index)
+      val hashes =  new ArrayBuffer[String]()
+      def synchronizeBatchUntilEmpty(): Future[Array[String]] = {
+        val batch = savedState.batches(batchIndex)
         val addresses = new ArrayBuffer[String]()
         for (addressIndex <- fromAddress to toAddress) {
           import DerivationPath.dsl._
           val externalPath = 0.h / 0 / addressIndex
           val internalPath = 0.h / 1 / addressIndex
+          keyChain.maybeLookAhead()
           addresses += keyChain.getKeyByPath(externalPath.toBitcoinJList, true)
             .toAddress(wallet.networkParameters).toString
           addresses += keyChain.getKeyByPath(internalPath.toBitcoinJList, true)
             .toAddress(wallet.networkParameters).toString
         }
-
-        wallet.transactionRestClient.transactions(syncToken, addresses.toArray, Option(batch
-          .blockHash)) map {(result) =>
-          result.isTruncated
-          Array.empty[String]
+        val blockHash = if (batch.blockHash != null && batch.blockHash.nonEmpty) Some(batch
+          .blockHash) else None
+        wallet.transactionRestClient.transactions(syncToken, addresses.toArray, blockHash) flatMap {
+          (result) =>
+          val lastBlock = pushTransactions(result.transactions, hashes)
+          if (lastBlock.isDefined) {
+            batch.blockHash = lastBlock.get.hash
+            batch.blockHeight = lastBlock.get.height.toInt
+          }
+          save(savedState) flatMap {unit =>
+            if (result.isTruncated)
+              synchronizeBatchUntilEmpty()
+            else
+              Future.successful(hashes.toArray)
+          }
         }
       }
       while (batchIndex >= savedState.batches.length) {
@@ -127,7 +146,7 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
         newBatch.index = savedState.batches.length
         savedState.batches = savedState.batches :+ newBatch
       }
-      synchronizeBatchUntilEmpty(Array[String]())
+      synchronizeBatchUntilEmpty()
     }
 
     Future.sequence((from to Math.max(from, to)).map(synchronizeBatch)).map {(result) =>
@@ -135,9 +154,90 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
     }
   }
 
-  private def pushTransaction(transactions: Array[ApiObjects.Transaction],
-                              hashes: ArrayBuffer[String]): Unit = {
+  private def pushTransactions(transactions: Array[ApiObjects.Transaction],
+                              hashes: ArrayBuffer[String]): Option[ApiObjects.Block] = {
+    val writer = wallet.databaseWriter
+    writer.beginTransaction()
+    var lastBlock: Option[ApiObjects.Block] = None
+    for (transaction <- transactions) {
+      if (lastBlock.map(_.height).getOrElse(0L) < transaction.block.map(_.height).getOrElse(0L))
+        lastBlock = transaction.block
+      pushTransaction(transaction, hashes)
+    }
+    writer.endTransaction()
+    lastBlock
+  }
 
+  private def pushTransaction(tx: ApiObjects.Transaction, hashes: ArrayBuffer[String]): Unit = {
+    val writer = wallet.databaseWriter
+    val transaction = new TransactionHelper(tx)
+    writer.updateOrCreateTransaction(transaction.proxy, transaction.bag)
+    hashes += transaction.proxy.hash
+    val isSend = computeSendOperation(transaction, writer)
+    computeReceiveOperation(transaction, writer, !isSend)
+  }
+
+  private def computeSendOperation(tx: TransactionHelper, writer: WalletDatabaseWriter): Boolean = {
+    /*
+    updateOrCreateOperation(accountId: Int,
+      transactionHash: String,
+      operationType: Int,
+      value: Long,
+      senders: Array[String],
+      recipients: Array[String])
+     */
+    if (tx.hasOwnInputs) {
+      val inserted = writer.updateOrCreateOperation(
+        index,
+        tx.proxy.hash,
+        DatabaseStructure.OperationTableColumns.Types.Send,
+        tx.sentValue.getValue,
+        tx.senders,
+        tx.recipients)
+      if (inserted) {
+        wallet.eventBus.post(NewOperation(index, databaseWallet.querySingleOperation(
+          index,
+          tx.proxy.hash,
+          OperationTableColumns.Types.Send
+        )))
+      } else {
+        wallet.eventBus.post(OperationChanged(index, databaseWallet.querySingleOperation(
+          index,
+          tx.proxy.hash,
+          OperationTableColumns.Types.Send
+        )))
+      }
+      true
+    } else {
+      false
+    }
+  }
+
+  private def computeReceiveOperation(tx: TransactionHelper,
+                                      writer: WalletDatabaseWriter,
+                                      forceReceive: Boolean): Unit = {
+    if (forceReceive || (tx.ownOutputs.length == tx.proxy.outputs.length) || tx.hasOwnExternalOutputs) {
+      val inserted = writer.updateOrCreateOperation(
+        index,
+        tx.proxy.hash,
+        DatabaseStructure.OperationTableColumns.Types.Reception,
+        tx.receivedValue.getValue,
+        tx.senders,
+        tx.recipients)
+      if (inserted) {
+        wallet.eventBus.post(NewOperation(index, databaseWallet.querySingleOperation(
+          index,
+          tx.proxy.hash,
+          OperationTableColumns.Types.Reception
+        )))
+      } else {
+        wallet.eventBus.post(OperationChanged(index, databaseWallet.querySingleOperation(
+          index,
+          tx.proxy.hash,
+          OperationTableColumns.Types.Reception
+        )))
+      }
+    }
   }
 
   //
@@ -164,6 +264,7 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
   def save(savedState: ApiWalletClientProtos.ApiAccountClient): Future[Unit] = Future {
     val raw = new Array[Byte](savedState.getSerializedSize)
     val output = CodedOutputByteBufferNano.newInstance(raw)
+    savedState.writeTo(output)
     val tmpFile = new File(directory, "tmp_saved_state")
     IOUtils.copy(raw, tmpFile)
     tmpFile.renameTo(savedStateFile)
@@ -211,5 +312,87 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
   }
 
   private val savedStateFile = new File(directory, "saved_state")
+
+  class TransactionHelper(tx: ApiObjects.Transaction) {
+    val proxy = TransactionProxy(tx)
+    val bag = {
+      val b = new DerivationPathBag
+      b.inflate(proxy, _keychain, index)
+      b
+    }
+
+    val ownInputs = proxy.inputs.filter(bag.findPath(_).isDefined)
+    val ownOutputs = proxy.outputs.filter(bag.findPath(_).isDefined)
+
+    def hasOwnInputs = ownInputs.nonEmpty
+    def hasOwnOutputs = ownOutputs.nonEmpty
+    def hasOwnExternalOutputs = ownOutputs exists isExternal
+
+    def sentValue: Coin = {
+      var total = Coin.ZERO
+      for (input <- ownInputs) {
+        total = total add input.value.get
+      }
+      var hasChange = false
+      for (output <- ownOutputs) {
+        if (isInternal(output)) {
+          if (!hasChange)
+            hasChange = true
+          else
+            total = total add output.value
+        }
+      }
+      total
+    }
+
+    def receivedValue: Coin = {
+      if (ownOutputs.length == 1)
+        ownOutputs.head.value
+      else {
+        var total = Coin.ZERO
+        var hasChange = false
+        for (output <- ownOutputs) {
+          if (isInternal(output) && !hasChange) {
+           hasChange = true
+          } else {
+            total = total add output.value
+          }
+        }
+        total
+      }
+    }
+
+    def senders: Array[String] = {
+      (proxy.inputs.filter {(input) =>
+        input.address.isDefined || input.isCoinbase
+      } map {(input) =>
+        input.address.getOrElse("coinbase")
+      }).toArray
+    }
+
+    def recipients: Array[String] =  {
+      (proxy.outputs.filter {(output) =>
+        output.address.isDefined
+      } map {(output) =>
+        output.address.get
+      }).toArray
+    }
+
+    private def isInternal(input: TransactionInputProxy): Boolean = {
+      bag.findPath(input) exists isInternal
+    }
+
+    private def isInternal(output: TransactionOutputProxy): Boolean = {
+      bag.findPath(output) exists isInternal
+    }
+
+    private def isInternal(path: DerivationPath): Boolean = path(1).get.childNum == 1
+
+    private def isExternal(output: TransactionOutputProxy): Boolean = {
+      bag.findPath(output) exists isExternal
+    }
+
+    private def isExternal(path: DerivationPath): Boolean = path(1).get.childNum == 0
+  }
 
 }

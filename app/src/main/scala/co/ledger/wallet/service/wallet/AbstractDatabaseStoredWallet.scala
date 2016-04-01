@@ -64,7 +64,7 @@ abstract class AbstractDatabaseStoredWallet(val context: Context,
     }
   }
 
-  protected def querySingleOperation(accountId: Int, transactionHash: String, opType: Int): AsyncCursor[Operation] =
+  def querySingleOperation(accountId: Int, transactionHash: String, opType: Int): AsyncCursor[Operation] =
     querySingleOperation(_database.writer.computeOperationUid(accountId, transactionHash, opType))
 
   protected def querySingleOperation(opUid: String): AsyncCursor[Operation] = {

@@ -40,10 +40,10 @@ class ApiTransactionProxy(self: ApiObjects.Transaction) extends TransactionProxy
   override val hash: String = self.hash
   override val block: Option[String] = self.block.map(_.hash)
   override val fees: Option[Coin] = Option(self.fees)
-  override def outputs: List[TransactionOutputProxy] = ???
+  override def outputs: List[TransactionOutputProxy] = self.outputs.map(new Output(_)).toList
   override val lockTime: Long = self.lockTime
   override val time: Date = self.receivedAt
-  override def inputs: List[TransactionInputProxy] = ???
+  override def inputs: List[TransactionInputProxy] = self.inputs.map(new Input(_)).toList
 
   private class Input(self: ApiObjects.Input) extends TransactionInputProxy {
     override def index: Long = self.outputIndex

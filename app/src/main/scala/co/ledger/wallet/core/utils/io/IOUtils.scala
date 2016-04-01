@@ -37,6 +37,7 @@ import com.google.protobuf.CodedInputStream
 import com.google.protobuf.nano.{CodedOutputByteBufferNano, CodedInputByteBufferNano}
 
 import scala.annotation.tailrec
+import org.apache.commons.io.{IOUtils => Utils}
 
 object IOUtils {
 
@@ -100,9 +101,9 @@ object IOUtils {
 
   def copy(source: File): CodedInputByteBufferNano = {
     require(source != null)
-    val input = new BufferedInputStream(new FileInputStream(source))
+    val input = new FileInputStream(source)
     val output = new ByteArrayOutputStream()
-    copy(input, output)
+    Utils.copy(input, output)
     input.close()
     CodedInputByteBufferNano.newInstance(output.toByteArray)
   }
@@ -111,8 +112,13 @@ object IOUtils {
     require(source != null)
     require(destination != null)
     val input = new ByteArrayInputStream(source)
-    val output = new BufferedOutputStream(new FileOutputStream(destination))
-    copy(input, output)
+    val output = new FileOutputStream(destination)
+    val buffer = new Array[Byte](BufferSize)
+    var read = 0
+    while ({read = input.read(buffer); read} > 0) {
+      output.write(buffer, 0, read)
+    }
+    input.close()
     output.close()
   }
 

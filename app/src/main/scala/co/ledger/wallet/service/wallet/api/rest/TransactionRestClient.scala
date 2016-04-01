@@ -59,8 +59,9 @@ class TransactionRestClient(c: Context,
 
   def transactions(token: String, addresses: Array[String], blockHash: Option[String]):
   Future[TransactionsAnswer] = {
+    val params = blockHash.map(hash => s"?blockHash=$hash").getOrElse("")
     http
-      .get(s"blockchain/v2/$network/addresses/${addresses.mkString(",")}/transactions")
+      .get(s"blockchain/v2/$network/addresses/${addresses.mkString(",")}/transactions$params")
       .header("X-LedgerWallet-SyncToken" -> token)
       .json map {
         case (json, _) =>

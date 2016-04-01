@@ -126,6 +126,8 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
     case other: Throwable => throw other
   }
 
+  def databaseWriter = database.writer
+
   private def init(): Future[Unit] = Future {
     if (_accounts.isEmpty) {
       val accounts = AccountRow(database.reader.allAccounts())

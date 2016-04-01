@@ -30,6 +30,7 @@
  */
 package co.ledger.wallet.service.wallet.database.utils
 
+import co.ledger.wallet.core.utils.HexUtils
 import co.ledger.wallet.service.wallet.database.proxy.{TransactionInputProxy, TransactionOutputProxy, TransactionProxy}
 import co.ledger.wallet.wallet.DerivationPath
 import org.bitcoinj.core.{Wallet => JWallet, TransactionOutput, TransactionInput, Address}
@@ -45,33 +46,32 @@ class DerivationPathBag {
       val hash = new Address(null, input.address.get).getHash160
       val key = keyChain.findKeyFromPubHash(hash)
       if (key != null)
-        _bag(hash) = (key, accountIndex)
+        _bag(HexUtils.bytesToHex(hash)) = (key, accountIndex)
     }
 
     for (output <- tx.outputs if output.address.isDefined) {
       val hash = new Address(null, output.address.get).getHash160
-      val key = keyChain.findKeyFromPubHash(hash)
+      val key = keyChain.markPubHashAsUsed(hash)
       if (key != null)
-        _bag(hash) = (key, accountIndex)
+        _bag(HexUtils.bytesToHex(hash)) = (key, accountIndex)
     }
   }
 
   def findEntry(input: TransactionInput): Option[(DeterministicKey, Int)] = {
     try
-      Option(_bag(input.getConnectedOutput.getScriptPubKey.getPubKeyHash))
+      Option(_bag(HexUtils.bytesToHex(input.getConnectedOutput.getScriptPubKey.getPubKeyHash)))
     catch {
       case throwable: Throwable => None
     }
   }
 
   def findEntry(output: TransactionOutput): Option[(DeterministicKey, Int)] = {
-    _bag.lift(output.getScriptPubKey.getPubKeyHash)
+    _bag.lift(HexUtils.bytesToHex(output.getScriptPubKey.getPubKeyHash))
   }
-
 
   def findEntry(input: TransactionInputProxy): Option[(DeterministicKey, Int)] = {
     try
-      Option(_bag(new Address(null, input.address.get).getHash160))
+      Option(_bag(HexUtils.bytesToHex(new Address(null, input.address.get).getHash160)))
     catch {
       case throwable: Throwable => None
     }
@@ -79,7 +79,7 @@ class DerivationPathBag {
 
   def findEntry(output: TransactionOutputProxy): Option[(DeterministicKey, Int)] = {
     if (output.address.isDefined)
-      _bag.lift(new Address(null, output.address.get).getHash160)
+      _bag.lift(HexUtils.bytesToHex(new Address(null, output.address.get).getHash160))
     else
       None
   }
@@ -131,5 +131,5 @@ class DerivationPathBag {
     }
   }
 
-  private val _bag = scala.collection.mutable.Map[Array[Byte], (DeterministicKey, Int)]()
+  private val _bag = scala.collection.mutable.Map[String, (DeterministicKey, Int)]()
 }

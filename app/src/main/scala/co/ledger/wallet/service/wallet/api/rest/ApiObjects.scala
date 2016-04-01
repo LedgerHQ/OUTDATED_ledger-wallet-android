@@ -123,7 +123,7 @@ object ApiObjects {
   }
 
   class Input(json: JSONObject) {
-    val previousTxHash = Option(json.optString("output_hash"))
+    val previousTxHash = Option(json.optString("output_hash", null))
     val outputIndex = json.optLong("output_index")
     val value = {
       if (!json.has("value"))
@@ -132,8 +132,8 @@ object ApiObjects {
         Some(Coin.valueOf(json.getLong("value")))
     }
     val address = Option(json.optString("address", null))
-    val scriptSig = Option(json.optString("script_signature"))
-    val coinbase = Option(json.optString("coinbase"))
+    val scriptSig = Option(json.optString("script_signature", null))
+    val coinbase = Option(json.optString("coinbase", null))
   }
 
   class Output(json: JSONObject) {
