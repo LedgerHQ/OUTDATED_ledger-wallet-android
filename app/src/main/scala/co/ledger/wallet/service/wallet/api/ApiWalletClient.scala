@@ -33,22 +33,21 @@ package co.ledger.wallet.service.wallet.api
 import java.io.File
 
 import android.content.Context
-import android.provider.ContactsContract.Directory
 import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.delay
-import co.ledger.wallet.core.net.{WebSocket, HttpClient}
+import co.ledger.wallet.core.net.WebSocket
 import co.ledger.wallet.core.utils.HexUtils
-import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
+import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.service.wallet.AbstractDatabaseStoredWallet
 import co.ledger.wallet.service.wallet.api.rest.{ApiObjects, BlockRestClient, TransactionRestClient}
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import co.ledger.wallet.service.wallet.database.proxy.BlockProxy
-import co.ledger.wallet.wallet.events.WalletEvents.{OperationChanged, NewBlock, MissingAccount}
+import co.ledger.wallet.wallet.events.WalletEvents.{MissingAccount, NewBlock}
 import co.ledger.wallet.wallet.exceptions.WalletNotSetupException
-import co.ledger.wallet.wallet.{Block, DerivationPath, Account, ExtendedPublicKeyProvider}
+import co.ledger.wallet.wallet.{Account, Block, DerivationPath, ExtendedPublicKeyProvider}
 import com.squareup.okhttp.internal.DiskLruCache
 import de.greenrobot.event.EventBus
-import org.bitcoinj.core.{Context => JContext, Coin, Transaction, NetworkParameters}
+import org.bitcoinj.core.{Coin, Context => JContext, NetworkParameters, Transaction}
 import org.json.JSONObject
 
 import scala.concurrent.Future

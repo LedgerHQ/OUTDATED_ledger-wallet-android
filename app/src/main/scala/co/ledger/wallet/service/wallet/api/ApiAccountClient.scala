@@ -202,6 +202,7 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
       recipients: Array[String])
      */
     if (tx.hasOwnInputs) {
+      val uid = writer.computeOperationUid(index, tx.proxy.hash, OperationTableColumns.Types.Send)
       val inserted = writer.updateOrCreateOperation(
         index,
         tx.proxy.hash,
@@ -210,17 +211,9 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
         tx.senders,
         tx.recipients)
       if (inserted) {
-        wallet.eventBus.post(NewOperation(index, databaseWallet.querySingleOperation(
-          index,
-          tx.proxy.hash,
-          OperationTableColumns.Types.Send
-        )))
+        wallet.eventBus.post(NewOperation(uid, index))
       } else {
-        wallet.eventBus.post(OperationChanged(index, databaseWallet.querySingleOperation(
-          index,
-          tx.proxy.hash,
-          OperationTableColumns.Types.Send
-        )))
+        wallet.eventBus.post(OperationChanged(uid, index))
       }
       true
     } else {
@@ -232,6 +225,7 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
                                       writer: WalletDatabaseWriter,
                                       forceReceive: Boolean): Unit = {
     if (forceReceive || (tx.ownOutputs.length == tx.proxy.outputs.length) || tx.hasOwnExternalOutputs) {
+      val uid = writer.computeOperationUid(index, tx.proxy.hash, OperationTableColumns.Types.Reception)
       val inserted = writer.updateOrCreateOperation(
         index,
         tx.proxy.hash,
@@ -240,17 +234,9 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
         tx.senders,
         tx.recipients)
       if (inserted) {
-        wallet.eventBus.post(NewOperation(index, databaseWallet.querySingleOperation(
-          index,
-          tx.proxy.hash,
-          OperationTableColumns.Types.Reception
-        )))
+        wallet.eventBus.post(NewOperation(uid, index))
       } else {
-        wallet.eventBus.post(OperationChanged(index, databaseWallet.querySingleOperation(
-          index,
-          tx.proxy.hash,
-          OperationTableColumns.Types.Reception
-        )))
+        wallet.eventBus.post(OperationChanged(uid, index))
       }
     }
   }

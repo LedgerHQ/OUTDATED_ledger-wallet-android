@@ -171,9 +171,9 @@ class DemoActivity extends BaseActivity with WalletActivity {
   }
 
   override def receive: Receive = {
-    case AccountCreated(index) => updateAccounts()
-    case AccountUpdated(index) => updateAccounts()
-    case NewOperation(index, _) =>
+    //case AccountCreated(index) => updateAccounts()
+    //case AccountUpdated(index) => updateAccounts()
+    //case NewOperation(index, _) =>
     case string: String =>
     case drop =>
   }
@@ -380,9 +380,9 @@ with Loggable {
   }
 
   override def receive: Receive = {
-    case CoinReceived(index, _) => updateBalance()
-    case CoinSent(index, _) => updateBalance()
-    case AccountUpdated(index) => updateBalance()
+    //case CoinReceived(index, _) => updateBalance()
+    //case CoinSent(index, _) => updateBalance()
+    //case AccountUpdated(index) => updateBalance()
     case SynchronizationProgress(current, total, date) =>
       lastBlockTimeTextView.setText(s"Last block time: ${date.toString}")
       progress.setMax(total)

@@ -141,7 +141,7 @@ class SpvWalletClient(context: Context, name: String, networkParameters: Network
             xpub58 = Some(xpub.serializePubB58(networkParameters)),
             creationTime = _neededAccountCreationTime
           )
-          eventBus.post(AccountCreated(index))
+          eventBus.post(NewAccount(index))
           performSynchronization(extendedPublicKeyProvider)
         }
     }
@@ -190,6 +190,7 @@ class SpvWalletClient(context: Context, name: String, networkParameters: Network
                                    writer: WalletDatabaseWriter): Boolean = {
     if (transaction.containsWalletInputs) {
       val value: Coin = transaction.sendValue
+      val uid = writer.computeOperationUid(account.index, transaction.tx.getHashAsString, OperationTableColumns.Types.Send)
       val inserted = writer.updateOrCreateOperation(
         account.index,
         transaction.tx.getHashAsString,
@@ -198,21 +199,9 @@ class SpvWalletClient(context: Context, name: String, networkParameters: Network
         transaction.senders,
         transaction.recipients)
       if (inserted) {
-        eventBus.post(NewOperation(
-          account.index,
-          querySingleOperation(
-            account.index,
-            transaction.tx.getHashAsString,
-            OperationTableColumns.Types.Send
-          )))
+        eventBus.post(NewOperation(uid, account.index))
       } else {
-        eventBus.post(OperationChanged(
-          account.index,
-          querySingleOperation(
-            account.index,
-            transaction.tx.getHashAsString,
-            OperationTableColumns.Types.Send
-          )))
+        eventBus.post(OperationChanged(uid, account.index))
       }
       true
     } else {
@@ -226,6 +215,8 @@ class SpvWalletClient(context: Context, name: String, networkParameters: Network
                                       writer: WalletDatabaseWriter): Boolean = {
     if (forceReception || transaction.numberOfPublicOutput > 0) {
       val value: Coin = transaction.receivedValue
+      val uid = writer.computeOperationUid(account.index, transaction.tx.getHashAsString,
+        OperationTableColumns.Types.Reception)
       val inserted = writer.updateOrCreateOperation(
         account.index,
         transaction.tx.getHashAsString,
@@ -234,21 +225,9 @@ class SpvWalletClient(context: Context, name: String, networkParameters: Network
         transaction.senders,
         transaction.recipients)
       if (inserted) {
-       eventBus.post(NewOperation(
-         account.index,
-         querySingleOperation(
-           account.index,
-           transaction.tx.getHashAsString,
-           OperationTableColumns.Types.Reception
-         )))
+        eventBus.post(NewOperation(uid, account.index))
       } else {
-        eventBus.post(OperationChanged(
-          account.index,
-          querySingleOperation(
-            account.index,
-            transaction.tx.getHashAsString,
-            OperationTableColumns.Types.Reception
-          )))
+        eventBus.post(OperationChanged(uid, account.index))
       }
       true
     } else {
@@ -293,7 +272,7 @@ class SpvWalletClient(context: Context, name: String, networkParameters: Network
         val checkpoints = context.getAssets.open(Config.CheckpointFilePath)
         _spvAppKitFactory.setup(Array(xpub), date, checkpoints)
     } map setupWithAppKit map {unit =>
-      eventBus.post(AccountCreated(0))
+      eventBus.post(NewAccount(0))
       ()}
 
   override def needsSetup(): Future[Boolean] = init().map((_) => true).recover {

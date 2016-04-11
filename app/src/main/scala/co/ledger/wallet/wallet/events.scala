@@ -44,19 +44,18 @@ package object events {
   }
 
   object WalletEvents {
-    case class MissingAccount(index: Int)
-    case class NewOperation(accountIndex: Int, operation: AsyncCursor[Operation])
-    case class OperationChanged(accountIndex: Int, operation: AsyncCursor[Operation])
-    case class AccountCreated(index: Int)
-    case class AccountUpdated(index: Int)
-
-    case class CoinReceived(accountIndex: Int, coin: Coin)
-    case class CoinSent(accountInt: Int, coin: Coin)
-
-
     // Clean version
 
     case class NewBlock(hash: String, height: Int, transactionHashes: Array[String])
+    case class NewTransaction(hash: String)
+    case class NewOperation(uid: String, accountIndex: Int)
+    case class OperationChanged(uid: String, accountIndex: Int)
+    case class TransactionConfirmed(hash: String)
+    case class TransactionDeleted(hash: String)
+
+    case class MissingAccount(index: Int)
+    case class NewAccount(index: Int)
+
   }
 
 }
