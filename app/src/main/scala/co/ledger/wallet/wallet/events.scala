@@ -52,6 +52,11 @@ package object events {
 
     case class CoinReceived(accountIndex: Int, coin: Coin)
     case class CoinSent(accountInt: Int, coin: Coin)
+
+
+    // Clean version
+
+    case class NewBlock(hash: String, height: Int, transactionHashes: Array[String])
   }
 
 }

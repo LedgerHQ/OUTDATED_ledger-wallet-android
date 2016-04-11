@@ -43,7 +43,7 @@ import co.ledger.wallet.service.wallet.AbstractDatabaseStoredWallet
 import co.ledger.wallet.service.wallet.api.rest.{ApiObjects, BlockRestClient, TransactionRestClient}
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import co.ledger.wallet.service.wallet.database.proxy.BlockProxy
-import co.ledger.wallet.wallet.events.WalletEvents.MissingAccount
+import co.ledger.wallet.wallet.events.WalletEvents.{OperationChanged, NewBlock, MissingAccount}
 import co.ledger.wallet.wallet.exceptions.WalletNotSetupException
 import co.ledger.wallet.wallet.{Block, DerivationPath, Account, ExtendedPublicKeyProvider}
 import com.squareup.okhttp.internal.DiskLruCache
@@ -255,11 +255,24 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
     }
 
     private def notifyNewBlock(json: JSONObject): Unit = Future {
-      // TODO: Save the block
-      // Select all transactions in block
-      // Emit an event in order to bump confirmation number
       val block = new ApiObjects.Block(json)
+      database.writer.beginTransaction()
       database.writer.updateOrCreateBlock(BlockProxy(block))
+      val updated =
+        database.writer.updateTransactionsBlock(block.transactionHashes.get, block.hash)
+      database.writer.commitTransaction()
+      database.writer.endTransaction()
+      if (updated) {
+        eventBus.post(NewBlock(block.hash, block.height.toInt, Array.empty[String]))
+      } else {
+        val hashes = database.reader.selectTransactionHashByBlockHash(block.hash)
+        eventBus.post(NewBlock(block.hash, block.height.toInt, hashes))
+      }
+      ()
+    } recover {
+      case all: Throwable =>
+        all.printStackTrace()
+        throw all
     }
 
     private def connect(): Future[WebSocket] = {

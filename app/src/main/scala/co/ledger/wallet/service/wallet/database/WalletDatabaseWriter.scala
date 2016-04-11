@@ -111,6 +111,15 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     database.update(TransactionTableName, values, s"$Hash = ?", Array(txHash)) > 0
   }
 
+  def updateTransactionsBlock(hashes: Array[String], blockHash: String): Boolean
+  = {
+    import DatabaseStructure.TransactionTableColumns._
+    val values = new ContentValues()
+    values.put(BlockHash, blockHash)
+    val stringifiedHashes = "(" + hashes.map("\"" + _ + "\"").mkString(",") + ")"
+    database.update(TransactionTableName, values, s"$Hash IN $stringifiedHashes", null) > 0
+  }
+
   def updateOrCreateTransaction(tx: TransactionProxy, bag: DerivationPathBag): Boolean
     = {
     import DatabaseStructure.TransactionTableColumns._

@@ -120,6 +120,16 @@ object ApiObjects {
     val hash = json.getString("hash")
     val height = json.getLong("height")
     val time = parseJavascriptDate(json.getString("time"))
+
+    val transactionHashes = {
+      Option(json.optJSONArray("transaction_hashes")).map {(hashes) =>
+        val result = new Array[String](hashes.length())
+        for (index <- result.indices) {
+          result(index) = hashes.getString(index)
+        }
+        result
+      }
+    }
   }
 
   class Input(json: JSONObject) {

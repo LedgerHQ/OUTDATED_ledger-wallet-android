@@ -36,6 +36,8 @@ import DatabaseStructure._
 import co.ledger.wallet.service.wallet.database.cursor.{TransactionCursor, AccountCursor}
 import co.ledger.wallet.service.wallet.database.model.TransactionRow
 
+import scala.collection.mutable.ArrayBuffer
+
 class WalletDatabaseReader(database: SQLiteDatabase) {
 
   import DatabaseStructure._
@@ -189,6 +191,21 @@ class WalletDatabaseReader(database: SQLiteDatabase) {
         |   $OutputPath LIKE 'm/$account''/%'
       """.stripMargin
     SelectUtxo.execute()
+  }
+
+  def selectTransactionHashByBlockHash(blockHash: String): Array[String] = {
+    import DatabaseStructure.TransactionTableColumns._
+
+    val SelectTransactions =
+      s"""
+         | SELECT $Hash FROM $TransactionTableName WHERE $BlockHash = ?
+       """.stripMargin
+    val cursor = SelectTransactions.execute(Array(blockHash))
+    val result = ArrayBuffer[String]()
+    while (cursor.moveToNext()) {
+      result += cursor.getString(0)
+    }
+    result.toArray
   }
 
   def transaction(hash: String): Option[TransactionRow] = {
