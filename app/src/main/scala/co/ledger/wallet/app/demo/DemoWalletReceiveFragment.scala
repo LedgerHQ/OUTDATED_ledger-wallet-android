@@ -31,14 +31,14 @@
 package co.ledger.wallet.app.demo
 
 import android.net.Uri.Builder
-import android.os.{Handler, Bundle}
+import android.os.{Bundle, Handler}
 import android.text.{Editable, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.AdapterView.{OnItemClickListener, OnItemSelectedListener}
 import android.widget._
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{BaseFragment, UiContext, WalletActivity}
-import co.ledger.wallet.core.utils.QrCodeHelper
+import co.ledger.wallet.core.image.QrCodeGenerator
 import co.ledger.wallet.core.view.ViewFinder
 import co.ledger.wallet.core.widget.TextView
 import org.bitcoinj.core.Coin
@@ -137,7 +137,7 @@ class DemoWalletReceiveFragment extends BaseFragment
         .path(address.toString)
       if (amount.isDefined)
         uri.appendQueryParameter("amount", amount.get)
-      QrCodeHelper.encode(uri.build().toString.replace(":/", ":"), 250, 250)
+      QrCodeGenerator.from(getActivity, uri.build().toString.replace(":/", ":"), 250, 250)
     } onComplete {
         case Success(bitmap) => qrCodeImageView.setImageBitmap(bitmap)
         case Failure(ex) => ex.printStackTrace()
