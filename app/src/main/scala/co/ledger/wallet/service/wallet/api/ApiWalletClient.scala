@@ -43,7 +43,7 @@ import co.ledger.wallet.service.wallet.api.rest.{ApiObjects, BlockRestClient, Tr
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import co.ledger.wallet.service.wallet.database.proxy.BlockProxy
 import co.ledger.wallet.wallet.events.WalletEvents.{MissingAccount, NewBlock}
-import co.ledger.wallet.wallet.exceptions.WalletNotSetupException
+import co.ledger.wallet.wallet.exceptions.{AccountHasNoXpubException, WalletNotSetupException}
 import co.ledger.wallet.wallet.{Account, Block, DerivationPath, ExtendedPublicKeyProvider}
 import com.squareup.okhttp.internal.DiskLruCache
 import de.greenrobot.event.EventBus
@@ -98,13 +98,17 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
 
 
   private def createAccount(index: Int, publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] = {
-    publicKeyProvider.generateXpub(DerivationPath(s"44'/0'/$index'")) map {(xpub) =>
-      database.writer.createAccountRow(
-        index = Some(index),
-        hidden = Some(false),
-        xpub58 = Some(xpub.serializePubB58(networkParameters)),
-        creationTime = Some(0)
-      )
+    if (publicKeyProvider == null) {
+      Future.failed(AccountHasNoXpubException(index))
+    } else {
+      publicKeyProvider.generateXpub(DerivationPath(s"44'/0'/$index'")) map { (xpub) =>
+        database.writer.createAccountRow(
+          index = Some(index),
+          hidden = Some(false),
+          xpub58 = Some(xpub.serializePubB58(networkParameters)),
+          creationTime = Some(0)
+        )
+      }
     }
   }
 

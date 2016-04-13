@@ -83,13 +83,6 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
 
   override def mostRecentBlock(): Future[Block] = connect().flatMap(_.mostRecentBlock())
 
-  override def preferences(): Future[WalletPreferences] = connect().flatMap(_.preferences())
-
-  override def unlock(password: String): Future[Unit] = connect().flatMap(_.unlock(password))
-
-  override def changePassword(password: String): Future[Unit] = connect().flatMap(_
-    .changePassword(password))
-
   val eventBus =  EventBus
     .builder()
     .throwSubscriberException(true)

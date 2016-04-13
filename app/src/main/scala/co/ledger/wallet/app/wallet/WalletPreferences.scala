@@ -44,7 +44,8 @@ import co.ledger.wallet.preferences.WalletPreferencesProtos.WalletPreferences.Cu
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
-class WalletPreferences(directory: File, password: Option[String])(implicit ec: ExecutionContext) {
+class WalletPreferences(directory: File, private var password: Option[String])(implicit ec:
+ExecutionContext) {
 
   private val _data: WalletPreferencesProtos.WalletPreferences = {
    tryLoadFromFile().recover({
@@ -90,6 +91,8 @@ class WalletPreferences(directory: File, password: Option[String])(implicit ec: 
     handler
     save()
   }
+
+  def changePassword(password: String): Unit = this.password = Option(password)
 
   private def get[A](handler: => A): A = synchronized(handler)
 

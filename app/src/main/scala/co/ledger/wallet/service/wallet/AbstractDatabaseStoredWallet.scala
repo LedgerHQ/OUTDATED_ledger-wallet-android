@@ -30,6 +30,8 @@
   */
 package co.ledger.wallet.service.wallet
 
+import java.io.File
+
 import android.content.Context
 import co.ledger.wallet.app.wallet.WalletPreferences
 import co.ledger.wallet.core.concurrent.{AbstractAsyncCursor, AsyncCursor, SerialQueueTask}
@@ -100,22 +102,4 @@ abstract class AbstractDatabaseStoredWallet(val context: Context,
 
   private[this] lazy val _database = new WalletDatabaseOpenHelper(context, name)
 
-  // Password management
-  protected def password: Option[String] = _password
-  private var _password: Option[String] = None
-
-  override def unlock(password: String): Future[Unit] = Future {
-    _password = Option(password)
-  }
-
-  override def changePassword(password: String): Future[Unit] = Future {
-
-  }
-
-  override def preferences(): Future[WalletPreferences] = Future {
-    _preferences.getOrElse {
-      null
-    }
-  }
-  private var _preferences: Option[WalletPreferences] = None
 }

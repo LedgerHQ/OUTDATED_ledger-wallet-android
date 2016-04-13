@@ -53,9 +53,6 @@ trait Wallet {
   def mostRecentBlock(): Future[Block]
   def pushTransaction(transaction: Transaction): Future[Unit]
   def stop(): Unit
-  def preferences(): Future[WalletPreferences]
-  def unlock(password: String): Future[Unit]
-  def changePassword(password: String): Future[Unit]
 }
 
 object Wallet {

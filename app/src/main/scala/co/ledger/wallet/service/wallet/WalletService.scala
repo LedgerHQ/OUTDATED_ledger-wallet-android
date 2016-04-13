@@ -30,11 +30,13 @@
  */
 package co.ledger.wallet.service.wallet
 
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 import android.app.Service
 import android.content.{Context, Intent}
 import android.os.{Handler, IBinder}
+import co.ledger.wallet.app.wallet.WalletPreferences
 import co.ledger.wallet.core.utils.Preferences
 import co.ledger.wallet.service.wallet.api.ApiWalletClient
 import co.ledger.wallet.service.wallet.spv.SpvWalletClient
@@ -42,6 +44,7 @@ import co.ledger.wallet.wallet.Wallet
 import org.bitcoinj.params.MainNetParams
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
 
 class WalletService extends Service {
   import WalletService._
@@ -106,6 +109,7 @@ class WalletService extends Service {
 
   private[this] val _binder = new Binder
   private[this] val _wallets = new ConcurrentHashMap[String, Wallet]().asScala
+  private[this] val _walletsPreferences = new ConcurrentHashMap[String, WalletPreferences]().asScala
   private[this] lazy val _preferences = Preferences(WalletServicePreferencesName)(this)
   private[this] val _handler = new Handler()
   private[this] val _shutDownRunnable = new Runnable {
@@ -118,6 +122,15 @@ class WalletService extends Service {
       stopSelf()
     }
   }
+
+  // Wallet Preferences
+
+  def preferences(walletName: String, password: Option[String]): WalletPreferences = {
+    _walletsPreferences.lift(walletName).getOrElse {
+      null
+    }
+  }
+
 }
 
 object WalletService {
