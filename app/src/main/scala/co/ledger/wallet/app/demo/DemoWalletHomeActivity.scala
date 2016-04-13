@@ -63,8 +63,9 @@ class DemoWalletHomeActivity extends BaseActivity
   override def receive: Receive = {
     //case CoinSent(_, _) => fetchBalance()
     //case CoinReceived(_, _) => fetchBalance()
-    //case NewOperation(_, _) => fetchBalance()
-    //case OperationChanged(_, _) => fetchBalance()
+    case NewBlock(_, _, _) => fetchBalance()
+    case NewOperation(_, _) => fetchBalance()
+    case OperationChanged(_, _) => fetchBalance()
     case ignore =>
   }
 

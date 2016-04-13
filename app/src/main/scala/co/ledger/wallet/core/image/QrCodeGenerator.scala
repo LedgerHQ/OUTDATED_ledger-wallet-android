@@ -31,6 +31,7 @@
 package co.ledger.wallet.core.image
 
 import java.io.{FileOutputStream, FileInputStream, File}
+import java.util
 
 import android.content.Context
 import android.graphics.Bitmap.CompressFormat
@@ -39,7 +40,8 @@ import android.graphics.{Color, BitmapFactory, Bitmap}
 import android.support.v4.util.LruCache
 import co.ledger.wallet.core.crypto.Sha256
 import co.ledger.wallet.core.utils.{Convert, HexUtils}
-import com.google.zxing.BarcodeFormat
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
+import com.google.zxing.{EncodeHintType, BarcodeFormat}
 import com.google.zxing.qrcode.QRCodeWriter
 import com.jakewharton.disklrucache.DiskLruCache
 
@@ -87,20 +89,24 @@ object QrCodeGenerator {
 
   def generate(context: Context, data: String,  dpWidth: Int, dpHeight: Int): Future[Bitmap] = Future {
     val writer = new QRCodeWriter
+    val hints = new util.Hashtable[EncodeHintType, Object]()
+    hints.put(EncodeHintType.MARGIN, Integer.valueOf(0))
+    hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H)
     val matrix = writer.encode(data, BarcodeFormat.QR_CODE, Convert.dpToPx(dpWidth)
-      .toInt, Convert.dpToPx(dpHeight).toInt)
+      .toInt, Convert.dpToPx(dpHeight).toInt, hints)
     val width: Int = matrix.getWidth
     val height: Int = matrix.getHeight
     val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
-    for (x: Int <- 0 until width) {
-      for (y: Int <- 0 until height) {
-        val color = if (matrix.get(x, y)) Color.BLACK else Color.WHITE
-        bitmap.setPixel(x, y, color)
+    val pixels = new Array[Int](width * height)
+    for (y: Int <- 0 until height) {
+      for (x: Int <- 0 until width) {
+        pixels(y * width + x) = if (matrix.get(x, y)) Color.BLACK else Color.WHITE
       }
     }
+    bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
     bitmap
   } andThen {
-    case Success(bitmap) =>
+    case Success(bitmap: Bitmap) =>
       val name = dataToFileName(data, dpWidth, dpHeight)
       val entry = cache(context).edit(name)
       val os = entry.newOutputStream(0)

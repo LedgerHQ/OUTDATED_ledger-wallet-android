@@ -111,12 +111,7 @@ class DemoWalletReceiveFragment extends BaseFragment
         scheduled = Some(new Runnable {
           override def run(): Unit = {
             scheduled = None
-            if (content.length == 0 || Try(content.toDouble).isFailure)
-              _amount = None
-            else {
-              val bitcoin = content.toDouble * Math.pow(10, 8)
-              _amount = Some(Coin.valueOf(bitcoin.toLong))
-            }
+           _amount = Try(Coin.parseCoin(content)).toOption
             refreshAddress()
           }
         })

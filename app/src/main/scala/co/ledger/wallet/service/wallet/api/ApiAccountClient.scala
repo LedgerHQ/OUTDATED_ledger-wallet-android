@@ -33,7 +33,7 @@ package co.ledger.wallet.service.wallet.api
 import java.io._
 import java.util
 
-import co.ledger.wallet.core.utils.Preferences
+import co.ledger.wallet.core.utils.{ProtobufHelper, Preferences}
 import co.ledger.wallet.core.utils.io.IOUtils
 import co.ledger.wallet.core.utils.logs.{Logger, Loggable}
 import co.ledger.wallet.service.wallet.AbstractDatabaseStoredAccount
@@ -265,12 +265,7 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
   }
 
   def save(savedState: ApiWalletClientProtos.ApiAccountClient): Future[Unit] = Future {
-    val raw = new Array[Byte](savedState.getSerializedSize)
-    val output = CodedOutputByteBufferNano.newInstance(raw)
-    savedState.writeTo(output)
-    val tmpFile = new File(directory, "tmp_saved_state")
-    IOUtils.copy(raw, tmpFile)
-    tmpFile.renameTo(savedStateFile)
+    ProtobufHelper.atomicWriteToFile(savedState, directory, savedStateFile.getName)
   }
 
   def saveKeyChain(): Future[Unit] = Future {

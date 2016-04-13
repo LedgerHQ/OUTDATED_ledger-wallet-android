@@ -33,6 +33,7 @@ package co.ledger.wallet.wallet.proxy
 import android.content.{Intent, ComponentName, ServiceConnection, Context}
 import android.os.{Handler, IBinder}
 import android.util.Log
+import co.ledger.wallet.app.wallet.WalletPreferences
 import co.ledger.wallet.core.concurrent.AsyncCursor
 import co.ledger.wallet.service.wallet.WalletService
 import co.ledger.wallet.service.wallet.spv.SpvAccountClient
@@ -81,6 +82,13 @@ class WalletProxy(val context: Context, val name: String) extends Wallet {
   override def stop(): Unit = connect().foreach(_.stop())
 
   override def mostRecentBlock(): Future[Block] = connect().flatMap(_.mostRecentBlock())
+
+  override def preferences(): Future[WalletPreferences] = connect().flatMap(_.preferences())
+
+  override def unlock(password: String): Future[Unit] = connect().flatMap(_.unlock(password))
+
+  override def changePassword(password: String): Future[Unit] = connect().flatMap(_
+    .changePassword(password))
 
   val eventBus =  EventBus
     .builder()

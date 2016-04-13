@@ -1,0 +1,44 @@
+syntax = "proto3";
+package wallet;
+
+option java_package = "co.ledger.wallet.preferences";
+option java_outer_classname = "WalletPreferencesProtos";
+
+message WalletPreferences {
+
+    Synchronizer synchronizer = 1;
+    repeated CustomNode custom_nodes = 2;
+    uint64 delay_before_shutdown = 3;
+    string counterpart = 4;
+    AmountUnit amount_unit = 5;
+    string explorer_name = 6;
+    bool encrypted = 7;
+    NodesDiscoveryModes discoveryMode = 8;
+
+    enum Synchronizer {
+        SPV = 0;
+        API = 1;
+        HYBRID = 2;
+    }
+
+    enum NodesDiscoveryModes {
+        LEDGER_DNS = 0;
+        DNS = 1;
+        LEDGER = 2;
+        CUSTOM = 3;
+        CUSTOM_DNS = 4;
+    }
+
+    enum AmountUnit {
+        BTC = 0;
+        MBTC = 1;
+        BITS = 2;
+        SATOSHI = 3;
+    }
+
+    message CustomNode {
+        string name = 1;
+        string address = 2;
+        string port = 3;
+    }
+}

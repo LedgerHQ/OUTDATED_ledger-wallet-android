@@ -38,7 +38,7 @@ import co.ledger.wallet.R
 import co.ledger.wallet.core.adapter.OperationRecyclerViewAdapter
 import co.ledger.wallet.core.adapter.OperationRecyclerViewAdapter.OperationViewHolder
 import co.ledger.wallet.core.base.{BaseFragment, WalletActivity}
-import co.ledger.wallet.core.concurrent.AsyncCursor
+import co.ledger.wallet.core.concurrent.{DebounceFunction, AsyncCursor}
 import co.ledger.wallet.core.event.MainThreadEventReceiver
 import co.ledger.wallet.core.view.ViewFinder
 import co.ledger.wallet.core.widget.TextView
@@ -81,6 +81,10 @@ class DemoWalletHomeFragment extends BaseFragment
     }
   }
 
+  val refreshUi = DebounceFunction {(unit: Unit) =>
+    setupAdapter()
+  }
+
   override def onResume(): Unit = {
     super.onResume()
     register(wallet.eventBus)
@@ -99,8 +103,9 @@ class DemoWalletHomeFragment extends BaseFragment
   def recyclerView = getView.asInstanceOf[RecyclerView]
 
   override def receive: Receive = {
-    //case NewOperation(_, _) => setupAdapter()
-    //case OperationChanged(_, _) => setupAdapter()
+    case NewBlock(_, _, _) => refreshUi()
+    case NewOperation(_, _) => refreshUi()
+    case OperationChanged(_, _) => refreshUi()
     case ignore =>
   }
 

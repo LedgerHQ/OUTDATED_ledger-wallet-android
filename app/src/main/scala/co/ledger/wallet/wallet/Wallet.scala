@@ -30,6 +30,7 @@
  */
 package co.ledger.wallet.wallet
 
+import co.ledger.wallet.app.wallet.WalletPreferences
 import co.ledger.wallet.core.concurrent.AsyncCursor
 import de.greenrobot.event.EventBus
 import org.bitcoinj.core.{Transaction, Coin}
@@ -52,6 +53,9 @@ trait Wallet {
   def mostRecentBlock(): Future[Block]
   def pushTransaction(transaction: Transaction): Future[Unit]
   def stop(): Unit
+  def preferences(): Future[WalletPreferences]
+  def unlock(password: String): Future[Unit]
+  def changePassword(password: String): Future[Unit]
 }
 
 object Wallet {
