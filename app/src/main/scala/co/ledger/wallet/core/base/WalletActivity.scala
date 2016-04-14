@@ -40,7 +40,7 @@ import WalletActivity._
 import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.crypto.DeterministicKey
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{Promise, Future, ExecutionContext}
 
 trait WalletActivity extends Activity with MainThreadEventReceiver {
 
@@ -82,10 +82,21 @@ trait WalletActivity extends Activity with MainThreadEventReceiver {
     Future.failed(new Exception("Extended public key default implementation"))
   }
 
+  def onNeedExtendedPublicKey(path: DerivationPath, networkParameters: NetworkParameters):  Future[DeterministicKey] = {
+    Future.failed(new Exception("Extended public key default implementation"))
+  }
+
   private val _xpubProvider = new ExtendedPublicKeyProvider {
     override def generateXpub(path: DerivationPath, networkParameters: NetworkParameters):
     Future[DeterministicKey] = {
-      onRequireExtendedPublicKey(path, networkParameters)
+      val p = Promise[DeterministicKey]()
+      wallet.asInstanceOf[WalletProxy].service() foreach {service =>
+        if (service.isXpubRequired)
+          p.completeWith(onRequireExtendedPublicKey(path, networkParameters))
+        else
+          p.completeWith(onNeedExtendedPublicKey(path, networkParameters))
+      }
+      p.future
     }
   }
 

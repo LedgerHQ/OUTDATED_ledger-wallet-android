@@ -38,6 +38,7 @@ import android.content.{Context, Intent}
 import android.os.{Handler, IBinder}
 import co.ledger.wallet.app.wallet.WalletPreferences
 import co.ledger.wallet.core.utils.Preferences
+import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.preferences.WalletPreferencesProtos
 import co.ledger.wallet.service.wallet.api.ApiWalletClient
 import co.ledger.wallet.service.wallet.spv.SpvWalletClient
@@ -48,14 +49,16 @@ import org.bitcoinj.params.MainNetParams
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
-class WalletService extends Service {
+class WalletService extends Service with Loggable {
   import WalletService._
   import scala.concurrent.duration._
 
   implicit val ec = co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.ui
 
   val ShutdownDelay = 15 minutes
+  val NumberOfPregeneratedXpubs = 5
 
   def wallet(name: String, engine: Int): Wallet = {
     _currentWallet getOrElse {
@@ -158,6 +161,8 @@ class WalletService extends Service {
 
   def xpubProvider = xpubProviderProxy.provider
 
+  def isXpubRequired = xpubProviderProxy.requiredXpub
+
   private val xpubProviderProxy = new XpubProviderProxy()
 
   private class XpubProviderProxy extends ExtendedPublicKeyProvider {
@@ -170,19 +175,51 @@ class WalletService extends Service {
       // in order to prevent the user to connect its device to often
       _provider.orNull
     } flatMap {(provider) =>
+      val prefs = preferences(currentWalletName.get)
       def deriveAndCache(path: DerivationPath): Future[DeterministicKey] = {
+        Logger.d(s"Derivating xpub from $path")
         if (provider != null) {
-          provider.generateXpub(path, networkParameters)
+          provider.generateXpub(path, networkParameters) andThen {
+            case Success(key) =>
+              requiredXpub = false
+              prefs.xpubs(path.toString) = key.serializePubB58(networkParams)
+              prefs.save()
+            case Failure(ex) =>
+              requiredXpub = false
+          }
         } else {
           Future.failed(new Exception("Extended public provider available"))
         }
       }
-      if (true)
-        deriveAndCache(path)
-      else {
-        deriveAndCache(path)
+      def deriveUntilEnough(): Unit = {
+        val maxPath = new DerivationPath(path.parent, path.childNum + NumberOfPregeneratedXpubs)
+        if (!prefs.xpubs.contains(maxPath.toString)) {
+          def iterate(currentChildNum: Long): Future[DeterministicKey] = {
+            val p = new DerivationPath(path.parent, currentChildNum)
+            deriveAndCache(p) flatMap {(k) =>
+              if (currentChildNum + 1 > maxPath.childNum)
+                Future.successful(k)
+              else
+                iterate(currentChildNum + 1)
+            }
+          }
+          iterate(path.childNum + 1)
+        }
+      }
+      if (prefs.xpubs.contains(path.toString)) {
+        deriveUntilEnough()
+        Future.successful(DeterministicKey.deserializeB58(prefs.xpubs(path.toString), networkParams))
+      } else {
+        requiredXpub = true
+        deriveAndCache(path) andThen {
+          case Success(_) =>
+            deriveUntilEnough()
+          case Failure(_) => // Do nothing
+        }
       }
     }
+
+    var requiredXpub = false
 
     def provider_=(extendedPublicKeyProvider: ExtendedPublicKeyProvider): Unit = Future {
       _provider = Option(extendedPublicKeyProvider)
@@ -190,7 +227,6 @@ class WalletService extends Service {
     def provider = _provider
     private var _provider: Option[ExtendedPublicKeyProvider] = None
   }
-
 
 }
 

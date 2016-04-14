@@ -253,6 +253,7 @@ class ApiWalletClient(context: Context,
           _accounts(index).notifyNewTransaction(tx) foreach {fromThisAccount =>
             if (fromThisAccount) {
               eventBus.post(MissingAccount(index + 1))
+              createAccount(index + 1, xpubProvider)
             }
           }
         } else {

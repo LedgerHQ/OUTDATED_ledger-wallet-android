@@ -14,6 +14,7 @@ message WalletPreferences {
     string explorer_name = 6;
     bool encrypted = 7;
     NodesDiscoveryModes discoveryMode = 8;
+    map<string, string> xpubs = 9;
 
     enum Synchronizer {
         SPV = 0;

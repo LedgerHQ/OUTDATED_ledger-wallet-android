@@ -31,6 +31,7 @@
 package co.ledger.wallet.app.wallet
 
 import java.io.{FileNotFoundException, File}
+import java.util
 import javax.crypto.{SecretKeyFactory, Cipher}
 import javax.crypto.spec.PBEKeySpec
 
@@ -44,6 +45,7 @@ import co.ledger.wallet.preferences.WalletPreferencesProtos.WalletPreferences.Cu
 import scala.concurrent.{duration, ExecutionContext, Future}
 import scala.util.Try
 import duration._
+import scala.collection.JavaConverters._
 
 class WalletPreferences(directory: File)(implicit ec:
 ExecutionContext) {
@@ -80,6 +82,13 @@ ExecutionContext) {
     customNodes = _data.customNodes.filter(_ != node)
   }
   def customNodes = get(_data.customNodes)
+
+  def xpubs = get {
+    if (_data.xpubs == null) {
+      _data.xpubs = new util.HashMap[String, String]()
+    }
+    _data.xpubs.asScala
+  }
 
   def save(): Unit = _save()
   private val _save = DebounceFunction {(unit: Unit) =>
