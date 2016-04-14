@@ -57,8 +57,8 @@ class SpvAccountClient(val wallet: SpvWalletClient, data: (AccountRow, Wallet))
   val xpubWatcher = data._2
   val index = row.index
 
-  override def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit] =
-    wallet.synchronize(provider)
+  override def synchronize(): Future[Unit] =
+    wallet.synchronize()
 
   override def xpub(): Future[DeterministicKey] = Future.successful(xpubWatcher.getWatchingKey)
 

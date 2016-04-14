@@ -44,6 +44,7 @@ import co.ledger.wallet.core.view.ViewFinder
 import co.ledger.wallet.core.widget.TextView
 import co.ledger.wallet.wallet.{DerivationPath, ExtendedPublicKeyProvider}
 import co.ledger.wallet.wallet.exceptions._
+import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.MainNetParams
 
@@ -89,7 +90,7 @@ class DemoOpenWalletActivity extends BaseActivity
   }
 
   def setupWallet(): Unit = {
-    wallet.setup(_keyProvider) onComplete {
+    wallet.setup() onComplete {
       case Success(_) => synchronizeWallet()
       case Failure(ex: ConnectedDeviceNotFoundException) =>
         connectDevice()
@@ -103,7 +104,8 @@ class DemoOpenWalletActivity extends BaseActivity
   def synchronizeWallet(): Unit = {
     title.setText("Synchronizing your wallet")
     text.setText(s"Please wait this will take a while...")
-    wallet.synchronize(_keyProvider) onComplete {
+
+    wallet.synchronize() onComplete {
       case Success(_) =>
         startWalletHomeActivity()
       case Failure(ex: ConnectedDeviceNotFoundException) =>
@@ -153,7 +155,7 @@ class DemoOpenWalletActivity extends BaseActivity
 
   private class KeyProvider extends ExtendedPublicKeyProvider {
 
-    override def generateXpub(path: DerivationPath): Future[DeterministicKey] = {
+    override def generateXpub(path: DerivationPath, networkParameters: NetworkParameters): Future[DeterministicKey] = {
       connectedDevice flatMap {(device) =>
         text.setText(s"Creating account ${path(2).get.index}...")
         LedgerApi(device).deriveExtendedPublicKey(path, MainNetParams.get())

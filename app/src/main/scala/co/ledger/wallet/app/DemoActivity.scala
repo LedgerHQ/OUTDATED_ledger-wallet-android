@@ -55,6 +55,7 @@ import co.ledger.wallet.wallet.events.PeerGroupEvents._
 import co.ledger.wallet.wallet.events.WalletEvents._
 import co.ledger.wallet.wallet.exceptions._
 import co.ledger.wallet.wallet.{Account, DerivationPath, ExtendedPublicKeyProvider, Operation}
+import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.MainNetParams
 
@@ -96,7 +97,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
   }
 
   def synchronize(): Unit = {
-    wallet.synchronize(_xpubProvider).recover {
+    wallet.synchronize().recover {
       case WalletNotSetupException() =>
         Toast.makeText(this, "Wallet not setup", Toast.LENGTH_LONG).show()
         setup()
@@ -106,7 +107,7 @@ class DemoActivity extends BaseActivity with WalletActivity {
   }
 
   def setup(): Unit = {
-    wallet.setup(_xpubProvider) onComplete {
+    wallet.setup() onComplete {
       case Success(_) =>
         Toast.makeText(this, "Setup successful", Toast.LENGTH_LONG).show()
         synchronize()
@@ -181,7 +182,8 @@ class DemoActivity extends BaseActivity with WalletActivity {
   private val _xpubProvider = new ActivityXpubProvider
 
   class ActivityXpubProvider extends ExtendedPublicKeyProvider {
-    override def generateXpub(path: DerivationPath): Future[DeterministicKey] = Future.successful() flatMap { (_) =>
+    override def generateXpub(path: DerivationPath, networkParameters: NetworkParameters): Future[DeterministicKey] = Future
+      .successful() flatMap { (_) =>
       if (!_enabled.get()) {
         throw new Exception("Disabled provider")
       }

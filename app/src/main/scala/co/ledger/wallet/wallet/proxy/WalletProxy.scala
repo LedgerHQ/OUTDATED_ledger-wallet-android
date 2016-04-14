@@ -46,11 +46,11 @@ import scala.concurrent.{Promise, Future}
 
 class WalletProxy(val context: Context, val name: String) extends Wallet {
 
-  override def synchronize(extendedPublicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
-    connect().flatMap(_.synchronize(extendedPublicKeyProvider))
+  override def synchronize(): Future[Unit] =
+    connect().flatMap(_.synchronize())
 
-  override def setup(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
-    connect().flatMap(_.setup(publicKeyProvider))
+  override def setup(): Future[Unit] =
+    connect().flatMap(_.setup())
 
   override def accounts(): Future[Array[Account]] = connect().flatMap(_.accounts()) map {
     (accounts) =>

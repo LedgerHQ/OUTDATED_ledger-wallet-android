@@ -45,7 +45,7 @@ trait Account {
   def freshChangeAddress(): Future[(Address, DerivationPath)]
   def xpub(): Future[DeterministicKey]
   def balance(): Future[Coin]
-  def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit]
+  def synchronize(): Future[Unit]
   def operations(limit: Int = -1, batchSize: Int = Wallet.DefaultOperationsBatchSize):
   Future[AsyncCursor[Operation]]
   def utxo(targetValue: Option[Coin] = None): Future[Array[Utxo]]

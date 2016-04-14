@@ -68,8 +68,8 @@ class ApiAccountClient(val wallet: ApiWalletClient, row: AccountRow)
   // Synchronization methods
   //
 
-  override def synchronize(provider: ExtendedPublicKeyProvider): Future[Unit] = wallet
-    .synchronize(provider)
+  override def synchronize(): Future[Unit] = wallet
+    .synchronize()
 
   def synchronize(syncToken: String, block: ApiObjects.Block): Future[Unit] = {
     // Load previously saved state

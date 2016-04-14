@@ -46,8 +46,8 @@ class AccountProxy(val wallet: WalletProxy, account: Account) extends Account {
 
   override def freshPublicAddress(): Future[Address] = connect().flatMap(_.freshPublicAddress())
 
-  override def synchronize(extendedPublicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
-    connect().flatMap(_.synchronize(extendedPublicKeyProvider))
+  override def synchronize(): Future[Unit] =
+    connect().flatMap(_.synchronize())
 
   override def xpub(): Future[DeterministicKey] = connect().flatMap(_.xpub())
 

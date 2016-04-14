@@ -35,6 +35,7 @@ import javax.crypto.spec.PBEKeySpec
 import javax.crypto.{SecretKeyFactory, Cipher}
 
 import co.ledger.wallet.core.utils.io.IOUtils
+import co.ledger.wallet.wallet.api.ApiWalletClientProtos
 import com.google.protobuf.nano.{MessageNano, CodedOutputByteBufferNano}
 
 object ProtobufHelper {
@@ -72,6 +73,16 @@ object ProtobufHelper {
     val tmpFile = new File(directory, s"______tmp_$fileName")
     IOUtils.copy(encrypted, file)
     tmpFile.renameTo(file)
+  }
+
+  def parseFrom[A <: MessageNano](message: A, file: File)(onEmptyMessage: (A) => Unit): A = {
+    if (file.exists()) {
+      val input = IOUtils.copy(file)
+      message.mergeFrom(input)
+    } else {
+     onEmptyMessage(message)
+    }
+    message
   }
 
 }

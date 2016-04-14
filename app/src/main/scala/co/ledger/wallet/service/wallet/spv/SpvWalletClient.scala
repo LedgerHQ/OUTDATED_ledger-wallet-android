@@ -65,8 +65,12 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{Future, Promise}
 
-class SpvWalletClient(context: Context, name: String, networkParameters: NetworkParameters)
-  extends AbstractDatabaseStoredWallet(context, name, networkParameters) with SerialQueueTask with Loggable {
+class SpvWalletClient(context: Context,
+                      name: String,
+                      xpubProvider: ExtendedPublicKeyProvider,
+                      networkParameters: NetworkParameters)
+  extends AbstractDatabaseStoredWallet(context, name, xpubProvider, networkParameters)
+    with SerialQueueTask with Loggable {
 
   val NeededAccountIndexKey = "n_index"
   val NeededAccountCreationTimeKey = "n_time"
@@ -77,10 +81,10 @@ class SpvWalletClient(context: Context, name: String, networkParameters: Network
 
   override def account(index: Int): Future[Account] = init() map {(_) => _accounts(index)}
 
-  override def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
+  override def synchronize(): Future[Unit] =
   Future.successful() flatMap {(_) =>
     if (_syncFuture.isEmpty) {
-      _syncFuture = Some(performSynchronization(publicKeyProvider))
+      _syncFuture = Some(performSynchronization(xpubProvider))
     }
     _syncFuture.get
   }
@@ -135,7 +139,7 @@ class SpvWalletClient(context: Context, name: String, networkParameters: Network
     } recoverWith {
       case AccountHasNoXpubException(index) =>
         Logger.d(s"Need $index account")
-        extendedPublicKeyProvider.generateXpub(rootPath/index.h).flatMap {(xpub) =>
+        extendedPublicKeyProvider.generateXpub(rootPath/index.h, networkParameters).flatMap {(xpub) =>
           database.writer.createAccountRow(
             index = Some(index),
             xpub58 = Some(xpub.serializePubB58(networkParameters)),
@@ -260,9 +264,9 @@ class SpvWalletClient(context: Context, name: String, networkParameters: Network
 
   val rootPath = 44.h/0.h
 
-  override def setup(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
+  override def setup(): Future[Unit] =
     Future.successful() flatMap {(_) =>
-      publicKeyProvider.generateXpub(rootPath/0.h)
+      xpubProvider.generateXpub(rootPath/0.h, networkParameters)
     } flatMap {(xpub) =>
       _earliestCreationTimeProvider.getEarliestTransactionTime(xpub) map {(date) =>
         (xpub, date)

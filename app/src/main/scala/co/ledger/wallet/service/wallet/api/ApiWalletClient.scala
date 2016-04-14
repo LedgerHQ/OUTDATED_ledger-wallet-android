@@ -52,14 +52,18 @@ import org.json.JSONObject
 
 import scala.concurrent.Future
 
-class ApiWalletClient(context: Context, name: String, networkParameters: NetworkParameters)
-  extends AbstractDatabaseStoredWallet(context, name, networkParameters) with Loggable {
+class ApiWalletClient(context: Context,
+                      name: String,
+                      xpubProvider: ExtendedPublicKeyProvider,
+                      networkParameters: NetworkParameters)
+  extends AbstractDatabaseStoredWallet(context, name, xpubProvider, networkParameters) with
+    Loggable {
 
   override def account(index: Int): Future[Account] = init() map {(_) =>
     _accounts(index)
   }
 
-  override def synchronize(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] = {
+  override def synchronize(): Future[Unit] = {
 
     def synchronizeUntilEmptyAccount(syncToken: String, from: Int, block: ApiObjects.Block): Future[Unit]
     = {
@@ -71,7 +75,7 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
           _accounts.last.keyChain.getIssuedInternalKeys != 0) {
           // Create a new account
           val newAccountIndex = _accounts.length
-          createAccount(_accounts.length, publicKeyProvider).flatMap { (_) =>
+          createAccount(_accounts.length, xpubProvider).flatMap { (_) =>
             _accounts = Array[ApiAccountClient]()
             synchronizeUntilEmptyAccount(syncToken, newAccountIndex, block)
           }
@@ -93,15 +97,15 @@ class ApiWalletClient(context: Context, name: String, networkParameters: Network
     .asInstanceOf[Array[Account]]
   }
 
-  override def setup(publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] =
-    createAccount(0, publicKeyProvider)
+  override def setup(): Future[Unit] =
+    createAccount(0, xpubProvider)
 
 
   private def createAccount(index: Int, publicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] = {
     if (publicKeyProvider == null) {
       Future.failed(AccountHasNoXpubException(index))
     } else {
-      publicKeyProvider.generateXpub(DerivationPath(s"44'/0'/$index'")) map { (xpub) =>
+      publicKeyProvider.generateXpub(DerivationPath(s"44'/0'/$index'"), networkParameters) map { (xpub) =>
         database.writer.createAccountRow(
           index = Some(index),
           hidden = Some(false),

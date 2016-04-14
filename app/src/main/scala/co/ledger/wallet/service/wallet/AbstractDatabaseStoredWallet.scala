@@ -39,13 +39,14 @@ import co.ledger.wallet.core.utils.logs.Loggable
 import co.ledger.wallet.service.wallet.database.WalletDatabaseOpenHelper
 import co.ledger.wallet.service.wallet.database.cursor.{BlockCursor, OperationCursor}
 import co.ledger.wallet.service.wallet.database.model.BlockRow
-import co.ledger.wallet.wallet.{Block, Operation, Wallet}
+import co.ledger.wallet.wallet.{ExtendedPublicKeyProvider, Block, Operation, Wallet}
 import org.bitcoinj.core.NetworkParameters
 
 import scala.concurrent.Future
 
 abstract class AbstractDatabaseStoredWallet(val context: Context,
                                             val name: String,
+                                            val xpubProvider: ExtendedPublicKeyProvider,
                                             val networkParameters: NetworkParameters)
   extends Wallet with SerialQueueTask with Loggable {
 

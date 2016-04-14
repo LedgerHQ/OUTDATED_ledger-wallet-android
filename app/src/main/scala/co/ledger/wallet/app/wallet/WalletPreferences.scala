@@ -30,7 +30,7 @@
   */
 package co.ledger.wallet.app.wallet
 
-import java.io.File
+import java.io.{FileNotFoundException, File}
 import javax.crypto.{SecretKeyFactory, Cipher}
 import javax.crypto.spec.PBEKeySpec
 
@@ -41,19 +41,18 @@ import co.ledger.wallet.core.utils.{ProtobufHelper, HexUtils}
 import co.ledger.wallet.preferences.WalletPreferencesProtos
 import co.ledger.wallet.preferences.WalletPreferencesProtos.WalletPreferences.CustomNode
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{duration, ExecutionContext, Future}
 import scala.util.Try
+import duration._
 
-class WalletPreferences(directory: File, private var password: Option[String])(implicit ec:
+class WalletPreferences(directory: File)(implicit ec:
 ExecutionContext) {
 
-  private val _data: WalletPreferencesProtos.WalletPreferences = {
-   tryLoadFromFile().recover({
-     case all =>
-        val d = new WalletPreferencesProtos.WalletPreferences
-        d
-   }).get
-  }
+  private val _data: WalletPreferencesProtos.WalletPreferences =
+    ProtobufHelper.parseFrom(new WalletPreferencesProtos.WalletPreferences, file) {(prefs) =>
+      prefs.delayBeforeShutdown = 15.minutes.toMillis
+      prefs.synchronizer = WalletPreferencesProtos.WalletPreferences.API
+    }
 
   def synchronizer_=(mode: Int) = set(_data.synchronizer = mode)
   def synchronizer = get(_data.synchronizer)
@@ -84,7 +83,7 @@ ExecutionContext) {
 
   def save(): Unit = _save()
   private val _save = DebounceFunction {(unit: Unit) =>
-    ProtobufHelper.encryptedAtomicWriteToFile(_data, directory, "wallet_preferences", password.getOrElse(""))
+    ProtobufHelper.atomicWriteToFile(_data, directory, "wallet_preferences")
   }
 
   private def set(handler: => Unit): Unit = synchronized {
@@ -92,12 +91,9 @@ ExecutionContext) {
     save()
   }
 
-  def changePassword(password: String): Unit = this.password = Option(password)
+  //def changePassword(password: String): Unit = this.password = Option(password)
 
   private def get[A](handler: => A): A = synchronized(handler)
 
   private def file = new File(directory, "wallet_preferences")
-  private def tryLoadFromFile(): Try[WalletPreferencesProtos.WalletPreferences] = Try {
-    null
-  }
 }

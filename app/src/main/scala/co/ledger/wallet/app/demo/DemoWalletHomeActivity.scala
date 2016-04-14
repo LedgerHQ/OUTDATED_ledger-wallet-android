@@ -56,7 +56,7 @@ class DemoWalletHomeActivity extends BaseActivity
     tabLayout.setupWithViewPager(viewPager)
     setTitle("")
     fetchBalance()
-    wallet.synchronize(null)
+    wallet.synchronize()
   }
 
 

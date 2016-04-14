@@ -30,10 +30,11 @@
  */
 package co.ledger.wallet.wallet
 
+import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.crypto.DeterministicKey
 
 import scala.concurrent.Future
 
 trait ExtendedPublicKeyProvider {
-  def generateXpub(path: DerivationPath): Future[DeterministicKey]
+  def generateXpub(path: DerivationPath, networkParameters: NetworkParameters): Future[DeterministicKey]
 }

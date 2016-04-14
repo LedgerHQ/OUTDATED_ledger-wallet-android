@@ -34,11 +34,13 @@ import android.app.Activity
 import android.os.Bundle
 import co.ledger.wallet.core.event.MainThreadEventReceiver
 import co.ledger.wallet.service.wallet.WalletService
-import co.ledger.wallet.wallet.Wallet
+import co.ledger.wallet.wallet.{DerivationPath, ExtendedPublicKeyProvider, Wallet}
 import co.ledger.wallet.wallet.proxy.WalletProxy
 import WalletActivity._
+import org.bitcoinj.core.NetworkParameters
+import org.bitcoinj.crypto.DeterministicKey
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 
 trait WalletActivity extends Activity with MainThreadEventReceiver {
 
@@ -52,7 +54,10 @@ trait WalletActivity extends Activity with MainThreadEventReceiver {
 
   abstract override def onResume(): Unit = {
     super.onResume()
-    wallet.asInstanceOf[WalletProxy].service().foreach(_.notifyActivityResumed())
+    wallet.asInstanceOf[WalletProxy].service() foreach {service =>
+      service.xpubProvider = _xpubProvider
+      service.notifyActivityResumed()
+    }
     wallet.asInstanceOf[WalletProxy].bind()
   }
 
@@ -70,6 +75,18 @@ trait WalletActivity extends Activity with MainThreadEventReceiver {
 
   def activityWalletName = Option(getIntent.getStringExtra(ExtraWalletName)) orElse {
     WalletService.currentWalletName(this)
+  }
+
+  def onRequireExtendedPublicKey(path: DerivationPath, networkParameters: NetworkParameters):
+  Future[DeterministicKey] = {
+    Future.failed(new Exception("Extended public key default implementation"))
+  }
+
+  private val _xpubProvider = new ExtendedPublicKeyProvider {
+    override def generateXpub(path: DerivationPath, networkParameters: NetworkParameters):
+    Future[DeterministicKey] = {
+      onRequireExtendedPublicKey(path, networkParameters)
+    }
   }
 
 }
