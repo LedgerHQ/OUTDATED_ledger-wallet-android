@@ -104,7 +104,6 @@ class DemoOpenWalletActivity extends BaseActivity
   def synchronizeWallet(): Unit = {
     title.setText("Synchronizing your wallet")
     text.setText(s"Please wait this will take a while...")
-
     wallet.synchronize() onComplete {
       case Success(_) =>
         startWalletHomeActivity()
@@ -147,20 +146,15 @@ class DemoOpenWalletActivity extends BaseActivity
       }
     case others =>
   }
-
-  private val _keyProvider = new KeyProvider
   override implicit def viewId2View[V <: View](id: Int): V = findViewById(id).asInstanceOf[V]
 
   case class TooOldException() extends Exception
 
-  private class KeyProvider extends ExtendedPublicKeyProvider {
-
-    override def generateXpub(path: DerivationPath, networkParameters: NetworkParameters): Future[DeterministicKey] = {
-      connectedDevice flatMap {(device) =>
-        text.setText(s"Creating account ${path(2).get.index}...")
-        LedgerApi(device).deriveExtendedPublicKey(path, MainNetParams.get())
-      }
+  override def onRequireExtendedPublicKey(path: DerivationPath, networkParameters:
+  NetworkParameters): Future[DeterministicKey] = {
+    connectedDevice flatMap {(device) =>
+      text.setText(s"Creating account ${path(2).get.index}...")
+      LedgerApi(device).deriveExtendedPublicKey(path, MainNetParams.get())
     }
-
   }
 }
