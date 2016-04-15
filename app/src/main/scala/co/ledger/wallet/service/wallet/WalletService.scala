@@ -177,8 +177,10 @@ class WalletService extends Service with Loggable {
     } flatMap {(provider) =>
       val prefs = preferences(currentWalletName.get)
       def deriveAndCache(path: DerivationPath): Future[DeterministicKey] = {
-        Logger.d(s"Derivating xpub from $path")
-        if (provider != null) {
+        if (prefs.xpubs.contains(path.toString)) {
+          Future.successful(DeterministicKey.deserializeB58(prefs.xpubs(path.toString), networkParams))
+        } else if (provider != null) {
+          Logger.d(s"Derivating xpub from $path")
           provider.generateXpub(path, networkParameters) andThen {
             case Success(key) =>
               requiredXpub = false
@@ -194,8 +196,10 @@ class WalletService extends Service with Loggable {
       def deriveUntilEnough(): Unit = {
         val maxPath = new DerivationPath(path.parent, path.childNum + NumberOfPregeneratedXpubs)
         if (!prefs.xpubs.contains(maxPath.toString)) {
+          Logger.d(s"Feed cache from ${path.toString} to ${maxPath.toString}")
           def iterate(currentChildNum: Long): Future[DeterministicKey] = {
             val p = new DerivationPath(path.parent, currentChildNum)
+            Logger.d(s"Feed ${p.toString}")
             deriveAndCache(p) flatMap {(k) =>
               if (currentChildNum + 1 > maxPath.childNum)
                 Future.successful(k)
@@ -203,7 +207,11 @@ class WalletService extends Service with Loggable {
                 iterate(currentChildNum + 1)
             }
           }
-          iterate(path.childNum + 1)
+          iterate(path.childNum + 1) recover {
+            case error: Throwable =>
+              error.printStackTrace()
+              throw error
+          }
         }
       }
       if (prefs.xpubs.contains(path.toString)) {

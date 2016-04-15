@@ -50,6 +50,8 @@ import scala.collection.JavaConverters._
 class WalletPreferences(directory: File)(implicit ec:
 ExecutionContext) {
 
+  directory.mkdirs()
+
   private val _data: WalletPreferencesProtos.WalletPreferences =
     ProtobufHelper.parseFrom(new WalletPreferencesProtos.WalletPreferences, file) {(prefs) =>
       prefs.delayBeforeShutdown = 15.minutes.toMillis
@@ -92,7 +94,12 @@ ExecutionContext) {
 
   def save(): Unit = _save()
   private val _save = DebounceFunction {(unit: Unit) =>
-    ProtobufHelper.atomicWriteToFile(_data, directory, "wallet_preferences")
+    try {
+      ProtobufHelper.atomicWriteToFile(_data, directory, "wallet_preferences")
+    } catch {
+      case t: Throwable =>
+        t.printStackTrace()
+    }
   }
 
   private def set(handler: => Unit): Unit = synchronized {

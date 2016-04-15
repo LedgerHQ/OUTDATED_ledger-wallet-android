@@ -157,4 +157,9 @@ class DemoOpenWalletActivity extends BaseActivity
       LedgerApi(device).deriveExtendedPublicKey(path, MainNetParams.get())
     }
   }
+
+  override def onNeedExtendedPublicKey(path: DerivationPath, networkParameters:
+  NetworkParameters): Future[DeterministicKey] = {
+    onRequireExtendedPublicKey(path, networkParameters)
+  }
 }
