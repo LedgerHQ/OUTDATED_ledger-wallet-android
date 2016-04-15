@@ -40,6 +40,8 @@ import co.ledger.wallet.core.base.{DeviceActivity, BaseActivity, WalletActivity}
 import co.ledger.wallet.core.view.ViewFinder
 import co.ledger.wallet.wallet.events.WalletEvents._
 
+import scala.util.{Failure, Success}
+
 class DemoWalletHomeActivity extends BaseActivity
   with WalletActivity
   with DeviceActivity
@@ -71,7 +73,13 @@ class DemoWalletHomeActivity extends BaseActivity
 
   def fetchBalance(): Unit = {
     wallet.balance() foreach {(balance) =>
-      setTitle(balance.toFriendlyString)
+      coinToFiat(balance, "EUR") onComplete {
+        case Success(Some(value)) =>
+          setTitle(balance.toFriendlyString + " - " + value.toString() + "€")
+        case others =>
+          setTitle(balance.toFriendlyString)
+      }
+
     }
   }
 

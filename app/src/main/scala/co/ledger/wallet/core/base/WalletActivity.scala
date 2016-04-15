@@ -34,13 +34,15 @@ import android.app.Activity
 import android.os.Bundle
 import co.ledger.wallet.core.event.MainThreadEventReceiver
 import co.ledger.wallet.service.wallet.WalletService
+import co.ledger.wallet.service.wallet.api.rest.ApiObjects.Currency
 import co.ledger.wallet.wallet.{DerivationPath, ExtendedPublicKeyProvider, Wallet}
 import co.ledger.wallet.wallet.proxy.WalletProxy
 import WalletActivity._
-import org.bitcoinj.core.NetworkParameters
+import org.bitcoinj.core.{Coin, NetworkParameters}
 import org.bitcoinj.crypto.DeterministicKey
 
 import scala.concurrent.{Promise, Future, ExecutionContext}
+import scala.math.BigDecimal.RoundingMode
 
 trait WalletActivity extends Activity with MainThreadEventReceiver {
 
@@ -55,6 +57,7 @@ trait WalletActivity extends Activity with MainThreadEventReceiver {
   abstract override def onResume(): Unit = {
     super.onResume()
     wallet.asInstanceOf[WalletProxy].service() foreach {service =>
+
       service.xpubProvider = _xpubProvider
       service.notifyActivityResumed()
     }
@@ -84,6 +87,20 @@ trait WalletActivity extends Activity with MainThreadEventReceiver {
 
   def onNeedExtendedPublicKey(path: DerivationPath, networkParameters: NetworkParameters):  Future[DeterministicKey] = {
     Future.failed(new Exception("Extended public key default implementation"))
+  }
+
+  def onRefreshCurrencies(currencies: Map[String, Currency]): Unit = {
+
+  }
+
+  def coinToFiat(value: Coin, identifier: String): Future[Option[BigDecimal]] = {
+    wallet.asInstanceOf[WalletProxy].service() map {(service) =>
+      service.currencyRefresher.currencies.lift(identifier) map {(currency) =>
+        val fiatValue = BigDecimal(currency.value.amount)
+        (fiatValue * (BigDecimal(value.getValue) / BigDecimal(10).pow(8))).setScale(2, RoundingMode
+          .HALF_EVEN)
+      }
+    }
   }
 
   private val _xpubProvider = new ExtendedPublicKeyProvider {

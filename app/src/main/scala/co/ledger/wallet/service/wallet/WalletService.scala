@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap
 import android.app.Service
 import android.content.{Context, Intent}
 import android.os.{Handler, IBinder}
+import co.ledger.wallet.app.tasks.CurrenciesValueRefreshTask
 import co.ledger.wallet.app.wallet.WalletPreferences
 import co.ledger.wallet.core.utils.Preferences
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
@@ -108,6 +109,7 @@ class WalletService extends Service with Loggable {
   override def onCreate(): Unit = {
     super.onCreate()
     this.startService(new Intent(this, this.getClass))
+    currencyRefresher.start()
   }
 
   def notifyActivityPaused(): Unit = {
@@ -140,6 +142,7 @@ class WalletService extends Service with Loggable {
         wallet.stop()
       }
       _currentWallet = None
+      currencyRefresher.stop()
       stopSelf()
     }
   }
@@ -236,6 +239,9 @@ class WalletService extends Service with Loggable {
     private var _provider: Option[ExtendedPublicKeyProvider] = None
   }
 
+
+  // Currencies
+  lazy val currencyRefresher = new CurrenciesValueRefreshTask(this)
 }
 
 object WalletService {

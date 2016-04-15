@@ -153,6 +153,53 @@ object ApiObjects {
     val script = json.getString("script_hex")
   }
 
+  class Currency(json: JSONObject) {
+    val ticker = json.getString("ticker")
+    val name = json.getString("name")
+    val symbol = json.getString("symbol")
+    val lastUpdateDate = new Date(json.getLong("lastupdated") * 1000L)
+    val value = CurrencyValue(json.getJSONArray("values"))
+
+    def toJson: JSONObject = {
+      val json = new JSONObject()
+      json.put("ticker", ticker)
+      json.put("name", name)
+      json.put("symbol", symbol)
+      json.put("lastupdated", lastUpdateDate.getTime / 1000L)
+
+      val values = new JSONArray()
+      val value = new JSONObject()
+      value.put("value", this.value)
+      value.put("indicative", this.value.isIndicative)
+      val node = new JSONObject()
+      node.put("fromBTC", value)
+      values.put(node)
+      json.put("values", values)
+      json
+    }
+  }
+
+  class CurrencyValue(val amount: Double, val isIndicative: Boolean)
+
+  object CurrencyValue {
+    def apply(array: JSONArray): CurrencyValue = {
+      var amount: Double = 0
+      var isIndicative = false
+      (0 until array.length()) find {(index) =>
+        val obj = array.getJSONObject(index)
+        if (obj.has("fromBTC")) {
+          val fromBTC = obj.getJSONObject("fromBTC")
+          amount = fromBTC.getDouble("value")
+          isIndicative = fromBTC.getBoolean("indicative")
+          true
+        } else {
+          false
+        }
+      }
+      new CurrencyValue(amount, isIndicative)
+    }
+  }
+
   private def inflate[T](json: JSONArray)(map: (JSONObject) => T)(implicit classTag: ClassTag[T]):
   Array[T] = {
     var index = 0
