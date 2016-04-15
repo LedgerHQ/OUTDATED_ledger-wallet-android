@@ -34,9 +34,11 @@ import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.app.{Fragment, FragmentPagerAdapter}
 import android.support.v4.view.ViewPager
-import android.view.View
+import android.view.{MenuItem, Menu, View}
+import android.widget.Toast
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{DeviceActivity, BaseActivity, WalletActivity}
+import co.ledger.wallet.core.utils.AndroidUtils
 import co.ledger.wallet.core.view.ViewFinder
 import co.ledger.wallet.service.wallet.api.rest.ApiObjects.Currency
 import co.ledger.wallet.wallet.events.WalletEvents._
@@ -62,6 +64,18 @@ class DemoWalletHomeActivity extends BaseActivity
     wallet.synchronize()
   }
 
+  override def onClickOnReconnectLastDevice(): Unit = {
+    deviceManagerService foreach {service =>
+      service.attemptReconnectLastDevice() onComplete {
+        case Success(device) =>
+
+        case Failure(ex) =>
+          ex.printStackTrace()
+          Toast.makeText(this, s"An error occured during device reconnection ${ex.getMessage}",
+            Toast.LENGTH_LONG).show()
+      }
+    }
+  }
 
   override def receive: Receive = {
     //case CoinSent(_, _) => fetchBalance()

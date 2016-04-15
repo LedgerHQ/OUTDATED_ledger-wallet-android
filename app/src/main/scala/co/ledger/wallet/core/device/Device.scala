@@ -32,7 +32,9 @@ package co.ledger.wallet.core.device
 
 import java.util.UUID
 
+import co.ledger.wallet.core.device.Device.DeviceInfo
 import de.greenrobot.event.EventBus
+import org.json.JSONObject
 
 import scala.concurrent.Future
 
@@ -61,6 +63,9 @@ trait Device {
   def uuid: Option[UUID] = _uuid
   def uuid_=(uuid: UUID) = _uuid = Option(uuid)
   private var _uuid: Option[UUID] = None
+
+  def info: DeviceInfo
+
 }
 
 object Device {
@@ -68,5 +73,10 @@ object Device {
   abstract class Event
   case class Connect(device: Device) extends Event
   case class Disconnect(device: Device) extends Event
+
+  abstract class DeviceInfo {
+    def mergeJson(json: JSONObject): Unit
+    def toJson: JSONObject
+  }
 
 }

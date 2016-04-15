@@ -16,4 +16,8 @@
         android:id="@+id/settings"
         android:title="@string/home_activity_menu_settings"
         />
+    <item
+        android:id="@+id/reconnect"
+        android:title="Reconnect last device"
+        />
 </menu>

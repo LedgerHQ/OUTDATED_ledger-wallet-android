@@ -32,6 +32,7 @@ package co.ledger.wallet.app.demo
 
 import android.app.Activity
 import android.content.Intent
+import android.support.v7.app.AlertDialog
 import android.view.{MenuItem, Menu}
 import co.ledger.wallet.R
 import co.ledger.wallet.app.SettingsActivity
@@ -45,7 +46,7 @@ import scala.util.{Failure, Success}
 
 trait DemoMenuActivity extends BaseActivity {
 
-  abstract override def onCreateOptionsMenu(menu: Menu): Boolean = {
+  override def onCreateOptionsMenu(menu: Menu): Boolean = {
     getMenuInflater.inflate(R.menu.demo_activity_menu, menu)
     if (!AndroidUtils.hasNfcFeature()) {
       menu.findItem(R.id.setup_unplugged).setVisible(false)
@@ -54,7 +55,7 @@ trait DemoMenuActivity extends BaseActivity {
     true
   }
 
-  abstract override def onOptionsItemSelected(item: MenuItem): Boolean = {
+  override def onOptionsItemSelected(item: MenuItem): Boolean = {
     super.onOptionsItemSelected(item)
     item.getItemId match {
       case R.id.export_logs =>
@@ -69,8 +70,16 @@ trait DemoMenuActivity extends BaseActivity {
       case R.id.m2fa =>
         startM2FA()
         true
+      case R.id.reconnect =>
+        onClickOnReconnectLastDevice()
+        true
       case somethingElse => false
     }
+  }
+
+  def onClickOnReconnectLastDevice(): Unit = {
+    new AlertDialog.Builder(this).setTitle("Error").setMessage("This feature is not available " +
+      "here").show()
   }
 
   private[this] def exportLogs(): Unit = {

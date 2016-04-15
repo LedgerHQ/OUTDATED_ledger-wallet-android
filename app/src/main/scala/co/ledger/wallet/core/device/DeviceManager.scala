@@ -95,7 +95,7 @@ trait DeviceManager extends Preferenceable {
   }
 
   def attemptReconnectLastDevice(): Future[Device] = {
-    null
+    Future.failed(new Exception("Reconnect not implemented yet"))
   }
 
   def context: Context
