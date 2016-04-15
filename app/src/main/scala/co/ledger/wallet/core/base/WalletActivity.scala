@@ -32,6 +32,7 @@ package co.ledger.wallet.core.base
 
 import android.app.Activity
 import android.os.Bundle
+import co.ledger.wallet.app.tasks.CurrenciesValueRefreshTask.CurrenciesValuesRefresh
 import co.ledger.wallet.core.event.MainThreadEventReceiver
 import co.ledger.wallet.service.wallet.WalletService
 import co.ledger.wallet.service.wallet.api.rest.ApiObjects.Currency
@@ -57,7 +58,7 @@ trait WalletActivity extends Activity with MainThreadEventReceiver {
   abstract override def onResume(): Unit = {
     super.onResume()
     wallet.asInstanceOf[WalletProxy].service() foreach {service =>
-
+      service.currencyRefresher.eventBus.register(eventReceiver)
       service.xpubProvider = _xpubProvider
       service.notifyActivityResumed()
     }
@@ -66,7 +67,10 @@ trait WalletActivity extends Activity with MainThreadEventReceiver {
 
   override def onPause(): Unit = {
     super.onPause()
-    wallet.asInstanceOf[WalletProxy].service().foreach(_.notifyActivityResumed())
+    wallet.asInstanceOf[WalletProxy].service().foreach {(service) =>
+      service.notifyActivityResumed()
+      service.currencyRefresher.eventBus.unregister(eventReceiver)
+    }
     wallet.asInstanceOf[WalletProxy].unbind()
   }
 
@@ -114,6 +118,14 @@ trait WalletActivity extends Activity with MainThreadEventReceiver {
           p.completeWith(onNeedExtendedPublicKey(path, networkParameters))
       }
       p.future
+    }
+  }
+
+  private val eventReceiver = new Receiver
+
+  class Receiver extends MainThreadEventReceiver {
+    override def receive: Receive = {
+      case CurrenciesValuesRefresh(currencies) => onRefreshCurrencies(currencies)
     }
   }
 

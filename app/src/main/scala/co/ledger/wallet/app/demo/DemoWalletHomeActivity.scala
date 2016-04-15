@@ -38,6 +38,7 @@ import android.view.View
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{DeviceActivity, BaseActivity, WalletActivity}
 import co.ledger.wallet.core.view.ViewFinder
+import co.ledger.wallet.service.wallet.api.rest.ApiObjects.Currency
 import co.ledger.wallet.wallet.events.WalletEvents._
 
 import scala.util.{Failure, Success}
@@ -81,6 +82,11 @@ class DemoWalletHomeActivity extends BaseActivity
       }
 
     }
+  }
+
+  override def onRefreshCurrencies(currencies: Map[String, Currency]): Unit = {
+    super.onRefreshCurrencies(currencies)
+    fetchBalance()
   }
 
   override implicit def viewId2View[V <: View](id: Int): V = findViewById(id).asInstanceOf[V]
