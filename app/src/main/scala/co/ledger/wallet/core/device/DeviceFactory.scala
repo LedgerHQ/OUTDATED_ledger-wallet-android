@@ -32,6 +32,7 @@ package co.ledger.wallet.core.device
 
 import android.app.Activity
 import android.os.Handler
+import co.ledger.wallet.core.device.Device.DeviceInfo
 import co.ledger.wallet.core.device.DeviceFactory.ScanRequest
 
 import scala.concurrent.{Promise, ExecutionContext, Future}
@@ -40,24 +41,28 @@ trait DeviceFactory {
 
   /***
     * Check if the android device is compatible with the technology (may block the current thread)
+ *
     * @return true if compatible false otherwise
     */
   def isCompatible: Boolean
 
   /***
     * Check if service is enabled (may block the current thread)
+ *
     * @return true if enabled false otherwise
     */
   def isEnabled: Boolean
 
   /***
     * Check if the manager has enough permissions to run (may block the current thread)
+ *
     * @return true if the manager has all required permissions false otherwise
     */
   def hasPermissions: Boolean
 
   /** *
     * Request the manager required permission
+ *
     * @param activity The current activity
     * @return
     */
@@ -65,7 +70,7 @@ trait DeviceFactory {
 
   def requestScan(activity: Activity): ScanRequest
 
-  def reconnect
+  def reconnectDevice(info: DeviceInfo): Future[Device]
 }
 
 object DeviceFactory {
@@ -157,7 +162,7 @@ object DeviceFactory {
 
   class ScanException(msg: String) extends Exception(msg)
   case class ScanAlreadyStartedException() extends ScanException("Scan already started")
-  case class ScanFailedApplicationRegistationException() extends ScanException("Scan failed " +
+  case class ScanFailedApplicationRegistrationException() extends ScanException("Scan failed " +
     "application registration")
   case class ScanInternalErrorException() extends ScanException("Internal error")
   case class ScanUnsupportedFeatureException() extends ScanException("Unsupported feature")

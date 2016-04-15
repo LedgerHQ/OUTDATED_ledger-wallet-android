@@ -62,7 +62,6 @@ class BleDeviceFactory(context: Context, executionContext: ExecutionContext) ext
 
   override def hasPermissions: Boolean = true
 
-
   override def requestScan(activity: Activity): ScanRequest = new ScanRequest {
 
     private[this] var _stop: Option[() => Unit] = None
@@ -94,7 +93,7 @@ class BleDeviceFactory(context: Context, executionContext: ExecutionContext) ext
             val ex = errorCode match {
               case SCAN_FAILED_ALREADY_STARTED => ScanAlreadyStartedException()
               case SCAN_FAILED_APPLICATION_REGISTRATION_FAILED =>
-                ScanFailedApplicationRegistationException()
+                ScanFailedApplicationRegistrationException()
               case SCAN_FAILED_FEATURE_UNSUPPORTED => ScanUnsupportedFeatureException()
               case SCAN_FAILED_INTERNAL_ERROR => ScanInternalErrorException()
             }

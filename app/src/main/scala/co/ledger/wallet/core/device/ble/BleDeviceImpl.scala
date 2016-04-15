@@ -37,7 +37,7 @@ import android.bluetooth.le.ScanResult
 import android.content.Context
 import co.ledger.wallet.core.concurrent.{SequentialExecutionContext, ThreadPoolTask}
 import co.ledger.wallet.core.device.Device
-import co.ledger.wallet.core.device.Device.{Connect, Disconnect}
+import co.ledger.wallet.core.device.Device.{DeviceInfo, Connect, Disconnect}
 import co.ledger.wallet.core.device.DeviceManager.{ConnectivityTypes, ConnectivityType}
 import co.ledger.wallet.core.utils.HexUtils
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
@@ -342,6 +342,12 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
     private[this] val _writePromise = Promise[Unit]()
     // Start writing
     writeNextChunk()
+  }
+
+  override def info: DeviceInfo = new Info
+
+  private class Info extends DeviceInfo {
+
   }
 
 }

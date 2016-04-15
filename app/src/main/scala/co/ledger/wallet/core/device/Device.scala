@@ -33,6 +33,7 @@ package co.ledger.wallet.core.device
 import java.util.UUID
 
 import co.ledger.wallet.core.device.Device.DeviceInfo
+import co.ledger.wallet.core.device.DeviceManager.{ConnectivityType, ConnectivityTypes}
 import de.greenrobot.event.EventBus
 import org.json.JSONObject
 
@@ -77,6 +78,7 @@ object Device {
   abstract class DeviceInfo {
     def mergeJson(json: JSONObject): Unit
     def toJson: JSONObject
+    def connectivityType: ConnectivityType
   }
 
 }
