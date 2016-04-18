@@ -67,9 +67,11 @@ class DemoWalletHomeActivity extends BaseActivity
 
   override def onClickOnReconnectLastDevice(): Unit = {
     deviceManagerService foreach {service =>
-      QuickReconnectHandler(this).show().device onComplete {
+      QuickReconnectHandler(this).flatMap {(handler) =>
+        handler.show().device
+      } onComplete {
         case Success(device) =>
-
+          Toast.makeText(this, "Device reconnected", Toast.LENGTH_LONG).show()
         case Failure(ex) =>
           ex.printStackTrace()
           Toast.makeText(this, s"An error occured during device reconnection ${ex.getMessage}",

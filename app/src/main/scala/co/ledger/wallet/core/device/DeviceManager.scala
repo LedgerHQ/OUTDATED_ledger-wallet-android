@@ -100,7 +100,10 @@ trait DeviceManager extends Preferenceable {
   }
 
   def lastConnectedDevice(): Future[Device] =
-    connectedDevice(UUID.fromString(preferences(context).getString("last_device_uuid", null)))
+    if (!preferences(context).contains("last_device_uuid"))
+      Future.failed(new Exception("No last device"))
+    else
+      connectedDevice(UUID.fromString(preferences(context).getString("last_device_uuid", null)))
 
   def lastConnectedDeviceInfo(): Future[(DeviceFactory, String)] = Future {
     val deviceType = stringToConnectivityType(preferences(context).getString("last_device_type", null))

@@ -347,4 +347,6 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
   override def info: String = {
     null
   }
+
+  override def matchInfo(info: String): Future[Boolean] = ???
 }

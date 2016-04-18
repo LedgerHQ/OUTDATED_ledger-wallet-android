@@ -33,6 +33,7 @@ package co.ledger.wallet.core.device
 import android.app.Activity
 import android.os.Handler
 import co.ledger.wallet.core.device.DeviceFactory.ScanRequest
+import co.ledger.wallet.core.device.DeviceManager.ConnectivityType
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
@@ -68,6 +69,8 @@ trait DeviceFactory {
   def requestPermission(activity: Activity): Future[Unit]
 
   def requestScan(activity: Activity): ScanRequest
+
+  def connectivityType: ConnectivityType
 }
 
 object DeviceFactory {

@@ -35,6 +35,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.hardware.usb.UsbManager
 import android.os.Handler
+import co.ledger.wallet.core.device.DeviceManager.{ConnectivityTypes, ConnectivityType}
 import co.ledger.wallet.core.device.{Device, DeviceFactory}
 import co.ledger.wallet.core.device.DeviceFactory.ScanRequest
 
@@ -46,9 +47,12 @@ class UsbDeviceFactory(context: Context, executionContext: ExecutionContext) ext
 
   val ScanInterval = 500L
 
+
+  override def connectivityType: ConnectivityType = ConnectivityTypes.Usb
+
   /** *
     * Check if the android device is compatible with the technology (may block the current thread)
- *
+    *
     * @return true if compatible false otherwise
     */
   override def isCompatible: Boolean =
@@ -113,14 +117,14 @@ class UsbDeviceFactory(context: Context, executionContext: ExecutionContext) ext
 
   /** *
     * Check if service is enabled (may block the current thread)
- *
+    *
     * @return true if enabled false otherwise
     */
   override def isEnabled: Boolean = true
 
   /** *
     * Check if the manager has enough permissions to run (may block the current thread)
- *
+    *
     * @return true if the manager has all required permissions false otherwise
     */
   override def hasPermissions: Boolean = true

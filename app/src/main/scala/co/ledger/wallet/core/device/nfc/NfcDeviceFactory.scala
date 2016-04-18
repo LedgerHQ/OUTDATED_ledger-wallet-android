@@ -35,6 +35,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.nfc.tech.IsoDep
 import android.nfc.{Tag, NfcManager}
+import co.ledger.wallet.core.device.DeviceManager.{ConnectivityTypes, ConnectivityType}
 import co.ledger.wallet.core.device.{Device, DeviceFactory}
 import co.ledger.wallet.core.device.DeviceFactory.ScanRequest
 import nordpol.android.{OnDiscoveredTagListener, TagDispatcher}
@@ -45,9 +46,11 @@ class NfcDeviceFactory(context: Context, executionContext: ExecutionContext) ext
 
   implicit val ec = executionContext
 
+  override def connectivityType: ConnectivityType = ConnectivityTypes.Nfc
+
   /** *
     * Check if the android device is compatible with the technology (may block the current thread)
- *
+    *
     * @return true if compatible false otherwise
     */
   override def isCompatible: Boolean =
@@ -64,7 +67,7 @@ class NfcDeviceFactory(context: Context, executionContext: ExecutionContext) ext
 
   /** *
     * Request the manager required permission
- *
+    *
     * @param activity The current activity
     * @return
     */
@@ -72,7 +75,7 @@ class NfcDeviceFactory(context: Context, executionContext: ExecutionContext) ext
 
   /** *
     * Check if service is enabled (may block the current thread)
- *
+    *
     * @return true if enabled false otherwise
     */
   override def isEnabled: Boolean = {
@@ -83,7 +86,7 @@ class NfcDeviceFactory(context: Context, executionContext: ExecutionContext) ext
 
   /** *
     * Check if the manager has enough permissions to run (may block the current thread)
- *
+    *
     * @return true if the manager has all required permissions false otherwise
     */
   override def hasPermissions: Boolean = true

@@ -108,4 +108,6 @@ class NfcDeviceImpl(tag: IsoDep, executionContext: ExecutionContext) extends Dev
   }
 
   override def info: String = ""
+
+  override def matchInfo(info: String): Future[Boolean] = ???
 }

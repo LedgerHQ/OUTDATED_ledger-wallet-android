@@ -30,23 +30,44 @@
   */
 package co.ledger.wallet.app.reconnect
 
-import android.app.Activity
-import co.ledger.wallet.core.device.{DeviceFactory, Device}
+import java.util.concurrent.CancellationException
 
-import scala.concurrent.{Promise, Future}
+import android.app.Activity
+import android.app.AlertDialog.Builder
+import android.content.DialogInterface
+import android.content.DialogInterface.{OnDismissListener, OnClickListener}
+import co.ledger.wallet.core.device.{Device, DeviceFactory}
+
+import scala.concurrent.{Future, Promise}
 
 class UsbQuickReconnectHandler(activity: Activity,
                                factory: DeviceFactory,
                                deviceInfo: String) extends QuickReconnectHandler {
 
+
+
   override def show(): QuickReconnectHandler = {
+    _dialog.show()
     this
   }
 
   override def cancel(): QuickReconnectHandler = {
+    _dialog.dismiss()
+    _promise.failure(new CancellationException())
     this
   }
 
   override def device: Future[Device] = _promise.future
   private val _promise: Promise[Device] = Promise()
+  private val _dialog = new Builder(activity)
+    .setMessage("Connecting your USB device")
+    .setNegativeButton("Cancel", new OnClickListener {
+      override def onClick(dialog: DialogInterface, which: Int): Unit = {
+        dialog.dismiss()
+      }
+    })
+      .setOnDismissListener(new OnDismissListener {
+        override def onDismiss(dialog: DialogInterface): Unit = cancel()
+      })
+    .create()
 }

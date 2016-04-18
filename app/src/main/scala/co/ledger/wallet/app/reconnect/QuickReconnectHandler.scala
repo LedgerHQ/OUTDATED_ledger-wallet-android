@@ -35,6 +35,7 @@ import co.ledger.wallet.core.base.DeviceActivity
 import co.ledger.wallet.core.device.Device
 
 import scala.concurrent.Future
+import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.ui
 
 trait QuickReconnectHandler {
   def show(): QuickReconnectHandler
@@ -43,14 +44,34 @@ trait QuickReconnectHandler {
 }
 
 object QuickReconnectHandler {
+  import co.ledger.wallet.core.device.DeviceManager.ConnectivityTypes._
 
   def apply(activity: DeviceActivity): Future[QuickReconnectHandler] = {
     activity.deviceManagerService flatMap {(manager) =>
-      manager.lastConnectedDeviceInfo()
-    } flatMap {
-      case (factory, info) =>
-        null
-    }
+      manager.lastConnectedDevice() map {(device) =>
+        new AlreadyConnectedDeviceQuickReconnectHandler(device)
+      } recoverWith {
+        case all =>
+          manager.lastConnectedDeviceInfo() map {
+            case (factory, info) =>
+              factory.connectivityType match {
+                case Ble => null
+                case Usb => new UsbQuickReconnectHandler(activity, factory, info)
+                case Tee => null
+                case Nfc => null
+              }
+          }
+          }
+      }
+
+  }
+
+  private class AlreadyConnectedDeviceQuickReconnectHandler(d: Device) extends QuickReconnectHandler{
+    override def show(): QuickReconnectHandler = this
+
+    override def cancel(): QuickReconnectHandler = this
+
+    override def device: Future[Device] = Future.successful(d)
   }
 
 }
