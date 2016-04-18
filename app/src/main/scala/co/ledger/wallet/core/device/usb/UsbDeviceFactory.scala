@@ -103,8 +103,6 @@ class UsbDeviceFactory(context: Context, executionContext: ExecutionContext) ext
 
   }
 
-  override def reconnectDevice(info: String): Future[Device] = ???
-
   /** *
     * Request the manager required permission
     *

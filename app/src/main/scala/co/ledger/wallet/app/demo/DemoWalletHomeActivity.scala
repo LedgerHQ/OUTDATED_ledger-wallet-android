@@ -37,6 +37,7 @@ import android.support.v4.view.ViewPager
 import android.view.{MenuItem, Menu, View}
 import android.widget.Toast
 import co.ledger.wallet.R
+import co.ledger.wallet.app.reconnect.QuickReconnectHandler
 import co.ledger.wallet.core.base.{DeviceActivity, BaseActivity, WalletActivity}
 import co.ledger.wallet.core.utils.AndroidUtils
 import co.ledger.wallet.core.view.ViewFinder
@@ -66,7 +67,7 @@ class DemoWalletHomeActivity extends BaseActivity
 
   override def onClickOnReconnectLastDevice(): Unit = {
     deviceManagerService foreach {service =>
-      service.attemptReconnectLastDevice() onComplete {
+      QuickReconnectHandler(this).show().device onComplete {
         case Success(device) =>
 
         case Failure(ex) =>

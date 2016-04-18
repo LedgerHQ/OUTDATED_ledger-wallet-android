@@ -68,8 +68,6 @@ trait DeviceFactory {
   def requestPermission(activity: Activity): Future[Unit]
 
   def requestScan(activity: Activity): ScanRequest
-
-  def reconnectDevice(info: String): Future[Device]
 }
 
 object DeviceFactory {

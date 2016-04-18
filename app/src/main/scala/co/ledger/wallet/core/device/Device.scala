@@ -63,7 +63,7 @@ trait Device {
   private var _uuid: Option[UUID] = None
 
   def info: String
-
+  def matchInfo(info: String): Future[Boolean]
 }
 
 object Device {

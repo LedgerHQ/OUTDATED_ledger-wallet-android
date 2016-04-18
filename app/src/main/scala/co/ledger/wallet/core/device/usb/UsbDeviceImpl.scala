@@ -184,7 +184,7 @@ class UsbDeviceImpl(context: Context,
   private[this] var _exchanger: Option[UsbExchangePerformer] = None
   private[this] var _pendingIntent: Option[PendingIntent] = None
 
-  override def info: String = ???
+  override def info: String = ""
 }
 
 object UsbDeviceImpl {

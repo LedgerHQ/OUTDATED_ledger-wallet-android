@@ -133,6 +133,4 @@ class BleDeviceFactory(context: Context, executionContext: ExecutionContext) ext
     }
     adapter
   }
-
-  override def reconnectDevice(info: String): Future[Device] = ???
 }

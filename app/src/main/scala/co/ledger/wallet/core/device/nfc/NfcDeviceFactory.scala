@@ -102,7 +102,6 @@ class NfcDeviceFactory(context: Context, executionContext: ExecutionContext) ext
         notifyDeviceDiscovered(device)
         lastDevice = Some(device)
       }
-
     })
 
     override def onStart(): Unit = {
@@ -114,6 +113,4 @@ class NfcDeviceFactory(context: Context, executionContext: ExecutionContext) ext
 
     }
   }
-
-  override def reconnectDevice(info: String): Future[Device] = ???
 }

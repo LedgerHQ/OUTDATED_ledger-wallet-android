@@ -40,7 +40,7 @@ import co.ledger.wallet.core.device.nfc.NfcDeviceFactory
 import co.ledger.wallet.core.device.usb.UsbDeviceFactory
 import co.ledger.wallet.core.utils.Preferenceable
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Promise, ExecutionContext, Future}
 
 trait DeviceManager extends Preferenceable {
   import DeviceManager._
@@ -81,6 +81,7 @@ trait DeviceManager extends Preferenceable {
     preferences(context).edit()
       .putString("last_device_type", connectivityTypeToString(device.connectivityType))
       .putString("last_device_info", device.info)
+      .putString("last_device_uuid", uuid.toString)
       .commit()
     uuid
   }
@@ -98,15 +99,13 @@ trait DeviceManager extends Preferenceable {
     _registeredDevices.getOrElse(uuid, throw new Exception("No such device"))
   }
 
-  def attemptReconnectLastDevice(): Future[Device] = {
-    if (preferences(context).contains("last_device_type") &&
-      preferences(context).contains("last_device_info")) {
-      val deviceType = stringToConnectivityType(preferences(context).getString("last_device_type", null))
-      val deviceInfo = preferences(context).getString("last_device_info", null)
-      _deviceManager(deviceType).reconnectDevice(deviceInfo)
-    } else {
-      Future.failed(new Exception("No last device"))
-    }
+  def lastConnectedDevice(): Future[Device] =
+    connectedDevice(UUID.fromString(preferences(context).getString("last_device_uuid", null)))
+
+  def lastConnectedDeviceInfo(): Future[(DeviceFactory, String)] = Future {
+    val deviceType = stringToConnectivityType(preferences(context).getString("last_device_type", null))
+    val deviceInfo = preferences(context).getString("last_device_info", null)
+    (_deviceManager(deviceType), deviceInfo)
   }
 
   def context: Context
