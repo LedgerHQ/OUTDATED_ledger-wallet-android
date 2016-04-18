@@ -38,7 +38,7 @@ import android.bluetooth.le.{ScanCallback, ScanResult}
 import android.content.Context
 import android.content.pm.PackageManager
 import co.ledger.wallet.core.device.DeviceFactory.ScanRequest
-import co.ledger.wallet.core.device.{DeviceFactory, DeviceManager}
+import co.ledger.wallet.core.device.{Device, DeviceFactory, DeviceManager}
 import scala.collection.JavaConverters._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -134,4 +134,5 @@ class BleDeviceFactory(context: Context, executionContext: ExecutionContext) ext
     adapter
   }
 
+  override def reconnectDevice(info: String): Future[Device] = ???
 }

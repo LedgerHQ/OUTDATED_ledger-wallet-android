@@ -35,16 +35,16 @@ import java.util.UUID
 import android.bluetooth._
 import android.bluetooth.le.ScanResult
 import android.content.Context
-import co.ledger.wallet.core.concurrent.{SequentialExecutionContext, ThreadPoolTask}
+import co.ledger.wallet.core.concurrent.ThreadPoolTask
 import co.ledger.wallet.core.device.Device
-import co.ledger.wallet.core.device.Device.{DeviceInfo, Connect, Disconnect}
-import co.ledger.wallet.core.device.DeviceManager.{ConnectivityTypes, ConnectivityType}
+import co.ledger.wallet.core.device.Device.{Connect, Disconnect}
+import co.ledger.wallet.core.device.DeviceManager.{ConnectivityType, ConnectivityTypes}
 import co.ledger.wallet.core.utils.HexUtils
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import de.greenrobot.event.EventBus
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 
 class BleDeviceImpl(context: Context, scanResult: ScanResult)
@@ -344,10 +344,7 @@ class BleDeviceImpl(context: Context, scanResult: ScanResult)
     writeNextChunk()
   }
 
-  override def info: DeviceInfo = new Info
-
-  private class Info extends DeviceInfo {
-
+  override def info: String = {
+    null
   }
-
 }

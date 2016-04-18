@@ -78,6 +78,10 @@ trait DeviceManager extends Preferenceable {
     val uuid = UUID.randomUUID()
     device.uuid = uuid
     _registeredDevices(uuid) = device
+    preferences(context).edit()
+      .putString("last_device_type", connectivityTypeToString(device.connectivityType))
+      .putString("last_device_info", device.info)
+      .commit()
     uuid
   }
 
@@ -95,7 +99,14 @@ trait DeviceManager extends Preferenceable {
   }
 
   def attemptReconnectLastDevice(): Future[Device] = {
-    Future.failed(new Exception("Reconnect not implemented yet"))
+    if (preferences(context).contains("last_device_type") &&
+      preferences(context).contains("last_device_info")) {
+      val deviceType = stringToConnectivityType(preferences(context).getString("last_device_type", null))
+      val deviceInfo = preferences(context).getString("last_device_info", null)
+      _deviceManager(deviceType).reconnectDevice(deviceInfo)
+    } else {
+      Future.failed(new Exception("No last device"))
+    }
   }
 
   def context: Context
@@ -140,6 +151,24 @@ trait DeviceManager extends Preferenceable {
     }
   }
 
+  private def connectivityTypeToString(t: ConnectivityType): String = {
+    t match {
+      case Usb => "usb"
+      case Ble => "ble"
+      case Tee => "tee"
+      case Nfc => "nfc"
+    }
+  }
+
+  private def stringToConnectivityType(t: String): ConnectivityType = {
+    t match {
+      case "usb" => Usb
+      case "ble" => Ble
+      case "tee" => Tee
+      case "nfc" => Nfc
+    }
+  }
+
 }
 
 object DeviceManager {
@@ -148,6 +177,7 @@ object DeviceManager {
     type ConnectivityType = Value
     val Usb, Ble, Tee, Nfc = Value
   }
+
   type ConnectivityType = ConnectivityTypes.ConnectivityType
 
   case class AndroidDeviceNotCompatibleException(msg: String) extends Exception(msg)

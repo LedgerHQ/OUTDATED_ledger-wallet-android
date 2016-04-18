@@ -107,4 +107,5 @@ class NfcDeviceImpl(tag: IsoDep, executionContext: ExecutionContext) extends Dev
 
   }
 
+  override def info: String = ""
 }

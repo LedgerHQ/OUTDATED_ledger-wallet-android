@@ -32,10 +32,9 @@ package co.ledger.wallet.core.device
 
 import android.app.Activity
 import android.os.Handler
-import co.ledger.wallet.core.device.Device.DeviceInfo
 import co.ledger.wallet.core.device.DeviceFactory.ScanRequest
 
-import scala.concurrent.{Promise, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 trait DeviceFactory {
 
@@ -70,7 +69,7 @@ trait DeviceFactory {
 
   def requestScan(activity: Activity): ScanRequest
 
-  def reconnectDevice(info: DeviceInfo): Future[Device]
+  def reconnectDevice(info: String): Future[Device]
 }
 
 object DeviceFactory {

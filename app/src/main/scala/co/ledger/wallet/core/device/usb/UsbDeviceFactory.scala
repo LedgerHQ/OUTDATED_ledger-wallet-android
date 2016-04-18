@@ -48,6 +48,7 @@ class UsbDeviceFactory(context: Context, executionContext: ExecutionContext) ext
 
   /** *
     * Check if the android device is compatible with the technology (may block the current thread)
+ *
     * @return true if compatible false otherwise
     */
   override def isCompatible: Boolean =
@@ -102,8 +103,11 @@ class UsbDeviceFactory(context: Context, executionContext: ExecutionContext) ext
 
   }
 
+  override def reconnectDevice(info: String): Future[Device] = ???
+
   /** *
     * Request the manager required permission
+    *
     * @param activity The current activity
     * @return
     */
@@ -111,12 +115,14 @@ class UsbDeviceFactory(context: Context, executionContext: ExecutionContext) ext
 
   /** *
     * Check if service is enabled (may block the current thread)
+ *
     * @return true if enabled false otherwise
     */
   override def isEnabled: Boolean = true
 
   /** *
     * Check if the manager has enough permissions to run (may block the current thread)
+ *
     * @return true if the manager has all required permissions false otherwise
     */
   override def hasPermissions: Boolean = true

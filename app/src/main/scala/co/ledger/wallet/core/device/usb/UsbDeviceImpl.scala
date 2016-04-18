@@ -184,6 +184,7 @@ class UsbDeviceImpl(context: Context,
   private[this] var _exchanger: Option[UsbExchangePerformer] = None
   private[this] var _pendingIntent: Option[PendingIntent] = None
 
+  override def info: String = ???
 }
 
 object UsbDeviceImpl {
@@ -239,4 +240,7 @@ object UsbDeviceImpl {
     protected[this] var _disconnectCallback: Option[() => Unit] = None
     protected[this] var _disconnectCallbackEC: Option[ExecutionContext] = None
   }
+
+
+
 }
