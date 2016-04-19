@@ -185,7 +185,7 @@ class UsbDeviceImpl(context: Context,
   private[this] var _pendingIntent: Option[PendingIntent] = None
 
   override def info: String = ""
-  override def matchInfo(info: String): Future[Boolean] = ???
+  override def matchInfo(info: String): Future[Boolean] = Future.successful(true)
 }
 
 object UsbDeviceImpl {

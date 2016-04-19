@@ -483,7 +483,7 @@ class SpvWalletClient(context: Context,
   }
 
   private[this] def _resumeBlockchainDownloadMaxBlock_=(max: Int) = {
-    _preferences.writer.putInt(ResumeBlockchainDownloadKey, max)
+    _preferences.writer.putInt(ResumeBlockchainDownloadKey, max).commit()
   }
 
   private case class OnEmptyAccountReceiveTransactionEvent()

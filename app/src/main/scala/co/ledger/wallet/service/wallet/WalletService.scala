@@ -90,7 +90,7 @@ class WalletService extends Service with Loggable {
     wallet(name, prefs.synchronizer)
   }
 
-  def defaultEngineFlag = WalletService.WalletApiEngine
+  def defaultEngineFlag = WalletService.WalletSpvEngine
   def currentWalletName: Option[String] =
     Option(_preferences.reader.getString(CurrentWalletNameKey, null))
 

@@ -36,24 +36,58 @@ import android.app.Activity
 import android.app.AlertDialog.Builder
 import android.content.DialogInterface
 import android.content.DialogInterface.{OnDismissListener, OnClickListener}
+import co.ledger.wallet.core.base.DeviceActivity
+import co.ledger.wallet.core.device.DeviceFactory.{DeviceDiscovered, ScanRequest}
 import co.ledger.wallet.core.device.{Device, DeviceFactory}
 
 import scala.concurrent.{Future, Promise}
+import co.ledger.wallet.core.concurrent.ExecutionContext.Implicits.ui
 
-class UsbQuickReconnectHandler(activity: Activity,
+import scala.util.{Failure, Success}
+
+class UsbQuickReconnectHandler(activity: DeviceActivity,
                                factory: DeviceFactory,
                                deviceInfo: String) extends QuickReconnectHandler {
 
 
+  private def startScan(): Unit = {
+    _scanRequest = Some(factory.requestScan(activity))
+    _scanRequest.get onScanUpdate {
+      case DeviceDiscovered(device) =>
+        device.matchInfo(deviceInfo) foreach { (isSameDevice) =>
+          if (isSameDevice) {
+            device.connect() onComplete {
+              case Success(_) =>
+                activity.registerDevice(device) foreach {_ =>
+                  _promise.success(device)
+                  cancel()
+                }
+              case Failure(ex) =>
+                _promise.failure(ex)
+                cancel()
+            }
+          }
+        }
+      case ignore =>
+    }
+    _scanRequest.get.start()
+  }
 
   override def show(): QuickReconnectHandler = {
     _dialog.show()
     this
   }
 
+  def done(): Unit = {
+    _dialog.dismiss()
+  }
+
   override def cancel(): QuickReconnectHandler = {
     _dialog.dismiss()
-    _promise.failure(new CancellationException())
+    _scanRequest.foreach(_.stop())
+    if (!_promise.isCompleted) {
+      _promise.failure(new CancellationException())
+    }
     this
   }
 
@@ -66,8 +100,11 @@ class UsbQuickReconnectHandler(activity: Activity,
         dialog.dismiss()
       }
     })
-      .setOnDismissListener(new OnDismissListener {
-        override def onDismiss(dialog: DialogInterface): Unit = cancel()
-      })
+    .setOnDismissListener(new OnDismissListener {
+      override def onDismiss(dialog: DialogInterface): Unit = cancel()
+    })
     .create()
+  private var _scanRequest: Option[ScanRequest] = None
+
+  startScan()
 }

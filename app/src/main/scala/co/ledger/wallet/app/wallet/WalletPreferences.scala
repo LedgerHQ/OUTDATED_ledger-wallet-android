@@ -55,7 +55,7 @@ ExecutionContext) {
   private val _data: WalletPreferencesProtos.WalletPreferences =
     ProtobufHelper.parseFrom(new WalletPreferencesProtos.WalletPreferences, file) {(prefs) =>
       prefs.delayBeforeShutdown = 15.minutes.toMillis
-      prefs.synchronizer = WalletPreferencesProtos.WalletPreferences.API
+      prefs.synchronizer = WalletPreferencesProtos.WalletPreferences.SPV
     }
 
   def synchronizer_=(mode: Int) = set(_data.synchronizer = mode)
