@@ -35,6 +35,7 @@ import java.util.{Date, NoSuchElementException}
 
 import android.content.Context
 import android.net.Uri
+import android.os.{Handler, Looper}
 import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.{AbstractAsyncCursor, AsyncCursor, SerialQueueTask}
 import co.ledger.wallet.core.net.HttpClient
@@ -63,7 +64,9 @@ import org.joda.time.DateTime
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{duration, Future, Promise}
+
+import duration._
 
 class SpvWalletClient(context: Context,
                       name: String,
@@ -76,6 +79,8 @@ class SpvWalletClient(context: Context,
   val NeededAccountCreationTimeKey = "n_time"
   val ResumeBlockchainDownloadKey = "max_block_left"
   val ResumeBlockchainDownloadBlockHeightKey = "block_height"
+  val StallThresholdDelay = 1 minute
+
 
   implicit val DisableLogging = false
 
@@ -101,7 +106,14 @@ class SpvWalletClient(context: Context,
             promise.failure(AccountHasNoXpubException(accountsCount))
         }
       }
+      val handler = new Handler(Looper.getMainLooper)
       _internalEventBus.register(eventHandler)
+      val stallThresholdCallback = new Runnable {
+        override def run(): Unit = {
+          if (!promise.isCompleted)
+            promise.failure(DownloadBlockChainTooLongException())
+        }
+      }
       appKit.synchronize(new DownloadProgressTracker() {
 
         override def startDownload(blocks: Int): Unit = {
@@ -118,6 +130,8 @@ class SpvWalletClient(context: Context,
               _resumeBlockchainDownloadMaxBlock = _max
             }
             eventBus.post(SynchronizationProgress(_max - blocksLeft, _max, block.getTime))
+            handler.removeCallbacks(stallThresholdCallback)
+            handler.postDelayed(stallThresholdCallback, StallThresholdDelay.toMillis)
           }
         }
 
@@ -148,6 +162,10 @@ class SpvWalletClient(context: Context,
           eventBus.post(NewAccount(index))
           performSynchronization(extendedPublicKeyProvider)
         }
+      case DownloadBlockChainTooLongException() =>
+        Logger.i("Download took too long, restart synchronization now!")
+        clearAppKit()
+        performSynchronization(extendedPublicKeyProvider)
     }
   }
 
@@ -594,5 +612,9 @@ class SpvWalletClient(context: Context,
     }
 
   }
+
+
+  private case class DownloadBlockChainTooLongException()
+    extends Exception("Stall threshold reached during blockchain download")
 }
 

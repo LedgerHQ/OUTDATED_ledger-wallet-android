@@ -108,7 +108,7 @@ dependencies {
     androidTestCompile 'com.android.support:multidex-instrumentation:1.0.1'
     testCompile 'junit:junit:4.12'
     debugCompile 'com.facebook.stetho:stetho:1.2.0'
-    //compile 'org.slf4j:slf4j-android:1.6.1-RC1'
+    compile 'org.slf4j:slf4j-android:1.6.1-RC1'
 }
 
 tasks.withType(ScalaCompile) {
