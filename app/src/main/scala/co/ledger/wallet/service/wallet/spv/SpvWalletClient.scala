@@ -40,7 +40,7 @@ import co.ledger.wallet.app.Config
 import co.ledger.wallet.core.concurrent.{AbstractAsyncCursor, AsyncCursor, SerialQueueTask}
 import co.ledger.wallet.core.net.HttpClient
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
-import co.ledger.wallet.core.utils.{BitcoinjUtils, Preferences}
+import co.ledger.wallet.core.utils.{HexUtils, BitcoinjUtils, Preferences}
 import co.ledger.wallet.service.wallet.AbstractDatabaseStoredWallet
 import co.ledger.wallet.service.wallet.database.DatabaseStructure.OperationTableColumns
 import co.ledger.wallet.service.wallet.database.cursor.{BlockCursor, OperationCursor}
@@ -67,6 +67,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{duration, Future, Promise}
 
 import duration._
+import scala.util.Success
 
 class SpvWalletClient(context: Context,
                       name: String,
@@ -79,7 +80,7 @@ class SpvWalletClient(context: Context,
   val NeededAccountCreationTimeKey = "n_time"
   val ResumeBlockchainDownloadKey = "max_block_left"
   val ResumeBlockchainDownloadBlockHeightKey = "block_height"
-  val StallThresholdDelay = 1 minute
+  val StallThresholdDelay = 30 seconds
 
 
   implicit val DisableLogging = false
@@ -91,7 +92,10 @@ class SpvWalletClient(context: Context,
     if (_syncFuture.isEmpty) {
       _syncFuture = Some(performSynchronization(xpubProvider))
     }
-    _syncFuture.get
+    _syncFuture.get andThen {
+      case Success(_) => tryRebroadcastPendingTransactions()
+      case ignore =>
+    }
   }
 
   private[this] def performSynchronization(extendedPublicKeyProvider: ExtendedPublicKeyProvider): Future[Unit] = {
@@ -109,11 +113,12 @@ class SpvWalletClient(context: Context,
       val handler = new Handler(Looper.getMainLooper)
       _internalEventBus.register(eventHandler)
       val stallThresholdCallback = new Runnable {
-        override def run(): Unit = {
+        override def run(): Unit = Future {
           if (!promise.isCompleted)
             promise.failure(DownloadBlockChainTooLongException())
         }
       }
+      handler.postDelayed(stallThresholdCallback, StallThresholdDelay.toMillis)
       appKit.synchronize(new DownloadProgressTracker() {
 
         override def startDownload(blocks: Int): Unit = {
@@ -165,6 +170,7 @@ class SpvWalletClient(context: Context,
       case DownloadBlockChainTooLongException() =>
         Logger.i("Download took too long, restart synchronization now!")
         clearAppKit()
+        Logger.i("AppKit cleared restart!")
         performSynchronization(extendedPublicKeyProvider)
     }
   }
@@ -174,7 +180,7 @@ class SpvWalletClient(context: Context,
     database.writer.deleteTransaction(tx.getHashAsString)
   }
 
-  def notifyAccountTransaction(account: SpvAccountClient, tx: Transaction): Unit = Future {
+  def notifyAccountTransaction(account: SpvAccountClient, tx: Transaction): Future[Unit] = Future {
     if (_accounts.length > 0 && account == _accounts.last) {
       Logger.d("Need a new account")
       // TODO: Get block height
@@ -613,8 +619,50 @@ class SpvWalletClient(context: Context,
 
   }
 
+  private def tryRebroadcastPendingTransactions(): Unit = Future {
+    Logger.d("Rebroadcasting transactions")
+    for (account <- _accounts) {
+      for (tx <- account.xpubWatcher.getPendingTransactions.asScala) {
+        Logger.d(s"Rebroadcast ${tx.getHashAsString} ${HexUtils.bytesToHex(tx.bitcoinSerialize())}")
+        _spvAppKit.get.peerGroup.broadcastTransaction(tx).broadcast()
+      }
+    }
+  }
 
   private case class DownloadBlockChainTooLongException()
     extends Exception("Stall threshold reached during blockchain download")
+
+  /***
+    * Utility method to ensure every transaction are inserted in the database
+    * @return
+    */
+  def resynchronizeDatabaseWithBlockchain(): Future[Unit] = {
+    val accounts = _accounts
+
+    def resynchronize(account: SpvAccountClient): Future[Unit] = {
+      val txs = account.xpubWatcher.getTransactionsByTime
+      def loop(index: Int): Future[Unit] = {
+        if (index < 0)
+          Future.successful()
+        else {
+          notifyAccountTransaction(account, txs.get(index)) flatMap {unit =>
+            iterate(index - 1)
+          }
+        }
+      }
+      loop(txs.size() - 1)
+    }
+
+    def iterate(index: Int): Future[Unit] = {
+      if (index >= accounts.length)
+        Future.successful()
+      else {
+       resynchronize(accounts(index)) flatMap {(_) =>
+         iterate(index + 1)
+       }
+      }
+    }
+    iterate(0)
+  }
 }
 

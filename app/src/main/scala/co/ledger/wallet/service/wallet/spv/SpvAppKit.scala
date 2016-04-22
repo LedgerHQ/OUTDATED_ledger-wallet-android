@@ -30,6 +30,8 @@
  */
 package co.ledger.wallet.service.wallet.spv
 
+import java.net.InetAddress
+
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.service.wallet.database.model.AccountRow
 import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture}
@@ -50,6 +52,28 @@ class SpvAppKit(
 
   peerGroup.setDownloadTxDependencies(false)
   peerGroup.addPeerDiscovery(new DnsDiscovery(Context.get().getParams))
+  /*
+  for (ip <- Array(
+    //"82.238.176.192:8333",
+    //"82.238.176.192:8333",
+    //"37.187.101.17:8333",
+    //"188.165.200.51:8333",
+    //"212.129.4.178:8333",
+    "151.80.42.204:8334",
+    "151.80.43.226:8334",
+    "151.80.43.227:8334",
+    "37.187.140.170:8333"
+  )) {
+    val components = ip.split(':')
+    val bytes = components(0).split('.').map(_.toInt.toByte)
+    val port = components.lift(1).map(_.toInt).getOrElse(8333)
+    peerGroup.addAddress(new PeerAddress(InetAddress.getByAddress(bytes), port))
+  }
+*/
+  // 82.238.176.192:8333
+  // 37.187.101.17:8333
+  // 188.165.200.51:8333
+  // 212.129.4.178:8333
   val bestBlock = Option(blockStore.getChainHead)
   accounts foreach {
     case (accountRow, wallet) =>
