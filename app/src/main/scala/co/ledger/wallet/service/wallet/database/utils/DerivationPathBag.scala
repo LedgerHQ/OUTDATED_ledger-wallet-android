@@ -44,7 +44,7 @@ class DerivationPathBag {
   def inflate(tx: TransactionProxy, keyChain: DeterministicKeyChain, accountIndex: Int): Unit = {
     for (input <- tx.inputs if input.address.isDefined) {
       val hash = new Address(null, input.address.get).getHash160
-      val key = keyChain.findKeyFromPubHash(hash)
+      val key = keyChain.markPubHashAsUsed(hash)
       if (key != null)
         _bag(HexUtils.bytesToHex(hash)) = (key, accountIndex)
     }
