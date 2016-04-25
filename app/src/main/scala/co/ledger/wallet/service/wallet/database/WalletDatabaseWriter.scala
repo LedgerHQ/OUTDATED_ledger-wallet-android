@@ -49,6 +49,10 @@ class WalletDatabaseWriter(database: SQLiteDatabase) {
     database.delete(AccountTableName, "", null)
   }
 
+  def deleteAllOperations(): Int = {
+    database.delete(OperationTableName, "", null)
+  }
+
   def deleteTransaction(hash: String): Int = {
     import TransactionTableColumns._
     database.delete(TransactionTableName, s"$Hash = ?", Array(hash))

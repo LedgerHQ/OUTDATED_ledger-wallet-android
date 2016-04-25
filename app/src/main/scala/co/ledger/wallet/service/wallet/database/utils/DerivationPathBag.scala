@@ -41,7 +41,7 @@ import scala.collection.JavaConverters._
 
 class DerivationPathBag {
 
-  def inflate(tx: TransactionProxy, keyChain: DeterministicKeyChain, accountIndex: Int): Unit = {
+  def inflate(tx: TransactionProxy, keyChain: => DeterministicKeyChain, accountIndex: Int): Unit = {
     for (input <- tx.inputs if input.address.isDefined) {
       val hash = new Address(null, input.address.get).getHash160
       val key = keyChain.markPubHashAsUsed(hash)

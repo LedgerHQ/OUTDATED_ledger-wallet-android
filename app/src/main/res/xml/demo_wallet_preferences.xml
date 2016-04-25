@@ -11,6 +11,11 @@
             android:summary="Close the wallet user interface. You will need to open it again with a device"
             />
 
+        <Preference
+            android:key="resync"
+            android:title="Synchronize database with local Blockchain"
+            />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

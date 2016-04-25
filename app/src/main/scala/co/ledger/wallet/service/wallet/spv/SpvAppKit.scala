@@ -69,7 +69,7 @@ class SpvAppKit(
     val port = components.lift(1).map(_.toInt).getOrElse(8333)
     peerGroup.addAddress(new PeerAddress(InetAddress.getByAddress(bytes), port))
   }
-*/
+  */
   // 82.238.176.192:8333
   // 37.187.101.17:8333
   // 188.165.200.51:8333
@@ -100,6 +100,9 @@ class SpvAppKit(
     Logger.d(s"Current first account height ${accounts(0)._2.getLastBlockSeenHeight}")
     Try(peerGroup.stop())
     Try(blockStore.close())
+    for (account <- accounts) {
+      account._2.shutdownAutosaveAndWait()
+    }
   }
 
   private[this] lazy val _startFuture = {

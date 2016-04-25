@@ -186,9 +186,12 @@ class SpvWalletClient(context: Context,
       // TODO: Get block height
       notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000, 0)
     }
+    /*
     if (tx.getConfidence.getConfidenceType == TransactionConfidence.ConfidenceType.PENDING)
       observePendingTransaction(account,tx)
     pushTransaction(account, tx)
+    */
+    ()
   } recover {
     case throwable: Throwable => throwable.printStackTrace()
   }
@@ -634,11 +637,11 @@ class SpvWalletClient(context: Context,
 
   /***
     * Utility method to ensure every transaction are inserted in the database
+    *
     * @return
     */
   def resynchronizeDatabaseWithBlockchain(): Future[Unit] = {
     val accounts = _accounts
-
     def resynchronize(account: SpvAccountClient): Future[Unit] = {
       val txs = account.xpubWatcher.getTransactionsByTime
       def loop(index: Int): Future[Unit] = {
@@ -646,7 +649,7 @@ class SpvWalletClient(context: Context,
           Future.successful()
         else {
           notifyAccountTransaction(account, txs.get(index)) flatMap {unit =>
-            iterate(index - 1)
+            loop(index - 1)
           }
         }
       }
@@ -662,7 +665,11 @@ class SpvWalletClient(context: Context,
        }
       }
     }
-    iterate(0)
+    Future {
+      database.writer.deleteAllOperations()
+    } flatMap { _ =>
+      iterate(0)
+    }
   }
 }
 

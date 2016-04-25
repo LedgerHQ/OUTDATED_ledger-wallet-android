@@ -30,6 +30,7 @@
  */
 package co.ledger.wallet.app.demo
 
+import android.app.ProgressDialog
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.preference.Preference.OnPreferenceClickListener
@@ -37,6 +38,11 @@ import android.support.v7.preference.{Preference, PreferenceFragmentCompat}
 import co.ledger.wallet.R
 import co.ledger.wallet.core.base.{UiContext, WalletActivity}
 import co.ledger.wallet.service.wallet.WalletService
+import co.ledger.wallet.service.wallet.spv.SpvWalletClient
+import co.ledger.wallet.wallet.proxy.WalletProxy
+import shapeless.Succ
+
+import scala.util.{Failure, Success}
 
 class DemoWalletSettingsFragment extends PreferenceFragmentCompat with UiContext {
 
@@ -60,10 +66,28 @@ class DemoWalletSettingsFragment extends PreferenceFragmentCompat with UiContext
         true
       }
     })
+    findPreference("resync").setOnPreferenceClickListener(new OnPreferenceClickListener {
+      override def onPreferenceClick(preference: Preference): Boolean = {
+        resync()
+        true
+      }
+    })
   }
 
   override def onCreatePreferences(bundle: Bundle, s: String): Unit = {
 
+  }
+
+  def resync(): Unit = {
+    val d = ProgressDialog.show(getActivity, "Loading", "Synchronizing database with Blockchain")
+    getActivity.asInstanceOf[WalletActivity].wallet.asInstanceOf[WalletProxy].connect() flatMap {w=>
+      w.asInstanceOf[SpvWalletClient].resynchronizeDatabaseWithBlockchain()
+    } onComplete {
+      case Success(_) => d.dismiss()
+      case Failure(ex) =>
+        ex.printStackTrace()
+        d.dismiss()
+    }
   }
 
   override def isDestroyed: Boolean = false
