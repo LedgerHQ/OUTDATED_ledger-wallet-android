@@ -85,7 +85,10 @@ class DemoOpenWalletActivity extends BaseActivity
       case ex: NoSuchElementException => synchronizeWallet()
       case ex: TooOldException => synchronizeWallet()
       case ex: WalletNotSetupException => setupWallet()
-      case ex: Throwable => ex.printStackTrace()
+      case ex: Throwable =>
+        Toast.makeText(this, "Something bad happened", Toast.LENGTH_LONG).show()
+        finish()
+        ex.printStackTrace()
     }
   }
 

@@ -186,12 +186,9 @@ class SpvWalletClient(context: Context,
       // TODO: Get block height
       notifyNewAccountNeed(account.index + 1, tx.getUpdateTime.getTime / 1000, 0)
     }
-    /*
     if (tx.getConfidence.getConfidenceType == TransactionConfidence.ConfidenceType.PENDING)
       observePendingTransaction(account,tx)
     pushTransaction(account, tx)
-    */
-    ()
   } recover {
     case throwable: Throwable => throwable.printStackTrace()
   }
