@@ -38,8 +38,9 @@ import java.util.concurrent.TimeUnit
 import co.ledger.wallet.core.utils.logs.{Loggable, Logger}
 import co.ledger.wallet.service.wallet.database.WalletDatabaseOpenHelper
 import co.ledger.wallet.service.wallet.database.model.AccountRow
+import co.ledger.wallet.wallet.DerivationPath
 import org.bitcoinj.core.{Wallet => JWallet, _}
-import org.bitcoinj.crypto.{DeterministicHierarchy, LazyECPoint, DeterministicKey}
+import org.bitcoinj.crypto.{ChildNumber, DeterministicHierarchy, LazyECPoint, DeterministicKey}
 import org.bitcoinj.net.discovery.{PeerDiscovery, DnsDiscovery}
 import org.bitcoinj.store.{WalletProtobufSerializer, SPVBlockStore}
 import org.bitcoinj.wallet.{DeterministicKeyChain, KeyChainGroup}
@@ -122,10 +123,17 @@ class SpvAppKitFactory(executionContext: ExecutionContext,
           val saved = JWallet.loadFromFile(walletFile)
           // TODO: Report bug to bitcoinj + use a wallet factory to prevent recreating wallet
           // each time
-          for (tx <- saved.getWalletTransactions.asScala)
+          var idx = 0
+          val path = DerivationPath.apply("0'/0/0").toBitcoinJList
+          for (tx <- saved.getWalletTransactions.asScala) {
             wallet.addWalletTransaction(tx)
-          for (key <- saved.getActiveKeychain.getLeafKeys.asScala) {
-            wallet.getActiveKeychain.markKeyAsUsed(key)
+            val lastChildNum = new ChildNumber(idx, false)
+            path.set(1, ChildNumber.ZERO)
+            path.set(2, lastChildNum)
+            wallet.getActiveKeychain.markKeyAsUsed(wallet.getActiveKeychain.getKeyByPath(path, true))
+            path.set(1, ChildNumber.ONE)
+            wallet.getActiveKeychain.markKeyAsUsed(wallet.getActiveKeychain.getKeyByPath(path, true))
+            idx += 1
           }
         }
         wallet.autosaveToFile(walletFile, 1L, TimeUnit.SECONDS, null)
