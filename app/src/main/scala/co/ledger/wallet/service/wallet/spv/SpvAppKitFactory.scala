@@ -30,7 +30,7 @@
  */
 package co.ledger.wallet.service.wallet.spv
 
-import java.io.{IOException, InputStream, File}
+import java.io.{FileInputStream, IOException, InputStream, File}
 import java.util
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -41,7 +41,7 @@ import co.ledger.wallet.service.wallet.database.model.AccountRow
 import org.bitcoinj.core.{Wallet => JWallet, _}
 import org.bitcoinj.crypto.{DeterministicHierarchy, LazyECPoint, DeterministicKey}
 import org.bitcoinj.net.discovery.{PeerDiscovery, DnsDiscovery}
-import org.bitcoinj.store.SPVBlockStore
+import org.bitcoinj.store.{WalletProtobufSerializer, SPVBlockStore}
 import org.bitcoinj.wallet.{DeterministicKeyChain, KeyChainGroup}
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Promise, Future}
@@ -105,7 +105,6 @@ class SpvAppKitFactory(executionContext: ExecutionContext,
     builder.build()
   }
 
-
   private def allAccounts() = {
     val cursor = database.reader.allAccounts()
     val wallets = new Array[(AccountRow, JWallet)](cursor.getCount)
@@ -125,6 +124,9 @@ class SpvAppKitFactory(executionContext: ExecutionContext,
           // each time
           for (tx <- saved.getWalletTransactions.asScala)
             wallet.addWalletTransaction(tx)
+          for (key <- saved.getActiveKeychain.getLeafKeys.asScala) {
+            wallet.getActiveKeychain.markKeyAsUsed(key)
+          }
         }
         wallet.autosaveToFile(walletFile, 1L, TimeUnit.SECONDS, null)
         wallets(index) = (row, wallet)
